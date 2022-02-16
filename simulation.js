@@ -24,6 +24,13 @@ class Simulator {
         canvas.width = width;
         canvas.height = height;
 
+        this.windX = INITIAL_WIND[0];
+        this.windY = INITIAL_WIND[1];
+        this.size = INITIAL_SIZE;
+        this.choppiness = INITIAL_CHOPPINESS;
+        this.canvas = canvas;
+        this.changed = true;
+
         const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 
         gl.getExtension('OES_texture_float');
@@ -89,6 +96,13 @@ class Simulator {
         uniform3f('u_skyColor', SKY_COLOR[0], SKY_COLOR[1], SKY_COLOR[2]);
         uniform3f('u_sunDirection', SUN_DIRECTION[0], SUN_DIRECTION[1], SUN_DIRECTION[2]);
         uniform1f('u_exposure', EXPOSURE);
+
+        gl.enableVertexAttribArray(0);
+
+        var fullscreenVertexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, fullscreenVertexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0]), gl.STATIC_DRAW);
+        this.fullscreenVertexBuffer = fullscreenVertexBuffer;
         
         var oceanData = [];
         for (var zIndex = 0; zIndex < GEOMETRY_RESOLUTION; zIndex += 1) {
@@ -100,6 +114,11 @@ class Simulator {
                 oceanData.push(zIndex / (GEOMETRY_RESOLUTION - 1));
             }
         }
+        var oceanBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, oceanBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(oceanData), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(OCEAN_COORDINATES_UNIT, 2, gl.FLOAT, false, 5 * SIZE_OF_FLOAT, 3 * SIZE_OF_FLOAT);
+        this.oceanBuffer = oceanBuffer; 
         
         var oceanIndices = [];
         for (var zIndex = 0; zIndex < GEOMETRY_RESOLUTION - 1; zIndex += 1) {
@@ -117,7 +136,17 @@ class Simulator {
                 oceanIndices.push(topLeft);
             }
         }
+        var oceanIndexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, oceanIndexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(oceanIndices), gl.STATIC_DRAW);
+        this.oceanIndices = oceanIndices;
 
+
+        function buildFramebufferLocal({unit, phase=null, edge=gl.CLAMP_TO_EDGE, interp=gl.NEAREST}) {
+            return buildFramebuffer(gl, buildTexture(
+                gl, unit, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, phase, edge, edge, interp, interp,
+            ));
+        }
         var phaseArray = new Float32Array(RESOLUTION * RESOLUTION * 4);
         for (var i = 0; i < RESOLUTION; i += 1) {
             for (var j = 0; j < RESOLUTION; j += 1) {
@@ -127,27 +156,6 @@ class Simulator {
                 phaseArray[i * RESOLUTION * 4 + j * 4 + 3] = 0;
             }
         }
-
-        gl.enableVertexAttribArray(0);
-
-        var fullscreenVertexBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, fullscreenVertexBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0]), gl.STATIC_DRAW);
-
-        var oceanBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, oceanBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(oceanData), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(OCEAN_COORDINATES_UNIT, 2, gl.FLOAT, false, 5 * SIZE_OF_FLOAT, 3 * SIZE_OF_FLOAT);
-
-        var oceanIndexBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, oceanIndexBuffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(oceanIndices), gl.STATIC_DRAW);
-
-        function buildFramebufferLocal({unit, phase=null, edge=gl.CLAMP_TO_EDGE, interp=gl.NEAREST}) {
-            return buildFramebuffer(gl, buildTexture(
-                gl, unit, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, phase, edge, edge, interp, interp,
-            ));
-        }
         this.initialSpectrumFramebuffer = buildFramebufferLocal({unit: INITIAL_SPECTRUM_UNIT, edge: gl.REPEAT});
         this.pingPhaseFramebuffer = buildFramebufferLocal({unit: PING_PHASE_UNIT, phase: phaseArray});
         this.pongPhaseFramebuffer = buildFramebufferLocal({unit: PONG_PHASE_UNIT});
@@ -156,18 +164,6 @@ class Simulator {
         this.normalMapFramebuffer = buildFramebufferLocal({unit: NORMAL_MAP_UNIT, interp: gl.LINEAR});
         this.pingTransformFramebuffer = buildFramebufferLocal({unit: PING_TRANSFORM_UNIT});
         this.pongTransformFramebuffer = buildFramebufferLocal({unit: PONG_TRANSFORM_UNIT});
-
-        this.changed = true;
-        this.windX = INITIAL_WIND[0];
-        this.windY = INITIAL_WIND[1];
-        this.size = INITIAL_SIZE;
-        this.choppiness = INITIAL_CHOPPINESS;
-        this.canvas = canvas;
-
-        this.fullscreenVertexBuffer = fullscreenVertexBuffer;
-        this.oceanBuffer = oceanBuffer; 
-        this.oceanIndices = oceanIndices;
-
         this.pingPhase = true;
     }
 
