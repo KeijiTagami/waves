@@ -202,7 +202,7 @@ var main = function () {
 };
 
 if (hasWebGLSupportWithExtensions(['OES_texture_float', 'OES_texture_float_linear'])) {
-    main();
+    load_gl().then(() => main());
 } else {
     document.getElementById('error').style.display = 'block';
     document.getElementById('footer').style.display = 'none';
