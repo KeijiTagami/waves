@@ -34,8 +34,9 @@ class Simulator {
 
         const fullscreenVertexShader = buildShader(gl, gl.VERTEX_SHADER, FULLSCREEN_VERTEX_SOURCE);
         function buildFullscreenProgram(src) {
-            const shader = buildShader(gl, gl.FRAGMENT_SHADER, src, {'a_position': 0});
-            return buildProgramWrapper(gl, fullscreenVertexShader, shader);
+            const shader = buildShader(gl, gl.FRAGMENT_SHADER, src);
+            const params = {'a_position': 0};
+            return buildProgramWrapper(gl, fullscreenVertexShader, shader, params);
         }
         const horizontalSubtransformProgram = buildFullscreenProgram('#define HORIZONTAL \n' + SUBTRANSFORM_FRAGMENT_SOURCE);
         const verticalSubtransformProgram = buildFullscreenProgram(SUBTRANSFORM_FRAGMENT_SOURCE);
@@ -46,8 +47,9 @@ class Simulator {
 
         const oceanVertexShader = buildShader(gl, gl.VERTEX_SHADER, OCEAN_VERTEX_SOURCE);
         function buildOceanProgram(src) {
-            const shader = buildShader(gl, gl.FRAGMENT_SHADER, src, {'a_position': 0, 'a_coodinates': OCEAN_COORDINATES_UNIT});
-            return buildProgramWrapper(gl, oceanVertexShader, shader);
+            const shader = buildShader(gl, gl.FRAGMENT_SHADER, src);
+            const params = {'a_position': 0, 'a_coodinates': OCEAN_COORDINATES_UNIT};
+            return buildProgramWrapper(gl, oceanVertexShader, shader, params);
         }
         const oceanProgram = buildOceanProgram(OCEAN_FRAGMENT_SOURCE);
 
