@@ -32,11 +32,14 @@ class Simulator {
         gl.clearColor.apply(gl, CLEAR_COLOR);
         gl.enable(gl.DEPTH_TEST);
 
-        const fullscreenVertexShader = buildShader(gl, gl.VERTEX_SHADER, FULLSCREEN_VERTEX_SOURCE);
         function buildFullscreenProgram(src) {
-            const shader = buildShader(gl, gl.FRAGMENT_SHADER, src);
-            const params = {'a_position': 0};
-            return buildProgramWrapper(gl, fullscreenVertexShader, shader, params);
+            let v = null;
+            if (v == null) {
+                v = buildShader(gl, gl.VERTEX_SHADER, FULLSCREEN_VERTEX_SOURCE);
+            }
+            const f = buildShader(gl, gl.FRAGMENT_SHADER, src);
+            const p = {'a_position': 0};
+            return buildProgramWrapper(gl, v, f, p);
         }
         const horizontalSubtransformProgram = buildFullscreenProgram('#define HORIZONTAL \n' + SUBTRANSFORM_FRAGMENT_SOURCE);
         const verticalSubtransformProgram = buildFullscreenProgram(SUBTRANSFORM_FRAGMENT_SOURCE);
@@ -45,13 +48,12 @@ class Simulator {
         const spectrumProgram = buildFullscreenProgram(SPECTRUM_FRAGMENT_SOURCE);
         const normalMapProgram = buildFullscreenProgram(NORMAL_MAP_FRAGMENT_SOURCE);
 
-        const oceanVertexShader = buildShader(gl, gl.VERTEX_SHADER, OCEAN_VERTEX_SOURCE);
-        function buildOceanProgram(src) {
-            const shader = buildShader(gl, gl.FRAGMENT_SHADER, src);
-            const params = {'a_position': 0, 'a_coodinates': OCEAN_COORDINATES_UNIT};
-            return buildProgramWrapper(gl, oceanVertexShader, shader, params);
-        }
-        const oceanProgram = buildOceanProgram(OCEAN_FRAGMENT_SOURCE);
+        const oceanProgram = (() => {
+            const v = buildShader(gl, gl.VERTEX_SHADER, OCEAN_VERTEX_SOURCE);
+            const f = buildShader(gl, gl.FRAGMENT_SHADER, OCEAN_FRAGMENT_SOURCE);
+            const p = {'a_position': 0, 'a_coodinates': OCEAN_COORDINATES_UNIT};
+            return buildProgramWrapper(gl, v, f, p);
+        })();
 
         let p;
         function useProgram(program) { p = program; gl.useProgram(p.program); }
