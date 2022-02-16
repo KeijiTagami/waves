@@ -1,11 +1,11 @@
-var FULLSCREEN_VERTEX_SOURCE;
-var SUBTRANSFORM_FRAGMENT_SOURCE;
-var INITIAL_SPECTRUM_FRAGMENT_SOURCE;
-var PHASE_FRAGMENT_SOURCE;
-var SPECTRUM_FRAGMENT_SOURCE;
-var NORMAL_MAP_FRAGMENT_SOURCE;
-var OCEAN_VERTEX_SOURCE;
-var OCEAN_FRAGMENT_SOURCE;
+let FULLSCREEN_VERTEX_SOURCE;
+let SUBTRANSFORM_FRAGMENT_SOURCE;
+let INITIAL_SPECTRUM_FRAGMENT_SOURCE;
+let PHASE_FRAGMENT_SOURCE;
+let SPECTRUM_FRAGMENT_SOURCE;
+let NORMAL_MAP_FRAGMENT_SOURCE;
+let OCEAN_VERTEX_SOURCE;
+let OCEAN_FRAGMENT_SOURCE;
 
 async function load_gl() {
     FULLSCREEN_VERTEX_SOURCE = await fetch('./gl/fullscreen.vert').then(res => res.text());
@@ -24,7 +24,7 @@ class Simulator {
         canvas.width = width;
         canvas.height = height;
 
-        var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 
         gl.getExtension('OES_texture_float');
         gl.getExtension('OES_texture_float_linear');
@@ -32,60 +32,59 @@ class Simulator {
         gl.clearColor.apply(gl, CLEAR_COLOR);
         gl.enable(gl.DEPTH_TEST);
 
-        var fullscreenVertexShader = buildShader(gl, gl.VERTEX_SHADER, FULLSCREEN_VERTEX_SOURCE);
+        const fullscreenVertexShader = buildShader(gl, gl.VERTEX_SHADER, FULLSCREEN_VERTEX_SOURCE);
+        function buildFullscreenProgram(src) {
+            const shader = buildShader(gl, gl.FRAGMENT_SHADER, src, {'a_position': 0});
+            return buildProgramWrapper(gl, fullscreenVertexShader, shader);
+        }
+        const horizontalSubtransformProgram = buildFullscreenProgram('#define HORIZONTAL \n' + SUBTRANSFORM_FRAGMENT_SOURCE);
+        const verticalSubtransformProgram = buildFullscreenProgram(SUBTRANSFORM_FRAGMENT_SOURCE);
+        const initialSpectrumProgram = buildFullscreenProgram(INITIAL_SPECTRUM_FRAGMENT_SOURCE);
+        const phaseProgram = buildFullscreenProgram(PHASE_FRAGMENT_SOURCE);
+        const spectrumProgram = buildFullscreenProgram(SPECTRUM_FRAGMENT_SOURCE);
+        const normalMapProgram = buildFullscreenProgram(NORMAL_MAP_FRAGMENT_SOURCE);
 
-        var horizontalSubtransformProgram = buildProgramWrapper(gl, fullscreenVertexShader, 
-            buildShader(gl, gl.FRAGMENT_SHADER, '#define HORIZONTAL \n' + SUBTRANSFORM_FRAGMENT_SOURCE), {'a_position': 0});
-        gl.useProgram(horizontalSubtransformProgram.program);
-        gl.uniform1f(horizontalSubtransformProgram.uniformLocations['u_transformSize'], RESOLUTION);
+        const oceanVertexShader = buildShader(gl, gl.VERTEX_SHADER, OCEAN_VERTEX_SOURCE);
+        function buildOceanProgram(src) {
+            const shader = buildShader(gl, gl.FRAGMENT_SHADER, src, {'a_position': 0, 'a_coodinates': OCEAN_COORDINATES_UNIT});
+            return buildProgramWrapper(gl, oceanVertexShader, shader);
+        }
+        const oceanProgram = buildOceanProgram(OCEAN_FRAGMENT_SOURCE);
 
-        var verticalSubtransformProgram = buildProgramWrapper(gl, fullscreenVertexShader, 
-            buildShader(gl, gl.FRAGMENT_SHADER, SUBTRANSFORM_FRAGMENT_SOURCE), {'a_position': 0});
-        gl.useProgram(verticalSubtransformProgram.program);
-        gl.uniform1f(verticalSubtransformProgram.uniformLocations['u_transformSize'], RESOLUTION);
+        let p;
+        function useProgram(program) { p = program; gl.useProgram(p.program); }
+        function uniform1i(name, val) { gl.uniform1i(p.uniformLocations[name], val); }
+        function uniform1f(name, val) { gl.uniform1f(p.uniformLocations[name], val); }
+        function uniform3f(name, v1, v2, v3) { gl.uniform3f(p.uniformLocations[name], v1, v2, v3); }
+
+        useProgram(horizontalSubtransformProgram);
+        uniform1f('u_transformSize', RESOLUTION);
+
+        useProgram(verticalSubtransformProgram);
+        uniform1f('u_transformSize', RESOLUTION);
         
-        var initialSpectrumProgram = buildProgramWrapper(gl, fullscreenVertexShader, 
-            buildShader(gl, gl.FRAGMENT_SHADER, INITIAL_SPECTRUM_FRAGMENT_SOURCE), {'a_position': 0});
-        gl.useProgram(initialSpectrumProgram.program);
-        gl.uniform1f(initialSpectrumProgram.uniformLocations['u_resolution'], RESOLUTION);
+        useProgram(initialSpectrumProgram);
+        uniform1f('u_resolution', RESOLUTION);
 
-        var phaseProgram = buildProgramWrapper(gl, fullscreenVertexShader, 
-            buildShader(gl, gl.FRAGMENT_SHADER, PHASE_FRAGMENT_SOURCE), {'a_position': 0});
-        gl.useProgram(phaseProgram.program);
-        gl.uniform1f(phaseProgram.uniformLocations['u_resolution'], RESOLUTION);
+        useProgram(phaseProgram);
+        uniform1f('u_resolution', RESOLUTION);
 
-        var spectrumProgram = buildProgramWrapper(gl, fullscreenVertexShader, 
-            buildShader(gl, gl.FRAGMENT_SHADER, SPECTRUM_FRAGMENT_SOURCE), {'a_position': 0});
-        gl.useProgram(spectrumProgram.program);
-        gl.uniform1i(spectrumProgram.uniformLocations['u_initialSpectrum'], INITIAL_SPECTRUM_UNIT);
-        gl.uniform1f(spectrumProgram.uniformLocations['u_resolution'], RESOLUTION);
+        useProgram(spectrumProgram);
+        uniform1i('u_initialSpectrum', INITIAL_SPECTRUM_UNIT);
+        uniform1f('u_resolution', RESOLUTION);
 
-        var normalMapProgram = buildProgramWrapper(gl, fullscreenVertexShader, 
-            buildShader(gl, gl.FRAGMENT_SHADER, NORMAL_MAP_FRAGMENT_SOURCE), {'a_position': 0});
-        gl.useProgram(normalMapProgram.program);
-        gl.uniform1i(normalMapProgram.uniformLocations['u_displacementMap'], DISPLACEMENT_MAP_UNIT);
-        gl.uniform1f(normalMapProgram.uniformLocations['u_resolution'], RESOLUTION);
+        useProgram(normalMapProgram);
+        uniform1i('u_displacementMap', DISPLACEMENT_MAP_UNIT);
+        uniform1f('u_resolution', RESOLUTION);
 
-        var oceanProgram = buildProgramWrapper(gl,
-            buildShader(gl, gl.VERTEX_SHADER, OCEAN_VERTEX_SOURCE),
-            buildShader(gl, gl.FRAGMENT_SHADER, OCEAN_FRAGMENT_SOURCE), {
-                'a_position': 0,
-                'a_coordinates': OCEAN_COORDINATES_UNIT
-        });
-        gl.useProgram(oceanProgram.program);
-        gl.uniform1f(oceanProgram.uniformLocations['u_geometrySize'], GEOMETRY_SIZE);
-        gl.uniform1i(oceanProgram.uniformLocations['u_displacementMap'], DISPLACEMENT_MAP_UNIT);
-        gl.uniform1i(oceanProgram.uniformLocations['u_normalMap'], NORMAL_MAP_UNIT);
-        gl.uniform3f(oceanProgram.uniformLocations['u_oceanColor'], OCEAN_COLOR[0], OCEAN_COLOR[1], OCEAN_COLOR[2]);
-        gl.uniform3f(oceanProgram.uniformLocations['u_skyColor'], SKY_COLOR[0], SKY_COLOR[1], SKY_COLOR[2]);
-        gl.uniform3f(oceanProgram.uniformLocations['u_sunDirection'], SUN_DIRECTION[0], SUN_DIRECTION[1], SUN_DIRECTION[2]);
-        gl.uniform1f(oceanProgram.uniformLocations['u_exposure'], EXPOSURE);
-
-        gl.enableVertexAttribArray(0);
-
-        var fullscreenVertexBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, fullscreenVertexBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0]), gl.STATIC_DRAW);
+        useProgram(oceanProgram);
+        uniform1f('u_geometrySize', GEOMETRY_SIZE);
+        uniform1i('u_displacementMap', DISPLACEMENT_MAP_UNIT);
+        uniform1i('u_normalMap', NORMAL_MAP_UNIT);
+        uniform3f('u_oceanColor', OCEAN_COLOR[0], OCEAN_COLOR[1], OCEAN_COLOR[2]);
+        uniform3f('u_skyColor', SKY_COLOR[0], SKY_COLOR[1], SKY_COLOR[2]);
+        uniform3f('u_sunDirection', SUN_DIRECTION[0], SUN_DIRECTION[1], SUN_DIRECTION[2]);
+        uniform1f('u_exposure', EXPOSURE);
         
         var oceanData = [];
         for (var zIndex = 0; zIndex < GEOMETRY_RESOLUTION; zIndex += 1) {
@@ -115,23 +114,6 @@ class Simulator {
             }
         }
 
-        var oceanBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, oceanBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(oceanData), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(OCEAN_COORDINATES_UNIT, 2, gl.FLOAT, false, 5 * SIZE_OF_FLOAT, 3 * SIZE_OF_FLOAT);
-
-        var oceanIndexBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, oceanIndexBuffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(oceanIndices), gl.STATIC_DRAW);
-
-        var initialSpectrumTexture = buildTexture(gl, INITIAL_SPECTRUM_UNIT, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, null, gl.REPEAT, gl.REPEAT, gl.NEAREST, gl.NEAREST),
-            pongPhaseTexture = buildTexture(gl, PONG_PHASE_UNIT, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, null, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.NEAREST, gl.NEAREST),
-            spectrumTexture = buildTexture(gl, SPECTRUM_UNIT, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, null, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.NEAREST, gl.NEAREST),
-            displacementMap = buildTexture(gl, DISPLACEMENT_MAP_UNIT, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, null, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.LINEAR, gl.LINEAR),
-            normalMap = buildTexture(gl, NORMAL_MAP_UNIT, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, null, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.LINEAR, gl.LINEAR),
-            pingTransformTexture = buildTexture(gl, PING_TRANSFORM_UNIT, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, null, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.NEAREST, gl.NEAREST),
-            pongTransformTexture = buildTexture(gl, PONG_TRANSFORM_UNIT, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, null, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.NEAREST, gl.NEAREST);
-
         var phaseArray = new Float32Array(RESOLUTION * RESOLUTION * 4);
         for (var i = 0; i < RESOLUTION; i += 1) {
             for (var j = 0; j < RESOLUTION; j += 1) {
@@ -141,7 +123,30 @@ class Simulator {
                 phaseArray[i * RESOLUTION * 4 + j * 4 + 3] = 0;
             }
         }
+
+        gl.enableVertexAttribArray(0);
+
+        var fullscreenVertexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, fullscreenVertexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0]), gl.STATIC_DRAW);
+
+        var oceanBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, oceanBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(oceanData), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(OCEAN_COORDINATES_UNIT, 2, gl.FLOAT, false, 5 * SIZE_OF_FLOAT, 3 * SIZE_OF_FLOAT);
+
+        var oceanIndexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, oceanIndexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(oceanIndices), gl.STATIC_DRAW);
+
+        var initialSpectrumTexture = buildTexture(gl, INITIAL_SPECTRUM_UNIT, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, null, gl.REPEAT, gl.REPEAT, gl.NEAREST, gl.NEAREST);
         var pingPhaseTexture = buildTexture(gl, PING_PHASE_UNIT, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, phaseArray, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.NEAREST, gl.NEAREST);
+        var pongPhaseTexture = buildTexture(gl, PONG_PHASE_UNIT, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, null, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.NEAREST, gl.NEAREST);
+        var spectrumTexture = buildTexture(gl, SPECTRUM_UNIT, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, null, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.NEAREST, gl.NEAREST);
+        var displacementMap = buildTexture(gl, DISPLACEMENT_MAP_UNIT, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, null, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.LINEAR, gl.LINEAR);
+        var normalMap = buildTexture(gl, NORMAL_MAP_UNIT, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, null, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.LINEAR, gl.LINEAR);
+        var pingTransformTexture = buildTexture(gl, PING_TRANSFORM_UNIT, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, null, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.NEAREST, gl.NEAREST);
+        var pongTransformTexture = buildTexture(gl, PONG_TRANSFORM_UNIT, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, null, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.NEAREST, gl.NEAREST);
 
         this.changed = true;
         this.windX = INITIAL_WIND[0];
@@ -149,6 +154,7 @@ class Simulator {
         this.size = INITIAL_SIZE;
         this.choppiness = INITIAL_CHOPPINESS;
         this.canvas = canvas;
+
         this.horizontalSubtransformProgram = horizontalSubtransformProgram;
         this.verticalSubtransformProgram = verticalSubtransformProgram;
         this.initialSpectrumProgram = initialSpectrumProgram;
@@ -156,9 +162,11 @@ class Simulator {
         this.spectrumProgram = spectrumProgram;
         this.normalMapProgram = normalMapProgram;
         this.oceanProgram = oceanProgram;
+
         this.fullscreenVertexBuffer = fullscreenVertexBuffer;
-        this.oceanIndices = oceanIndices;
         this.oceanBuffer = oceanBuffer; 
+        this.oceanIndices = oceanIndices;
+
         this.pingPhase = true;
         this.initialSpectrumFramebuffer = buildFramebuffer(gl, initialSpectrumTexture);
         this.pingPhaseFramebuffer = buildFramebuffer(gl, pingPhaseTexture);
