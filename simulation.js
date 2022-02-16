@@ -143,14 +143,19 @@ class Simulator {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, oceanIndexBuffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(oceanIndices), gl.STATIC_DRAW);
 
-        var initialSpectrumTexture = buildTexture(gl, INITIAL_SPECTRUM_UNIT, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, null, gl.REPEAT, gl.REPEAT, gl.NEAREST, gl.NEAREST);
-        var pingPhaseTexture = buildTexture(gl, PING_PHASE_UNIT, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, phaseArray, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.NEAREST, gl.NEAREST);
-        var pongPhaseTexture = buildTexture(gl, PONG_PHASE_UNIT, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, null, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.NEAREST, gl.NEAREST);
-        var spectrumTexture = buildTexture(gl, SPECTRUM_UNIT, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, null, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.NEAREST, gl.NEAREST);
-        var displacementMap = buildTexture(gl, DISPLACEMENT_MAP_UNIT, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, null, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.LINEAR, gl.LINEAR);
-        var normalMap = buildTexture(gl, NORMAL_MAP_UNIT, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, null, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.LINEAR, gl.LINEAR);
-        var pingTransformTexture = buildTexture(gl, PING_TRANSFORM_UNIT, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, null, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.NEAREST, gl.NEAREST);
-        var pongTransformTexture = buildTexture(gl, PONG_TRANSFORM_UNIT, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, null, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.NEAREST, gl.NEAREST);
+        function buildFramebufferLocal(unit, phase=null, edge=gl.CLAMP_TO_EDGE, interp=gl.NEAREST) {
+            return buildFramebuffer(gl, buildTexture(
+                gl, unit, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, null, edge, edge, interp, interp,
+            ));
+        }
+        this.initialSpectrumFramebuffer = buildFramebufferLocal(INITIAL_SPECTRUM_UNIT, {edge: gl.REPEAT});
+        this.pingPhaseFramebuffer = buildFramebufferLocal(PING_PHASE_UNIT, {phase: phaseArray});
+        this.pongPhaseFramebuffer = buildFramebufferLocal(PONG_PHASE_UNIT);
+        this.spectrumFramebuffer = buildFramebufferLocal(SPECTRUM_UNIT);
+        this.displacementMapFramebuffer = buildFramebufferLocal(DISPLACEMENT_MAP_UNIT, {interp: gl.LINEAR});
+        this.normalMapFramebuffer = buildFramebufferLocal(NORMAL_MAP_UNIT, {interp: gl.LINEAR});
+        this.pingTransformFramebuffer = buildFramebufferLocal(PING_TRANSFORM_UNIT);
+        this.pongTransformFramebuffer = buildFramebufferLocal(PONG_TRANSFORM_UNIT);
 
         this.changed = true;
         this.windX = INITIAL_WIND[0];
@@ -164,14 +169,6 @@ class Simulator {
         this.oceanIndices = oceanIndices;
 
         this.pingPhase = true;
-        this.initialSpectrumFramebuffer = buildFramebuffer(gl, initialSpectrumTexture);
-        this.pingPhaseFramebuffer = buildFramebuffer(gl, pingPhaseTexture);
-        this.pongPhaseFramebuffer = buildFramebuffer(gl, pongPhaseTexture);
-        this.spectrumFramebuffer = buildFramebuffer(gl, spectrumTexture);
-        this.displacementMapFramebuffer = buildFramebuffer(gl, displacementMap);
-        this.normalMapFramebuffer = buildFramebuffer(gl, normalMap);
-        this.pingTransformFramebuffer = buildFramebuffer(gl, pingTransformTexture);
-        this.pongTransformFramebuffer = buildFramebuffer(gl, pongTransformTexture);
     }
 
     setWind(x, y) {
