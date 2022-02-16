@@ -197,7 +197,7 @@ class Simulator {
     }
 
     render(deltaTime, projectionMatrix, viewMatrix, cameraPosition) {
-        var gl = this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
+        const gl = this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
 
         gl.viewport(0, 0, RESOLUTION, RESOLUTION);
         gl.disable(gl.DEPTH_TEST);
@@ -206,27 +206,26 @@ class Simulator {
         gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
         if (this.changed) {
-            gl.bindFramebuffer(gl.FRAMEBUFFER, this.initialSpectrumFramebuffer);
             gl.useProgram(this.initialSpectrumProgram.program);
             gl.uniform2f(this.initialSpectrumProgram.uniformLocations['u_wind'], this.windX, this.windY);
             gl.uniform1f(this.initialSpectrumProgram.uniformLocations['u_size'], this.size);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, this.initialSpectrumFramebuffer);
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         }
         
         //store phases separately to ensure continuity of waves during parameter editing
         gl.useProgram(this.phaseProgram.program);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this.pingPhase ? this.pongPhaseFramebuffer : this.pingPhaseFramebuffer);
         gl.uniform1i(this.phaseProgram.uniformLocations['u_phases'], this.pingPhase ? PING_PHASE_UNIT : PONG_PHASE_UNIT);
-        this.pingPhase = !this.pingPhase;
         gl.uniform1f(this.phaseProgram.uniformLocations['u_deltaTime'], deltaTime);
         gl.uniform1f(this.phaseProgram.uniformLocations['u_size'], this.size);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.pingPhase ? this.pongPhaseFramebuffer : this.pingPhaseFramebuffer);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
         gl.useProgram(this.spectrumProgram.program);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this.spectrumFramebuffer);
-        gl.uniform1i(this.spectrumProgram.uniformLocations['u_phases'], this.pingPhase ? PING_PHASE_UNIT : PONG_PHASE_UNIT);
+        gl.uniform1i(this.spectrumProgram.uniformLocations['u_phases'], this.pingPhase ? PONG_PHASE_UNIT : PING_PHASE_UNIT);
         gl.uniform1f(this.spectrumProgram.uniformLocations['u_size'], this.size);
         gl.uniform1f(this.spectrumProgram.uniformLocations['u_choppiness'], this.choppiness);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.spectrumFramebuffer);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
         //GPU FFT using Stockham formulation
@@ -236,13 +235,6 @@ class Simulator {
             if (i === 0) {
                 subtransformProgram= this.horizontalSubtransformProgram;
                 gl.useProgram(subtransformProgram.program);
-            }
-            if (i === 2 * iterations - 1) {
-                gl.bindFramebuffer(gl.FRAMEBUFFER, this.displacementMapFramebuffer);
-            } else if (i % 2 === 1) {
-                gl.bindFramebuffer(gl.FRAMEBUFFER, this.pongTransformFramebuffer);
-            } else {
-                gl.bindFramebuffer(gl.FRAMEBUFFER, this.pingTransformFramebuffer);
             }
             if (i == 0) {
                 gl.uniform1i(subtransformProgram.uniformLocations['u_input'], SPECTRUM_UNIT);
@@ -256,14 +248,21 @@ class Simulator {
                 gl.useProgram(subtransformProgram.program);
             }
             gl.uniform1f(subtransformProgram.uniformLocations['u_subtransformSize'], Math.pow(2, (i % iterations) + 1));
+            if (i === 2 * iterations - 1) {
+                gl.bindFramebuffer(gl.FRAMEBUFFER, this.displacementMapFramebuffer);
+            } else if (i % 2 === 1) {
+                gl.bindFramebuffer(gl.FRAMEBUFFER, this.pongTransformFramebuffer);
+            } else {
+                gl.bindFramebuffer(gl.FRAMEBUFFER, this.pingTransformFramebuffer);
+            }
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         }
 
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this.normalMapFramebuffer);
         gl.useProgram(this.normalMapProgram.program);
         if (this.changed) {
             gl.uniform1f(this.normalMapProgram.uniformLocations['u_size'], this.size);
         }
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.normalMapFramebuffer);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -276,19 +275,19 @@ class Simulator {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.oceanBuffer);
         gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 5 * SIZE_OF_FLOAT, 0);
 
+        const oceanIndicesLength = 6 * (GEOMETRY_RESOLUTION - 1) * (GEOMETRY_RESOLUTION - 1);
         gl.useProgram(this.oceanProgram.program);
         if (this.changed) {
             gl.uniform1f(this.oceanProgram.uniformLocations['u_size'], this.size);
-            this.changed = false;
         }
         gl.uniformMatrix4fv(this.oceanProgram.uniformLocations['u_projectionMatrix'], false, projectionMatrix);
         gl.uniformMatrix4fv(this.oceanProgram.uniformLocations['u_viewMatrix'], false, viewMatrix);
         gl.uniform3fv(this.oceanProgram.uniformLocations['u_cameraPosition'], cameraPosition);
-        const oceanIndicesLength = 6 * (GEOMETRY_RESOLUTION - 1) * (GEOMETRY_RESOLUTION - 1);
         gl.drawElements(gl.TRIANGLES, oceanIndicesLength, gl.UNSIGNED_SHORT, 0);
-
         gl.disableVertexAttribArray(OCEAN_COORDINATES_UNIT);
-        
+
+        this.pingPhase = !this.pingPhase;
+        this.changed = false;
     }
 
 }
