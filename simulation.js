@@ -21,6 +21,97 @@ async function load_gl() {
 class Simulator {
 
     constructor(canvas, width, height) {
+
+        let program;
+
+        function buildFullscreenProgram(src) {
+            let v = null;
+            if (v == null) {
+                v = buildShader(gl, gl.VERTEX_SHADER, FULLSCREEN_VERTEX_SOURCE);
+            }
+            const f = buildShader(gl, gl.FRAGMENT_SHADER, src);
+            const p = {'a_position': 0};
+            program = buildProgramWrapper(gl, v, f, p);
+            gl.useProgram(program.program);
+            return program;
+        }
+
+        function buildOceanProgram() {
+            const v = buildShader(gl, gl.VERTEX_SHADER, OCEAN_VERTEX_SOURCE);
+            const f = buildShader(gl, gl.FRAGMENT_SHADER, OCEAN_FRAGMENT_SOURCE);
+            const p = {'a_position': 0, 'a_coodinates': OCEAN_COORDINATES_UNIT};
+            program = buildProgramWrapper(gl, v, f, p);
+            gl.useProgram(program.program);
+            return program;
+        };
+
+        function uniform1i(name, val) { gl.uniform1i(program.uniformLocations[name], val); }
+        function uniform1f(name, val) { gl.uniform1f(program.uniformLocations[name], val); }
+        function uniform3f(name, v1, v2, v3) { gl.uniform3f(program.uniformLocations[name], v1, v2, v3); }
+
+        function fullscreenData() {
+            return new Float32Array([-1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0]);
+        }
+
+        function phaseArray() {
+            const a = new Float32Array(RESOLUTION * RESOLUTION * 4);
+            for (let i = 0; i < RESOLUTION; i += 1) {
+                for (let j = 0; j < RESOLUTION; j += 1) {
+                    a[i * RESOLUTION * 4 + j * 4] = Math.random() * 2.0 * Math.PI;
+                    a[i * RESOLUTION * 4 + j * 4 + 1] = 0;
+                    a[i * RESOLUTION * 4 + j * 4 + 2] = 0;
+                    a[i * RESOLUTION * 4 + j * 4 + 3] = 0;
+                }
+            }
+            return a
+        }
+
+        function oceanData() {
+            const a = [];
+            for (let z = 0; z < GEOMETRY_RESOLUTION; z += 1) {
+                for (let x = 0; x < GEOMETRY_RESOLUTION; x += 1) {
+                    a.push((x * GEOMETRY_SIZE) / (GEOMETRY_RESOLUTION - 1) + GEOMETRY_ORIGIN[0]);
+                    a.push((0.0));
+                    a.push((z * GEOMETRY_SIZE) / (GEOMETRY_RESOLUTION - 1) + GEOMETRY_ORIGIN[1]);
+                    a.push(x / (GEOMETRY_RESOLUTION - 1));
+                    a.push(z / (GEOMETRY_RESOLUTION - 1));
+                }
+            }
+            return new Float32Array(a);
+        }
+
+        function oceanIndices() {
+            const a = []
+            for (let z = 0; z < GEOMETRY_RESOLUTION - 1; z += 1) {
+                for (let x = 0; x < GEOMETRY_RESOLUTION - 1; x += 1) {
+                    let topLeft = z * GEOMETRY_RESOLUTION + x;
+                    let topRight = topLeft + 1;
+                    let bottomLeft = topLeft + GEOMETRY_RESOLUTION;
+                    let bottomRight = bottomLeft + 1;
+                    a.push(topLeft);
+                    a.push(bottomLeft);
+                    a.push(bottomRight);
+                    a.push(bottomRight);
+                    a.push(topRight);
+                    a.push(topLeft);
+                }
+            }
+            return new Uint16Array(a);
+        }
+
+        function buildBuffer(data) {
+            const buffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+            return buffer;
+        }
+
+        function buildFramebufferLocal({unit, phase=null, edge=gl.CLAMP_TO_EDGE, interp=gl.NEAREST}) {
+            return buildFramebuffer(gl, buildTexture(
+                gl, unit, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, phase, edge, edge, interp, interp,
+            ));
+        }
+
         canvas.width = width;
         canvas.height = height;
 
@@ -32,63 +123,32 @@ class Simulator {
         this.changed = true;
 
         const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-
         gl.getExtension('OES_texture_float');
         gl.getExtension('OES_texture_float_linear');
-
         gl.clearColor.apply(gl, CLEAR_COLOR);
         gl.enable(gl.DEPTH_TEST);
 
-        function buildFullscreenProgram(src) {
-            let v = null;
-            if (v == null) {
-                v = buildShader(gl, gl.VERTEX_SHADER, FULLSCREEN_VERTEX_SOURCE);
-            }
-            const f = buildShader(gl, gl.FRAGMENT_SHADER, src);
-            const p = {'a_position': 0};
-            return buildProgramWrapper(gl, v, f, p);
-        }
         this.horizontalSubtransformProgram = buildFullscreenProgram('#define HORIZONTAL \n' + SUBTRANSFORM_FRAGMENT_SOURCE);
+        uniform1f('u_transformSize', RESOLUTION);
+
         this.verticalSubtransformProgram = buildFullscreenProgram(SUBTRANSFORM_FRAGMENT_SOURCE);
+        uniform1f('u_transformSize', RESOLUTION);
+
         this.initialSpectrumProgram = buildFullscreenProgram(INITIAL_SPECTRUM_FRAGMENT_SOURCE);
+        uniform1f('u_resolution', RESOLUTION);
+
         this.phaseProgram = buildFullscreenProgram(PHASE_FRAGMENT_SOURCE);
+        uniform1f('u_resolution', RESOLUTION);
+
         this.spectrumProgram = buildFullscreenProgram(SPECTRUM_FRAGMENT_SOURCE);
-        this.normalMapProgram = buildFullscreenProgram(NORMAL_MAP_FRAGMENT_SOURCE);
-
-        this.oceanProgram = (() => {
-            const v = buildShader(gl, gl.VERTEX_SHADER, OCEAN_VERTEX_SOURCE);
-            const f = buildShader(gl, gl.FRAGMENT_SHADER, OCEAN_FRAGMENT_SOURCE);
-            const p = {'a_position': 0, 'a_coodinates': OCEAN_COORDINATES_UNIT};
-            return buildProgramWrapper(gl, v, f, p);
-        })();
-
-        let p;
-        function useProgram(program) { p = program; gl.useProgram(p.program); }
-        function uniform1i(name, val) { gl.uniform1i(p.uniformLocations[name], val); }
-        function uniform1f(name, val) { gl.uniform1f(p.uniformLocations[name], val); }
-        function uniform3f(name, v1, v2, v3) { gl.uniform3f(p.uniformLocations[name], v1, v2, v3); }
-
-        useProgram(this.horizontalSubtransformProgram);
-        uniform1f('u_transformSize', RESOLUTION);
-
-        useProgram(this.verticalSubtransformProgram);
-        uniform1f('u_transformSize', RESOLUTION);
-        
-        useProgram(this.initialSpectrumProgram);
-        uniform1f('u_resolution', RESOLUTION);
-
-        useProgram(this.phaseProgram);
-        uniform1f('u_resolution', RESOLUTION);
-
-        useProgram(this.spectrumProgram);
         uniform1i('u_initialSpectrum', INITIAL_SPECTRUM_UNIT);
         uniform1f('u_resolution', RESOLUTION);
 
-        useProgram(this.normalMapProgram);
+        this.normalMapProgram = buildFullscreenProgram(NORMAL_MAP_FRAGMENT_SOURCE);
         uniform1i('u_displacementMap', DISPLACEMENT_MAP_UNIT);
         uniform1f('u_resolution', RESOLUTION);
 
-        useProgram(this.oceanProgram);
+        this.oceanProgram = buildOceanProgram();
         uniform1f('u_geometrySize', GEOMETRY_SIZE);
         uniform1i('u_displacementMap', DISPLACEMENT_MAP_UNIT);
         uniform1i('u_normalMap', NORMAL_MAP_UNIT);
@@ -99,69 +159,14 @@ class Simulator {
 
         gl.enableVertexAttribArray(0);
 
-        this.fullscreenVertexBuffer = (() => {
-            const fullscreenVertexBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, fullscreenVertexBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0]), gl.STATIC_DRAW);
-            return fullscreenVertexBuffer;
-        })();
-        
-        this.oceanBuffer = (() => {
-            const oceanBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, oceanBuffer);
-            const oceanData = [];
-            for (let zIndex = 0; zIndex < GEOMETRY_RESOLUTION; zIndex += 1) {
-                for (let xIndex = 0; xIndex < GEOMETRY_RESOLUTION; xIndex += 1) {
-                    oceanData.push((xIndex * GEOMETRY_SIZE) / (GEOMETRY_RESOLUTION - 1) + GEOMETRY_ORIGIN[0]);
-                    oceanData.push((0.0));
-                    oceanData.push((zIndex * GEOMETRY_SIZE) / (GEOMETRY_RESOLUTION - 1) + GEOMETRY_ORIGIN[1]);
-                    oceanData.push(xIndex / (GEOMETRY_RESOLUTION - 1));
-                    oceanData.push(zIndex / (GEOMETRY_RESOLUTION - 1));
-                }
-            }
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(oceanData), gl.STATIC_DRAW);
-            gl.vertexAttribPointer(OCEAN_COORDINATES_UNIT, 2, gl.FLOAT, false, 5 * SIZE_OF_FLOAT, 3 * SIZE_OF_FLOAT);
-            return oceanBuffer;
-        })();
-        
-        this.oceanIndicesLength = (() => {
-            const oceanIndexBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, oceanIndexBuffer);
-            const oceanIndices = [];
-            for (let zIndex = 0; zIndex < GEOMETRY_RESOLUTION - 1; zIndex += 1) {
-                for (let xIndex = 0; xIndex < GEOMETRY_RESOLUTION - 1; xIndex += 1) {
-                    let topLeft = zIndex * GEOMETRY_RESOLUTION + xIndex;
-                    let topRight = topLeft + 1;
-                    let bottomLeft = topLeft + GEOMETRY_RESOLUTION;
-                    let bottomRight = bottomLeft + 1;
-                    oceanIndices.push(topLeft);
-                    oceanIndices.push(bottomLeft);
-                    oceanIndices.push(bottomRight);
-                    oceanIndices.push(bottomRight);
-                    oceanIndices.push(topRight);
-                    oceanIndices.push(topLeft);
-                }
-            }
-            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(oceanIndices), gl.STATIC_DRAW);
-            return oceanIndices.length;
-        })();
+        this.fullscreenVertexBuffer = buildBuffer(fullscreenData());
+        this.oceanBuffer = buildBuffer(oceanData());
+        gl.vertexAttribPointer(OCEAN_COORDINATES_UNIT, 2, gl.FLOAT, false, 5 * SIZE_OF_FLOAT, 3 * SIZE_OF_FLOAT);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, oceanIndices(), gl.STATIC_DRAW);
 
-        function buildFramebufferLocal({unit, phase=null, edge=gl.CLAMP_TO_EDGE, interp=gl.NEAREST}) {
-            return buildFramebuffer(gl, buildTexture(
-                gl, unit, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, phase, edge, edge, interp, interp,
-            ));
-        }
-        const phaseArray = new Float32Array(RESOLUTION * RESOLUTION * 4);
-        for (var i = 0; i < RESOLUTION; i += 1) {
-            for (var j = 0; j < RESOLUTION; j += 1) {
-                phaseArray[i * RESOLUTION * 4 + j * 4] = Math.random() * 2.0 * Math.PI;
-                phaseArray[i * RESOLUTION * 4 + j * 4 + 1] = 0;
-                phaseArray[i * RESOLUTION * 4 + j * 4 + 2] = 0;
-                phaseArray[i * RESOLUTION * 4 + j * 4 + 3] = 0;
-            }
-        }
         this.initialSpectrumFramebuffer = buildFramebufferLocal({unit: INITIAL_SPECTRUM_UNIT, edge: gl.REPEAT});
-        this.pingPhaseFramebuffer = buildFramebufferLocal({unit: PING_PHASE_UNIT, phase: phaseArray});
+        this.pingPhaseFramebuffer = buildFramebufferLocal({unit: PING_PHASE_UNIT, phase: phaseArray()});
         this.pongPhaseFramebuffer = buildFramebufferLocal({unit: PONG_PHASE_UNIT});
         this.spectrumFramebuffer = buildFramebufferLocal({unit: SPECTRUM_UNIT});
         this.displacementMapFramebuffer = buildFramebufferLocal({unit: DISPLACEMENT_MAP_UNIT, interp: gl.LINEAR});
@@ -278,7 +283,8 @@ class Simulator {
         gl.uniformMatrix4fv(this.oceanProgram.uniformLocations['u_projectionMatrix'], false, projectionMatrix);
         gl.uniformMatrix4fv(this.oceanProgram.uniformLocations['u_viewMatrix'], false, viewMatrix);
         gl.uniform3fv(this.oceanProgram.uniformLocations['u_cameraPosition'], cameraPosition);
-        gl.drawElements(gl.TRIANGLES, this.oceanIndicesLength, gl.UNSIGNED_SHORT, 0);
+        const oceanIndicesLength = 6 * (GEOMETRY_RESOLUTION - 1) * (GEOMETRY_RESOLUTION - 1);
+        gl.drawElements(gl.TRIANGLES, oceanIndicesLength, gl.UNSIGNED_SHORT, 0);
 
         gl.disableVertexAttribArray(OCEAN_COORDINATES_UNIT);
         
