@@ -229,32 +229,33 @@ class Simulator {
         gl.uniform1f(this.spectrumProgram.uniformLocations['u_choppiness'], this.choppiness);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-        var subtransformProgram = this.horizontalSubtransformProgram;
-        gl.useProgram(subtransformProgram.program);
-
         //GPU FFT using Stockham formulation
-        var iterations = log2(RESOLUTION) * 2;
-        for (var i = 0; i < iterations; i += 1) {
+        const iterations = log2(RESOLUTION);
+        let subtransformProgram;
+        for (let i = 0; i < 2 * iterations; i += 1) {
             if (i === 0) {
-                gl.bindFramebuffer(gl.FRAMEBUFFER, this.pingTransformFramebuffer);
-                gl.uniform1i(subtransformProgram.uniformLocations['u_input'], SPECTRUM_UNIT);
-            } else if (i === iterations - 1) {
+                subtransformProgram= this.horizontalSubtransformProgram;
+                gl.useProgram(subtransformProgram.program);
+            }
+            if (i === 2 * iterations - 1) {
                 gl.bindFramebuffer(gl.FRAMEBUFFER, this.displacementMapFramebuffer);
-                gl.uniform1i(subtransformProgram.uniformLocations['u_input'], (iterations % 2 === 0) ? PING_TRANSFORM_UNIT : PONG_TRANSFORM_UNIT);
             } else if (i % 2 === 1) {
                 gl.bindFramebuffer(gl.FRAMEBUFFER, this.pongTransformFramebuffer);
-                gl.uniform1i(subtransformProgram.uniformLocations['u_input'], PING_TRANSFORM_UNIT);
             } else {
                 gl.bindFramebuffer(gl.FRAMEBUFFER, this.pingTransformFramebuffer);
+            }
+            if (i == 0) {
+                gl.uniform1i(subtransformProgram.uniformLocations['u_input'], SPECTRUM_UNIT);
+            } else if (i % 2 === 1) {
+                gl.uniform1i(subtransformProgram.uniformLocations['u_input'], PING_TRANSFORM_UNIT);
+            } else {
                 gl.uniform1i(subtransformProgram.uniformLocations['u_input'], PONG_TRANSFORM_UNIT);
             }
-
-            if (i === iterations / 2) {
+            if (i === iterations) {
                 subtransformProgram = this.verticalSubtransformProgram;
                 gl.useProgram(subtransformProgram.program);
             }
-
-            gl.uniform1f(subtransformProgram.uniformLocations['u_subtransformSize'], Math.pow(2,(i % (iterations / 2)) + 1));
+            gl.uniform1f(subtransformProgram.uniformLocations['u_subtransformSize'], Math.pow(2, (i % iterations) + 1));
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         }
 
