@@ -41,14 +41,14 @@ class Simulator {
             const p = {'a_position': 0};
             return buildProgramWrapper(gl, v, f, p);
         }
-        const horizontalSubtransformProgram = buildFullscreenProgram('#define HORIZONTAL \n' + SUBTRANSFORM_FRAGMENT_SOURCE);
-        const verticalSubtransformProgram = buildFullscreenProgram(SUBTRANSFORM_FRAGMENT_SOURCE);
-        const initialSpectrumProgram = buildFullscreenProgram(INITIAL_SPECTRUM_FRAGMENT_SOURCE);
-        const phaseProgram = buildFullscreenProgram(PHASE_FRAGMENT_SOURCE);
-        const spectrumProgram = buildFullscreenProgram(SPECTRUM_FRAGMENT_SOURCE);
-        const normalMapProgram = buildFullscreenProgram(NORMAL_MAP_FRAGMENT_SOURCE);
+        this.horizontalSubtransformProgram = buildFullscreenProgram('#define HORIZONTAL \n' + SUBTRANSFORM_FRAGMENT_SOURCE);
+        this.verticalSubtransformProgram = buildFullscreenProgram(SUBTRANSFORM_FRAGMENT_SOURCE);
+        this.initialSpectrumProgram = buildFullscreenProgram(INITIAL_SPECTRUM_FRAGMENT_SOURCE);
+        this.phaseProgram = buildFullscreenProgram(PHASE_FRAGMENT_SOURCE);
+        this.spectrumProgram = buildFullscreenProgram(SPECTRUM_FRAGMENT_SOURCE);
+        this.normalMapProgram = buildFullscreenProgram(NORMAL_MAP_FRAGMENT_SOURCE);
 
-        const oceanProgram = (() => {
+        this.oceanProgram = (() => {
             const v = buildShader(gl, gl.VERTEX_SHADER, OCEAN_VERTEX_SOURCE);
             const f = buildShader(gl, gl.FRAGMENT_SHADER, OCEAN_FRAGMENT_SOURCE);
             const p = {'a_position': 0, 'a_coodinates': OCEAN_COORDINATES_UNIT};
@@ -61,27 +61,27 @@ class Simulator {
         function uniform1f(name, val) { gl.uniform1f(p.uniformLocations[name], val); }
         function uniform3f(name, v1, v2, v3) { gl.uniform3f(p.uniformLocations[name], v1, v2, v3); }
 
-        useProgram(horizontalSubtransformProgram);
+        useProgram(this.horizontalSubtransformProgram);
         uniform1f('u_transformSize', RESOLUTION);
 
-        useProgram(verticalSubtransformProgram);
+        useProgram(this.verticalSubtransformProgram);
         uniform1f('u_transformSize', RESOLUTION);
         
-        useProgram(initialSpectrumProgram);
+        useProgram(this.initialSpectrumProgram);
         uniform1f('u_resolution', RESOLUTION);
 
-        useProgram(phaseProgram);
+        useProgram(this.phaseProgram);
         uniform1f('u_resolution', RESOLUTION);
 
-        useProgram(spectrumProgram);
+        useProgram(this.spectrumProgram);
         uniform1i('u_initialSpectrum', INITIAL_SPECTRUM_UNIT);
         uniform1f('u_resolution', RESOLUTION);
 
-        useProgram(normalMapProgram);
+        useProgram(this.normalMapProgram);
         uniform1i('u_displacementMap', DISPLACEMENT_MAP_UNIT);
         uniform1f('u_resolution', RESOLUTION);
 
-        useProgram(oceanProgram);
+        useProgram(this.oceanProgram);
         uniform1f('u_geometrySize', GEOMETRY_SIZE);
         uniform1i('u_displacementMap', DISPLACEMENT_MAP_UNIT);
         uniform1i('u_normalMap', NORMAL_MAP_UNIT);
@@ -158,14 +158,6 @@ class Simulator {
         this.size = INITIAL_SIZE;
         this.choppiness = INITIAL_CHOPPINESS;
         this.canvas = canvas;
-
-        this.horizontalSubtransformProgram = horizontalSubtransformProgram;
-        this.verticalSubtransformProgram = verticalSubtransformProgram;
-        this.initialSpectrumProgram = initialSpectrumProgram;
-        this.phaseProgram = phaseProgram;
-        this.spectrumProgram = spectrumProgram;
-        this.normalMapProgram = normalMapProgram;
-        this.oceanProgram = oceanProgram;
 
         this.fullscreenVertexBuffer = fullscreenVertexBuffer;
         this.oceanBuffer = oceanBuffer; 
