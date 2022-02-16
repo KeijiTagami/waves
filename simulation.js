@@ -24,7 +24,7 @@ class Simulator {
         canvas.width = width;
         canvas.height = height;
 
-        var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 
         gl.getExtension('OES_texture_float');
         gl.getExtension('OES_texture_float_linear');
@@ -32,36 +32,34 @@ class Simulator {
         gl.clearColor.apply(gl, CLEAR_COLOR);
         gl.enable(gl.DEPTH_TEST);
 
-        var fullscreenVertexShader = buildShader(gl, gl.VERTEX_SHADER, FULLSCREEN_VERTEX_SOURCE);
+        const fullscreenVertexShader = buildShader(gl, gl.VERTEX_SHADER, FULLSCREEN_VERTEX_SOURCE);
+        function buildFullscreenProgram(src) {
+            const shader = buildShader(gl, gl.FRAGMENT_SHADER, src, {'a_position': 0});
+            return buildProgramWrapper(gl, fullscreenVertexShader, shader);
+        }
+        const horizontalSubtransformProgram = buildFullscreenProgram('#define HORIZONTAL \n' + SUBTRANSFORM_FRAGMENT_SOURCE);
+        const verticalSubtransformProgram = buildFullscreenProgram(SUBTRANSFORM_FRAGMENT_SOURCE);
+        const initialSpectrumProgram = buildFullscreenProgram(INITIAL_SPECTRUM_FRAGMENT_SOURCE);
+        const phaseProgram = buildFullscreenProgram(PHASE_FRAGMENT_SOURCE);
+        const spectrumProgram = buildFullscreenProgram(SPECTRUM_FRAGMENT_SOURCE);
+        const normalMapProgram = buildFullscreenProgram(NORMAL_MAP_FRAGMENT_SOURCE);
 
-        var horizontalSubtransformProgram = buildProgramWrapper(gl, fullscreenVertexShader, 
-            buildShader(gl, gl.FRAGMENT_SHADER, '#define HORIZONTAL \n' + SUBTRANSFORM_FRAGMENT_SOURCE), {'a_position': 0});
         gl.useProgram(horizontalSubtransformProgram.program);
         gl.uniform1f(horizontalSubtransformProgram.uniformLocations['u_transformSize'], RESOLUTION);
 
-        var verticalSubtransformProgram = buildProgramWrapper(gl, fullscreenVertexShader, 
-            buildShader(gl, gl.FRAGMENT_SHADER, SUBTRANSFORM_FRAGMENT_SOURCE), {'a_position': 0});
         gl.useProgram(verticalSubtransformProgram.program);
         gl.uniform1f(verticalSubtransformProgram.uniformLocations['u_transformSize'], RESOLUTION);
         
-        var initialSpectrumProgram = buildProgramWrapper(gl, fullscreenVertexShader, 
-            buildShader(gl, gl.FRAGMENT_SHADER, INITIAL_SPECTRUM_FRAGMENT_SOURCE), {'a_position': 0});
         gl.useProgram(initialSpectrumProgram.program);
         gl.uniform1f(initialSpectrumProgram.uniformLocations['u_resolution'], RESOLUTION);
 
-        var phaseProgram = buildProgramWrapper(gl, fullscreenVertexShader, 
-            buildShader(gl, gl.FRAGMENT_SHADER, PHASE_FRAGMENT_SOURCE), {'a_position': 0});
         gl.useProgram(phaseProgram.program);
         gl.uniform1f(phaseProgram.uniformLocations['u_resolution'], RESOLUTION);
 
-        var spectrumProgram = buildProgramWrapper(gl, fullscreenVertexShader, 
-            buildShader(gl, gl.FRAGMENT_SHADER, SPECTRUM_FRAGMENT_SOURCE), {'a_position': 0});
         gl.useProgram(spectrumProgram.program);
         gl.uniform1i(spectrumProgram.uniformLocations['u_initialSpectrum'], INITIAL_SPECTRUM_UNIT);
         gl.uniform1f(spectrumProgram.uniformLocations['u_resolution'], RESOLUTION);
 
-        var normalMapProgram = buildProgramWrapper(gl, fullscreenVertexShader, 
-            buildShader(gl, gl.FRAGMENT_SHADER, NORMAL_MAP_FRAGMENT_SOURCE), {'a_position': 0});
         gl.useProgram(normalMapProgram.program);
         gl.uniform1i(normalMapProgram.uniformLocations['u_displacementMap'], DISPLACEMENT_MAP_UNIT);
         gl.uniform1f(normalMapProgram.uniformLocations['u_resolution'], RESOLUTION);
