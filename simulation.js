@@ -143,19 +143,19 @@ class Simulator {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, oceanIndexBuffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(oceanIndices), gl.STATIC_DRAW);
 
-        function buildFramebufferLocal(unit, phase=null, edge=gl.CLAMP_TO_EDGE, interp=gl.NEAREST) {
+        function buildFramebufferLocal({unit, phase=null, edge=gl.CLAMP_TO_EDGE, interp=gl.NEAREST}) {
             return buildFramebuffer(gl, buildTexture(
-                gl, unit, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, null, edge, edge, interp, interp,
+                gl, unit, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, phase, edge, edge, interp, interp,
             ));
         }
-        this.initialSpectrumFramebuffer = buildFramebufferLocal(INITIAL_SPECTRUM_UNIT, {edge: gl.REPEAT});
-        this.pingPhaseFramebuffer = buildFramebufferLocal(PING_PHASE_UNIT, {phase: phaseArray});
-        this.pongPhaseFramebuffer = buildFramebufferLocal(PONG_PHASE_UNIT);
-        this.spectrumFramebuffer = buildFramebufferLocal(SPECTRUM_UNIT);
-        this.displacementMapFramebuffer = buildFramebufferLocal(DISPLACEMENT_MAP_UNIT, {interp: gl.LINEAR});
-        this.normalMapFramebuffer = buildFramebufferLocal(NORMAL_MAP_UNIT, {interp: gl.LINEAR});
-        this.pingTransformFramebuffer = buildFramebufferLocal(PING_TRANSFORM_UNIT);
-        this.pongTransformFramebuffer = buildFramebufferLocal(PONG_TRANSFORM_UNIT);
+        this.initialSpectrumFramebuffer = buildFramebufferLocal({unit: INITIAL_SPECTRUM_UNIT, edge: gl.REPEAT});
+        this.pingPhaseFramebuffer = buildFramebufferLocal({unit: PING_PHASE_UNIT, phase: phaseArray});
+        this.pongPhaseFramebuffer = buildFramebufferLocal({unit: PONG_PHASE_UNIT});
+        this.spectrumFramebuffer = buildFramebufferLocal({unit: SPECTRUM_UNIT});
+        this.displacementMapFramebuffer = buildFramebufferLocal({unit: DISPLACEMENT_MAP_UNIT, interp: gl.LINEAR});
+        this.normalMapFramebuffer = buildFramebufferLocal({unit: NORMAL_MAP_UNIT, interp: gl.LINEAR});
+        this.pingTransformFramebuffer = buildFramebufferLocal({unit: PING_TRANSFORM_UNIT});
+        this.pongTransformFramebuffer = buildFramebufferLocal({unit: PONG_TRANSFORM_UNIT});
 
         this.changed = true;
         this.windX = INITIAL_WIND[0];
