@@ -56,26 +56,34 @@ class Framebuffer {
 
 }
 
+class FullscreenProgram extends Program {
+
+    constructor(gl, src) {
+        let v = null;
+        if (v == null) {
+            v = buildShader(gl, gl.VERTEX_SHADER, FULLSCREEN_VERTEX_SOURCE);
+        }
+        const f = buildShader(gl, gl.FRAGMENT_SHADER, src);
+        const p = {'a_position': 0};
+        super(gl, v, f, p);
+    }
+
+}
+
+class OceanProgram extends Program {
+
+    constructor(gl) {
+        const v = buildShader(gl, gl.VERTEX_SHADER, OCEAN_VERTEX_SOURCE);
+        const f = buildShader(gl, gl.FRAGMENT_SHADER, OCEAN_FRAGMENT_SOURCE);
+        const p = {'a_position': 0, 'a_coodinates': OCEAN_COORDINATES_UNIT};
+        super(gl, v, f, p);
+    }
+
+}
+
 class Simulator {
 
     constructor(canvas, width, height) {
-
-        function buildFullscreenProgram(src) {
-            let v = null;
-            if (v == null) {
-                v = buildShader(gl, gl.VERTEX_SHADER, FULLSCREEN_VERTEX_SOURCE);
-            }
-            const f = buildShader(gl, gl.FRAGMENT_SHADER, src);
-            const p = {'a_position': 0};
-            return new Program(gl, v, f, p);
-        }
-
-        function buildOceanProgram() {
-            const v = buildShader(gl, gl.VERTEX_SHADER, OCEAN_VERTEX_SOURCE);
-            const f = buildShader(gl, gl.FRAGMENT_SHADER, OCEAN_FRAGMENT_SOURCE);
-            const p = {'a_position': 0, 'a_coodinates': OCEAN_COORDINATES_UNIT};
-            return new Program(gl, v, f, p);
-        };
 
         this.canvas = canvas;
         this.resize(width, height);
@@ -90,26 +98,26 @@ class Simulator {
         gl.enable(gl.DEPTH_TEST);
 
         this.horizontalSubtransformProgram =
-            buildFullscreenProgram('#define HORIZONTAL \n' + SUBTRANSFORM_FRAGMENT_SOURCE).
+            new FullscreenProgram(gl, '#define HORIZONTAL \n' + SUBTRANSFORM_FRAGMENT_SOURCE).
             uniform1f('u_transformSize', RESOLUTION); 
-        this.verticalSubtransformProgram = buildFullscreenProgram(SUBTRANSFORM_FRAGMENT_SOURCE).
+        this.verticalSubtransformProgram = new FullscreenProgram(gl, SUBTRANSFORM_FRAGMENT_SOURCE).
             uniform1f('u_transformSize', RESOLUTION);
 
-        this.initialSpectrumProgram = buildFullscreenProgram(INITIAL_SPECTRUM_FRAGMENT_SOURCE).
+        this.initialSpectrumProgram = new FullscreenProgram(gl, INITIAL_SPECTRUM_FRAGMENT_SOURCE).
             uniform1f('u_resolution', RESOLUTION);
 
-        this.phaseProgram = buildFullscreenProgram(PHASE_FRAGMENT_SOURCE).
+        this.phaseProgram = new FullscreenProgram(gl, PHASE_FRAGMENT_SOURCE).
             uniform1f('u_resolution', RESOLUTION);
 
-        this.spectrumProgram = buildFullscreenProgram(SPECTRUM_FRAGMENT_SOURCE).
+        this.spectrumProgram = new FullscreenProgram(gl, SPECTRUM_FRAGMENT_SOURCE).
             uniform1i('u_initialSpectrum', INITIAL_SPECTRUM_UNIT).
             uniform1f('u_resolution', RESOLUTION);
 
-        this.normalMapProgram = buildFullscreenProgram(NORMAL_MAP_FRAGMENT_SOURCE).
+        this.normalMapProgram = new FullscreenProgram(gl, NORMAL_MAP_FRAGMENT_SOURCE).
             uniform1i('u_displacementMap', DISPLACEMENT_MAP_UNIT).
             uniform1f('u_resolution', RESOLUTION);
 
-        this.oceanProgram = buildOceanProgram().
+        this.oceanProgram = new OceanProgram(gl).
             uniform1f('u_geometrySize', GEOMETRY_SIZE).
             uniform1i('u_displacementMap', DISPLACEMENT_MAP_UNIT).
             uniform1i('u_normalMap', NORMAL_MAP_UNIT).
