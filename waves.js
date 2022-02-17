@@ -13,17 +13,16 @@ var main = function () {
 
     var camera = new Camera(),
         projectionMatrix = makePerspectiveMatrix(new Float32Array(16), FOV, MIN_ASPECT, NEAR, FAR);
-    
-    var simulator = new Simulator(simulatorCanvas, window.innerWidth, window.innerHeight);
+
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    const simulator = new Simulator(simulatorCanvas, width, height);
 
     var profile = new Profile(document.getElementById(PROFILE_CANVAS_ID)),
         sizeSlider = new Slider(cameraDiv, SIZE_SLIDER_X, SIZE_SLIDER_Z,
             SIZE_SLIDER_LENGTH, MIN_SIZE, MAX_SIZE, INITIAL_SIZE, SIZE_SLIDER_BREADTH, SIZE_HANDLE_SIZE),
         choppinessSlider = new Slider(cameraDiv, CHOPPINESS_SLIDER_X, CHOPPINESS_SLIDER_Z,
             CHOPPINESS_SLIDER_LENGTH, MIN_CHOPPINESS, MAX_CHOPPINESS, INITIAL_CHOPPINESS, CHOPPINESS_SLIDER_BREADTH, CHOPPINESS_HANDLE_SIZE);
-
-    var width = window.innerWidth,
-        height = window.innerHeight;
 
     var lastMouseX = 0;
     var lastMouseY = 0;
