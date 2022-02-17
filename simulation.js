@@ -18,56 +18,6 @@ async function load_gl() {
     OCEAN_FRAGMENT_SOURCE = await fetch('./gl/ocean.frag').then(res => res.text());
 }
 
-function fullscreenData() {
-    return new Float32Array([-1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0]);
-}
-
-function phaseArray() {
-    const a = new Float32Array(RESOLUTION * RESOLUTION * 4);
-    for (let i = 0; i < RESOLUTION; i += 1) {
-        for (let j = 0; j < RESOLUTION; j += 1) {
-            a[i * RESOLUTION * 4 + j * 4] = Math.random() * 2.0 * Math.PI;
-            a[i * RESOLUTION * 4 + j * 4 + 1] = 0;
-            a[i * RESOLUTION * 4 + j * 4 + 2] = 0;
-            a[i * RESOLUTION * 4 + j * 4 + 3] = 0;
-        }
-    }
-    return a
-}
-
-function oceanData() {
-    const a = [];
-    for (let z = 0; z < GEOMETRY_RESOLUTION; z += 1) {
-        for (let x = 0; x < GEOMETRY_RESOLUTION; x += 1) {
-            a.push((x * GEOMETRY_SIZE) / (GEOMETRY_RESOLUTION - 1) + GEOMETRY_ORIGIN[0]);
-            a.push((0.0));
-            a.push((z * GEOMETRY_SIZE) / (GEOMETRY_RESOLUTION - 1) + GEOMETRY_ORIGIN[1]);
-            a.push(x / (GEOMETRY_RESOLUTION - 1));
-            a.push(z / (GEOMETRY_RESOLUTION - 1));
-        }
-    }
-    return new Float32Array(a);
-}
-
-function oceanIndices() {
-    const a = []
-    for (let z = 0; z < GEOMETRY_RESOLUTION - 1; z += 1) {
-        for (let x = 0; x < GEOMETRY_RESOLUTION - 1; x += 1) {
-            let topLeft = z * GEOMETRY_RESOLUTION + x;
-            let topRight = topLeft + 1;
-            let bottomLeft = topLeft + GEOMETRY_RESOLUTION;
-            let bottomRight = bottomLeft + 1;
-            a.push(topLeft);
-            a.push(bottomLeft);
-            a.push(bottomRight);
-            a.push(bottomRight);
-            a.push(topRight);
-            a.push(topLeft);
-        }
-    }
-    return new Uint16Array(a);
-}
-
 class Buffer {
 
     constructor(gl, data, element=false) {
