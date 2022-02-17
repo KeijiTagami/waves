@@ -78,12 +78,10 @@ class Simulator {
         };
 
         this.canvas = canvas;
-        this.windX = INITIAL_WIND[0];
-        this.windY = INITIAL_WIND[1];
-        this.size = INITIAL_SIZE;
-        this.choppiness = INITIAL_CHOPPINESS;
-        this.changed = true;
         this.resize(width, height);
+        this.setWind(INITIAL_WIND[0], INITIAL_WIND[1]);
+        this.setSize(INITIAL_SIZE);
+        this.setChoppiness(INITIAL_CHOPPINESS);
 
         const gl = this.gl();
         gl.getExtension('OES_texture_float');
@@ -142,6 +140,11 @@ class Simulator {
         return this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
     }
 
+    resize(width, height) {
+        this.canvas.width = width;
+        this.canvas.height = height;
+    }
+
     setWind(x, y) {
         this.windX = x;
         this.windY = y;
@@ -157,11 +160,6 @@ class Simulator {
         this.choppiness = newChoppiness;
     }
 
-    resize(width, height) {
-        this.canvas.width = width;
-        this.canvas.height = height;
-    }
-
     update(deltaTime) {
         const gl = this.gl();
 
@@ -170,11 +168,12 @@ class Simulator {
 
         this.fullscreenVertexBuffer.vertexAttribPointer(0, 2, 0, 0);
 
+        this.initialSpectrumProgram.activate().
+            uniform2f('u_wind', this.windX, this.windY).
+            uniform1f('u_size', this.size);
         if (this.changed) {
-            this.initialSpectrumProgram.activate().
-                uniform2f('u_wind', this.windX, this.windY).
-                uniform1f('u_size', this.size);
             this.initialSpectrumFramebuffer.draw();
+            this.changed = false;
         }
         
         //store phases separately to ensure continuity of waves during parameter editing
@@ -218,10 +217,8 @@ class Simulator {
         }
         this.pingPhase = !this.pingPhase;
 
-        const normalMap = this.normalMapProgram.activate();
-        if (this.changed) {
-            normalMap.uniform1f('u_size', this.size);
-        }
+        const normalMap = this.normalMapProgram.activate().
+            uniform1f('u_size', this.size);
         this.normalMapFramebuffer.draw();
     }
 
@@ -235,19 +232,15 @@ class Simulator {
         gl.enableVertexAttribArray(OCEAN_COORDINATES_UNIT);
         this.oceanBuffer.vertexAttribPointer(0, 3, 5 * SIZE_OF_FLOAT, 0);
 
-        const ocean = this.oceanProgram.activate();
-        if (this.changed) {
-            ocean.uniform1f('u_size', this.size);
-        }
-        ocean.uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix).
+        this.oceanProgram.activate().
+            uniform1f('u_size', this.size).
+            uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix).
             uniformMatrix4fv('u_viewMatrix', false, viewMatrix).
             uniform3fv('u_cameraPosition', cameraPosition);
 
         const oceanIndicesLength = 6 * (GEOMETRY_RESOLUTION - 1) * (GEOMETRY_RESOLUTION - 1);
         gl.drawElements(gl.TRIANGLES, oceanIndicesLength, gl.UNSIGNED_SHORT, 0);
         gl.disableVertexAttribArray(OCEAN_COORDINATES_UNIT);
-
-        this.changed = false;
     }
 
 }
