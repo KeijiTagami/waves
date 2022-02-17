@@ -176,10 +176,10 @@ class Simulator {
 
         this.fullscreenVertexBuffer.vertexAttribPointer(0, 2, 0, 0);
 
-        this.initialSpectrumProgram.activate().
-            uniform2f('u_wind', this.windX, this.windY).
-            uniform1f('u_size', this.size);
         if (this.changed) {
+            this.initialSpectrumProgram.activate().
+                uniform2f('u_wind', this.windX, this.windY).
+                uniform1f('u_size', this.size);
             this.initialSpectrumFramebuffer.draw();
             this.changed = false;
         }
@@ -231,6 +231,7 @@ class Simulator {
     }
 
     render(projectionMatrix, viewMatrix, cameraPosition) {
+        const oceanIndicesLength = 6 * (GEOMETRY_RESOLUTION - 1) * (GEOMETRY_RESOLUTION - 1);
         const gl = this.gl();
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.viewport(0, 0, this.canvas.width, this.canvas.height);
@@ -239,14 +240,11 @@ class Simulator {
 
         gl.enableVertexAttribArray(OCEAN_COORDINATES_UNIT);
         this.oceanBuffer.vertexAttribPointer(0, 3, 5 * SIZE_OF_FLOAT, 0);
-
         this.oceanProgram.activate().
             uniform1f('u_size', this.size).
             uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix).
             uniformMatrix4fv('u_viewMatrix', false, viewMatrix).
             uniform3fv('u_cameraPosition', cameraPosition);
-
-        const oceanIndicesLength = 6 * (GEOMETRY_RESOLUTION - 1) * (GEOMETRY_RESOLUTION - 1);
         gl.drawElements(gl.TRIANGLES, oceanIndicesLength, gl.UNSIGNED_SHORT, 0);
         gl.disableVertexAttribArray(OCEAN_COORDINATES_UNIT);
     }
