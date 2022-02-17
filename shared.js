@@ -349,29 +349,66 @@ var log2 = function (number) {
     return Math.log(number) / Math.log(2);
 };
 
-var buildProgramWrapper = function (gl, vertexShader, fragmentShader, attributeLocations) {
-    var programWrapper = {};
+class Program {
 
-    var program = gl.createProgram();
-    gl.attachShader(program, vertexShader);
-    gl.attachShader(program, fragmentShader);
-    for (var attributeName in attributeLocations) {
-        gl.bindAttribLocation(program, attributeLocations[attributeName], attributeName);
+    constructor(gl, vertexShader, fragmentShader, attributeLocations) {
+        var program = gl.createProgram();
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
+        for (var attributeName in attributeLocations) {
+            gl.bindAttribLocation(program, attributeLocations[attributeName], attributeName);
+        }
+        gl.linkProgram(program);
+        var uniformLocations = {};
+        var numberOfUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+        for (var i = 0; i < numberOfUniforms; i += 1) {
+            var activeUniform = gl.getActiveUniform(program, i),
+                uniformLocation = gl.getUniformLocation(program, activeUniform.name);
+            uniformLocations[activeUniform.name] = uniformLocation;
+        }
+
+        this.gl = gl;
+        this.program = program;
+        this.uniformLocations = uniformLocations;
+        this.activate();
     }
-    gl.linkProgram(program);
-    var uniformLocations = {};
-    var numberOfUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
-    for (var i = 0; i < numberOfUniforms; i += 1) {
-        var activeUniform = gl.getActiveUniform(program, i),
-            uniformLocation = gl.getUniformLocation(program, activeUniform.name);
-        uniformLocations[activeUniform.name] = uniformLocation;
+
+    activate() {
+        this.gl.useProgram(this.program);
+        return this;
     }
 
-    programWrapper.program = program;
-    programWrapper.uniformLocations = uniformLocations;
+    uniform1i(name, val) {
+        this.gl.uniform1i(this.uniformLocations[name], val);
+        return this;
+    }
 
-    return programWrapper;
-};
+    uniform1f(name, val) {
+        this.gl.uniform1f(this.uniformLocations[name], val);
+        return this;
+    }
+
+    uniform2f(name, v1, v2) {
+        this.gl.uniform2f(this.uniformLocations[name], v1, v2);
+        return this;
+    }
+
+    uniform3f(name, v1, v2, v3) {
+        this.gl.uniform3f(this.uniformLocations[name], v1, v2, v3);
+        return this;
+    }
+
+    uniform3fv(name, val) {
+        this.gl.uniform3fv(this.uniformLocations[name], val);
+        return this;
+    }
+
+    uniformMatrix4fv(name, flag, val) {
+        this.gl.uniformMatrix4fv(this.uniformLocations[name], flag, val);
+        return this;
+    }
+
+}
 
 var buildShader = function (gl, type, source) {
     var shader = gl.createShader(type);
@@ -379,6 +416,13 @@ var buildShader = function (gl, type, source) {
     gl.compileShader(shader);
     return shader;
 };
+
+function buildBuffer(gl, data) {
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+    return buffer;
+}
 
 var buildTexture = function (gl, unit, format, type, width, height, data, wrapS, wrapT, minFilter, magFilter) {
     var texture = gl.createTexture();
