@@ -68,6 +68,44 @@ function oceanIndices() {
     return new Uint16Array(a);
 }
 
+class Buffer {
+
+    constructor(gl, data, element=false) {
+        const type = element ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER;
+        const buffer = gl.createBuffer();
+        gl.bindBuffer(type, buffer);
+        gl.bufferData(type, data, gl.STATIC_DRAW);
+        this.gl = gl;
+        this.type = type
+        this.buffer = buffer;
+    }
+
+    vertexAttribPointer(a, b, c, d) {
+        const gl = this.gl
+        gl.bindBuffer(this.type, this.buffer);
+        gl.vertexAttribPointer(a, b, gl.FLOAT, false, c, d);
+        return this;
+    }
+
+}
+
+class Framebuffer {
+
+    constructor({gl, unit, data=null, wrap=gl.CLAMP_TO_EDGE, filter=gl.NEAREST}) {
+        this.gl = gl;
+        this.framebuffer = buildFramebuffer(gl, buildTexture(
+            gl, unit, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, data, wrap, wrap, filter, filter,
+        ));
+    }
+
+    draw() {
+        const gl = this.gl
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    }
+
+}
+
 class Simulator {
 
     constructor(canvas, width, height) {
@@ -88,12 +126,6 @@ class Simulator {
             const p = {'a_position': 0, 'a_coodinates': OCEAN_COORDINATES_UNIT};
             return new Program(gl, v, f, p);
         };
-
-        function buildFramebufferLocal({unit, data=null, wrap=gl.CLAMP_TO_EDGE, filter=gl.NEAREST}) {
-            return buildFramebuffer(gl, buildTexture(
-                gl, unit, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, data, wrap, wrap, filter, filter,
-            ));
-        }
 
         this.canvas = canvas;
         this.windX = INITIAL_WIND[0];
@@ -140,20 +172,19 @@ class Simulator {
 
         gl.enableVertexAttribArray(0);
 
-        this.fullscreenVertexBuffer = buildBuffer(gl, fullscreenData());
-        this.oceanBuffer = buildBuffer(gl, oceanData());
-        gl.vertexAttribPointer(OCEAN_COORDINATES_UNIT, 2, gl.FLOAT, false, 5 * SIZE_OF_FLOAT, 3 * SIZE_OF_FLOAT);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, oceanIndices(), gl.STATIC_DRAW);
+        this.fullscreenVertexBuffer = new Buffer(gl, fullscreenData());
+        this.oceanBuffer = new Buffer(gl, oceanData()).
+            vertexAttribPointer(OCEAN_COORDINATES_UNIT, 2, 5 * SIZE_OF_FLOAT, 3 * SIZE_OF_FLOAT);
+        new Buffer(gl, oceanIndices(), true);
 
-        this.initialSpectrumFramebuffer = buildFramebufferLocal({unit: INITIAL_SPECTRUM_UNIT, wrap: gl.REPEAT});
-        this.pingPhaseFramebuffer = buildFramebufferLocal({unit: PING_PHASE_UNIT, data: phaseArray()});
-        this.pongPhaseFramebuffer = buildFramebufferLocal({unit: PONG_PHASE_UNIT});
-        this.spectrumFramebuffer = buildFramebufferLocal({unit: SPECTRUM_UNIT});
-        this.displacementMapFramebuffer = buildFramebufferLocal({unit: DISPLACEMENT_MAP_UNIT, filter: gl.LINEAR});
-        this.normalMapFramebuffer = buildFramebufferLocal({unit: NORMAL_MAP_UNIT, filter: gl.LINEAR});
-        this.pingTransformFramebuffer = buildFramebufferLocal({unit: PING_TRANSFORM_UNIT});
-        this.pongTransformFramebuffer = buildFramebufferLocal({unit: PONG_TRANSFORM_UNIT});
+        this.initialSpectrumFramebuffer = new Framebuffer({gl: gl, unit: INITIAL_SPECTRUM_UNIT, wrap: gl.REPEAT});
+        this.pingPhaseFramebuffer = new Framebuffer({gl: gl, unit: PING_PHASE_UNIT, data: phaseArray()});
+        this.pongPhaseFramebuffer = new Framebuffer({gl: gl, unit: PONG_PHASE_UNIT});
+        this.spectrumFramebuffer = new Framebuffer({gl: gl, unit: SPECTRUM_UNIT});
+        this.displacementMapFramebuffer = new Framebuffer({gl: gl, unit: DISPLACEMENT_MAP_UNIT, filter: gl.LINEAR});
+        this.normalMapFramebuffer = new Framebuffer({gl: gl, unit: NORMAL_MAP_UNIT, filter: gl.LINEAR});
+        this.pingTransformFramebuffer = new Framebuffer({gl: gl, unit: PING_TRANSFORM_UNIT});
+        this.pongTransformFramebuffer = new Framebuffer({gl: gl, unit: PONG_TRANSFORM_UNIT});
         this.pingPhase = true;
     }
 
@@ -181,25 +212,19 @@ class Simulator {
         this.canvas.height = height;
     }
 
-    render(deltaTime, projectionMatrix, viewMatrix, cameraPosition) {
+    update(deltaTime) {
         const gl = this.gl();
-
-        function drawFramebuffer(framebuffer) {
-            gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        }
 
         gl.viewport(0, 0, RESOLUTION, RESOLUTION);
         gl.disable(gl.DEPTH_TEST);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.fullscreenVertexBuffer);
-        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+        this.fullscreenVertexBuffer.vertexAttribPointer(0, 2, 0, 0);
 
         if (this.changed) {
             this.initialSpectrumProgram.activate().
                 uniform2f('u_wind', this.windX, this.windY).
                 uniform1f('u_size', this.size);
-            drawFramebuffer(this.initialSpectrumFramebuffer);
+            this.initialSpectrumFramebuffer.draw();
         }
         
         //store phases separately to ensure continuity of waves during parameter editing
@@ -207,13 +232,13 @@ class Simulator {
             uniform1i('u_phases', this.pingPhase ? PING_PHASE_UNIT : PONG_PHASE_UNIT).
             uniform1f('u_deltaTime', deltaTime).
             uniform1f('u_size', this.size);
-        drawFramebuffer(this.pingPhase ? this.pongPhaseFramebuffer : this.pingPhaseFramebuffer);
+        (this.pingPhase ? this.pongPhaseFramebuffer : this.pingPhaseFramebuffer).draw();
 
         this.spectrumProgram.activate().
             uniform1i('u_phases', this.pingPhase ? PONG_PHASE_UNIT : PING_PHASE_UNIT).
             uniform1f('u_size', this.size).
             uniform1f('u_choppiness', this.choppiness);
-        drawFramebuffer(this.spectrumFramebuffer);
+        this.spectrumFramebuffer.draw();
 
         //GPU FFT using Stockham formulation
         const iterations = log2(RESOLUTION);
@@ -234,44 +259,44 @@ class Simulator {
             }
             subtransformProgram.uniform1f('u_subtransformSize', Math.pow(2, (i % iterations) + 1));
             if (i === 2 * iterations - 1) {
-                drawFramebuffer(this.displacementMapFramebuffer);
+                this.displacementMapFramebuffer.draw();
             } else if (i % 2 === 1) {
-                drawFramebuffer(this.pongTransformFramebuffer);
+                this.pongTransformFramebuffer.draw();
             } else {
-                drawFramebuffer(this.pingTransformFramebuffer);
+                this.pingTransformFramebuffer.draw();
             }
         }
+        this.pingPhase = !this.pingPhase;
 
         const normalMap = this.normalMapProgram.activate();
         if (this.changed) {
             normalMap.uniform1f('u_size', this.size);
         }
-        drawFramebuffer(this.normalMapFramebuffer);
+        this.normalMapFramebuffer.draw();
+    }
 
+    render(projectionMatrix, viewMatrix, cameraPosition) {
+        const gl = this.gl();
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
         gl.viewport(0, 0, this.canvas.width, this.canvas.height);
         gl.enable(gl.DEPTH_TEST);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         gl.enableVertexAttribArray(OCEAN_COORDINATES_UNIT);
-        {
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.oceanBuffer);
-            gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 5 * SIZE_OF_FLOAT, 0);
+        this.oceanBuffer.vertexAttribPointer(0, 3, 5 * SIZE_OF_FLOAT, 0);
 
-            const oceanIndicesLength = 6 * (GEOMETRY_RESOLUTION - 1) * (GEOMETRY_RESOLUTION - 1);
-            const ocean = this.oceanProgram.activate();
-            if (this.changed) {
-                ocean.uniform1f('u_size', this.size);
-            }
-            ocean.uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix).
-                uniformMatrix4fv('u_viewMatrix', false, viewMatrix).
-                uniform3fv('u_cameraPosition', cameraPosition);
-            gl.drawElements(gl.TRIANGLES, oceanIndicesLength, gl.UNSIGNED_SHORT, 0);
+        const ocean = this.oceanProgram.activate();
+        if (this.changed) {
+            ocean.uniform1f('u_size', this.size);
         }
+        ocean.uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix).
+            uniformMatrix4fv('u_viewMatrix', false, viewMatrix).
+            uniform3fv('u_cameraPosition', cameraPosition);
+
+        const oceanIndicesLength = 6 * (GEOMETRY_RESOLUTION - 1) * (GEOMETRY_RESOLUTION - 1);
+        gl.drawElements(gl.TRIANGLES, oceanIndicesLength, gl.UNSIGNED_SHORT, 0);
         gl.disableVertexAttribArray(OCEAN_COORDINATES_UNIT);
 
-        this.pingPhase = !this.pingPhase;
         this.changed = false;
     }
 

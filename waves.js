@@ -193,7 +193,8 @@ var main = function () {
 
         var fovValue = 0.5 / Math.tan(FOV / 2) * height;
         setTransform(cameraDiv, 'translate3d(0px, 0px, ' + fovValue + 'px) ' + toCSSMatrix(camera.getViewMatrix()) + ' translate3d(' + width / 2 + 'px, ' + height / 2 + 'px, 0px)');
-        simulator.render(deltaTime, projectionMatrix, camera.getViewMatrix(), camera.getPosition());
+        simulator.update(deltaTime);
+        simulator.render(projectionMatrix, camera.getViewMatrix(), camera.getPosition());
 
         requestAnimationFrame(render);
     };

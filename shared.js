@@ -417,13 +417,6 @@ var buildShader = function (gl, type, source) {
     return shader;
 };
 
-function buildBuffer(gl, data) {
-    const buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
-    return buffer;
-}
-
 var buildTexture = function (gl, unit, format, type, width, height, data, wrapS, wrapT, minFilter, magFilter) {
     var texture = gl.createTexture();
     gl.activeTexture(gl.TEXTURE0 + unit);
