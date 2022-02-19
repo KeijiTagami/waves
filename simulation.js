@@ -111,7 +111,6 @@ class Simulator {
         gl.getExtension('OES_texture_float');
         gl.getExtension('OES_texture_float_linear');
         gl.clearColor.apply(gl, CLEAR_COLOR);
-        gl.enable(gl.DEPTH_TEST);
         gl.enableVertexAttribArray(FULLSCREEN_COORDINATES_UNIT);
         gl.enableVertexAttribArray(OCEAN_COORDINATES_UNIT);
 
@@ -188,11 +187,11 @@ class Simulator {
 
     update(deltaTime) {
         const gl = this.gl();
-        gl.viewport(0, 0, RESOLUTION, RESOLUTION);
         gl.disable(gl.DEPTH_TEST);
 
         this.fullscreenBuffer.
             vertexAttribPointer(FULLSCREEN_COORDINATES_UNIT, 2, 0, 0);
+        gl.viewport(0, 0, RESOLUTION, RESOLUTION);
 
         if (this.changed) {
             this.initialSpectrumProgram.activate().
@@ -250,12 +249,13 @@ class Simulator {
 
     render(projectionMatrix, viewMatrix, cameraPosition) {
         const gl = this.gl();
-        gl.viewport(0, 0, this.canvas.width, this.canvas.height);
         gl.enable(gl.DEPTH_TEST);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         this.oceanBuffer.
             vertexAttribPointer(FULLSCREEN_COORDINATES_UNIT, 3, 5, 0);
+        gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+
         this.oceanProgram.activate().
             uniform1f('u_size', this.size).
             uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix).
