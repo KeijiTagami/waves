@@ -47,9 +47,9 @@ class ElementsBuffer {
         this.length = data.length;
     }
 
-    draw(index) {
+    draw() {
         const gl = this.gl
-        gl.drawElements(gl.TRIANGLES, this.length, gl.UNSIGNED_SHORT, index);
+        gl.drawElements(gl.TRIANGLES, this.length, gl.UNSIGNED_SHORT, 0);
     }
 
 }
@@ -261,7 +261,7 @@ class Simulator {
             uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix).
             uniformMatrix4fv('u_viewMatrix', false, viewMatrix).
             uniform3fv('u_cameraPosition', cameraPosition);
-        this.oceanElements.draw(FULLSCREEN_COORDINATES_UNIT);
+        this.oceanElements.draw();
     }
 
 }
