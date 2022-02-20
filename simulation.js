@@ -58,6 +58,7 @@ class Framebuffer {
 
     constructor({gl, unit, data=null, wrap=gl.CLAMP_TO_EDGE, filter=gl.NEAREST}) {
         this.gl = gl;
+        this.unit = unit;
         this.framebuffer = buildFramebuffer(gl, buildTexture(
             gl, unit, gl.RGBA, gl.FLOAT, RESOLUTION, RESOLUTION, data, wrap, wrap, filter, filter,
         ));
@@ -97,6 +98,10 @@ class OceanProgram extends Program {
 
 }
 
+function swap(a, b) {
+    [a, b] = [b, a];
+}
+
 class Simulator {
 
     constructor(canvas, width, height) {
@@ -105,7 +110,6 @@ class Simulator {
         this.setWind(INITIAL_WIND[0], INITIAL_WIND[1]);
         this.setSize(INITIAL_SIZE);
         this.setChoppiness(INITIAL_CHOPPINESS);
-        this.pingPhase = true;
 
         const gl = this.gl();
         gl.getExtension('OES_texture_float');
@@ -152,8 +156,8 @@ class Simulator {
             vertexAttribPointer(OCEAN_COORDINATES_UNIT, 2, 5, 3);
 
         this.initialSpectrumFramebuffer = new Framebuffer({gl: gl, unit: INITIAL_SPECTRUM_UNIT, wrap: gl.REPEAT});
-        this.pingPhaseFramebuffer = new Framebuffer({gl: gl, unit: PING_PHASE_UNIT, data: phaseArray()});
-        this.pongPhaseFramebuffer = new Framebuffer({gl: gl, unit: PONG_PHASE_UNIT});
+        this.inputPhaseFramebuffer = new Framebuffer({gl: gl, unit: PING_PHASE_UNIT, data: phaseArray()});
+        this.outputPhaseFramebuffer = new Framebuffer({gl: gl, unit: PONG_PHASE_UNIT});
         this.spectrumFramebuffer = new Framebuffer({gl: gl, unit: SPECTRUM_UNIT});
         this.displacementMapFramebuffer = new Framebuffer({gl: gl, unit: DISPLACEMENT_MAP_UNIT, filter: gl.LINEAR});
         this.normalMapFramebuffer = new Framebuffer({gl: gl, unit: NORMAL_MAP_UNIT, filter: gl.LINEAR});
@@ -200,16 +204,16 @@ class Simulator {
             this.initialSpectrumFramebuffer.draw();
             this.changed = false;
         }
-        
-        //store phases separately to ensure continuity of waves during parameter editing
+
         this.phaseProgram.activate().
-            uniform1i('u_phases', this.pingPhase ? PING_PHASE_UNIT : PONG_PHASE_UNIT).
+            uniform1i('u_phases', this.inputPhaseFramebuffer.unit).
             uniform1f('u_deltaTime', deltaTime).
             uniform1f('u_size', this.size);
-        (this.pingPhase ? this.pongPhaseFramebuffer : this.pingPhaseFramebuffer).draw();
+        this.outputPhaseFramebuffer.draw();
+        swap(this.inputPhaseFramebuffer, this.outputPhaseFramebuffer);
 
         this.spectrumProgram.activate().
-            uniform1i('u_phases', this.pingPhase ? PONG_PHASE_UNIT : PING_PHASE_UNIT).
+            uniform1i('u_phases', this.outputPhaseFramebuffer.unit).
             uniform1f('u_size', this.size).
             uniform1f('u_choppiness', this.choppiness);
         this.spectrumFramebuffer.draw();
@@ -221,15 +225,15 @@ class Simulator {
             if (i === 0) {
                 subtransformProgram= this.horizontalSubtransformProgram.activate();
             }
+            if (i === iterations) {
+                subtransformProgram = this.verticalSubtransformProgram.activate();
+            }
             if (i == 0) {
                 subtransformProgram.uniform1i('u_input', SPECTRUM_UNIT);
             } else if (i % 2 === 1) {
                 subtransformProgram.uniform1i('u_input', PING_TRANSFORM_UNIT);
             } else {
                 subtransformProgram.uniform1i('u_input', PONG_TRANSFORM_UNIT);
-            }
-            if (i === iterations) {
-                subtransformProgram = this.verticalSubtransformProgram.activate();
             }
             subtransformProgram.uniform1f('u_subtransformSize', Math.pow(2, (i % iterations) + 1));
             if (i === 2 * iterations - 1) {
@@ -245,6 +249,8 @@ class Simulator {
         const normalMap = this.normalMapProgram.activate().
             uniform1f('u_size', this.size);
         this.normalMapFramebuffer.draw();
+
+        [this.inputPhaseFramebuffer, this.outputPhaseFramebuffer] = [this.outputPhaseFramebuffer, this.inputPhaseFramebuffer];
     }
 
     render(projectionMatrix, viewMatrix, cameraPosition) {
