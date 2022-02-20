@@ -131,12 +131,10 @@ class Simulator {
             uniform1i('u_initialSpectrum', INITIAL_SPECTRUM_UNIT).
             uniform1f('u_resolution', RESOLUTION);
         this.normalMapProgram = new FullscreenProgram(gl, NORMAL_MAP_FRAGMENT_SOURCE).
-            uniform1i('u_displacementMap', DISPLACEMENT_MAP_UNIT).
             uniform1f('u_resolution', RESOLUTION);
         this.oceanProgram = new OceanProgram(gl).
-            uniform1f('u_geometrySize', GEOMETRY_SIZE).
-            uniform1i('u_displacementMap', DISPLACEMENT_MAP_UNIT).
             uniform1i('u_normalMap', NORMAL_MAP_UNIT).
+            uniform1f('u_geometrySize', GEOMETRY_SIZE).
             uniform3f('u_oceanColor', OCEAN_COLOR[0], OCEAN_COLOR[1], OCEAN_COLOR[2]).
             uniform3f('u_skyColor', SKY_COLOR[0], SKY_COLOR[1], SKY_COLOR[2]).
             uniform3f('u_sunDirection', SUN_DIRECTION[0], SUN_DIRECTION[1], SUN_DIRECTION[2]).
@@ -159,8 +157,7 @@ class Simulator {
         this.inputPhaseFramebuffer = new Framebuffer({gl: gl, unit: PHASE1_UNIT, data: phaseArray()});
         this.outputPhaseFramebuffer = new Framebuffer({gl: gl, unit: PHASE2_UNIT});
         this.spectrumFramebuffer = new Framebuffer({gl: gl, unit: SPECTRUM_UNIT});
-        this.transformFramebuffer = new Framebuffer({gl: gl, unit: TRANSFORM_UNIT});
-        this.displacementMapFramebuffer = new Framebuffer({gl: gl, unit: DISPLACEMENT_MAP_UNIT, filter: gl.LINEAR});
+        this.displacementMapFramebuffer = new Framebuffer({gl: gl, unit: DISPLACEMENT_MAP_UNIT});
         this.normalMapFramebuffer = new Framebuffer({gl: gl, unit: NORMAL_MAP_UNIT, filter: gl.LINEAR});
     }
 
@@ -220,36 +217,32 @@ class Simulator {
         //GPU FFT using Stockham formulation
         const iterations = log2(RESOLUTION);
         let subtransformProgram;
-        let input = this.spectrumFramebuffer;
-        let output = this.transformFramebuffer;
+        let output = this.spectrumFramebuffer;
+        let input = this.displacementMapFramebuffer;
         subtransformProgram = this.horizontalSubtransformProgram.activate();
         for (let i = 0; i < iterations; i += 1) {
+            [input, output] = [output, input];
             subtransformProgram.
                 uniform1i('u_input', input.unit).
                 uniform1f('u_subtransformSize', Math.pow(2, i + 1));
             output.draw();
-            [input, output] = [output, input];
         }
         subtransformProgram = this.verticalSubtransformProgram.activate();
-        for (let i = 0; i < iterations - 1; i += 1) {
+        for (let i = 0; i < iterations; i += 1) {
+            [input, output] = [output, input];
             subtransformProgram.
                 uniform1i('u_input', input.unit).
                 uniform1f('u_subtransformSize', Math.pow(2, i + 1));
             output.draw();
-            [input, output] = [output, input];
-        }
-        {
-            subtransformProgram.
-                uniform1i('u_input', input.unit).
-                uniform1f('u_subtransformSize', Math.pow(2, iterations));
-            this.displacementMapFramebuffer.draw();
         }
 
         const normalMap = this.normalMapProgram.activate().
+            uniform1i('u_displacementMap', output.unit).
             uniform1f('u_size', this.size);
         this.normalMapFramebuffer.draw();
 
         [this.inputPhaseFramebuffer, this.outputPhaseFramebuffer] = [this.outputPhaseFramebuffer, this.inputPhaseFramebuffer];
+        [this.spectrumFramebuffer, this.displacementMapFramebuffer] = [input, output];
     }
 
     render(projectionMatrix, viewMatrix, cameraPosition) {
@@ -262,6 +255,7 @@ class Simulator {
         gl.viewport(0, 0, this.canvas.width, this.canvas.height);
 
         this.oceanProgram.activate().
+            uniform1i('u_displacementMap', this.displacementMapFramebuffer.unit).
             uniform1f('u_size', this.size).
             uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix).
             uniformMatrix4fv('u_viewMatrix', false, viewMatrix).
