@@ -156,13 +156,12 @@ class Simulator {
             vertexAttribPointer(OCEAN_COORDINATES_UNIT, 2, 5, 3);
 
         this.initialSpectrumFramebuffer = new Framebuffer({gl: gl, unit: INITIAL_SPECTRUM_UNIT, wrap: gl.REPEAT});
-        this.inputPhaseFramebuffer = new Framebuffer({gl: gl, unit: PING_PHASE_UNIT, data: phaseArray()});
-        this.outputPhaseFramebuffer = new Framebuffer({gl: gl, unit: PONG_PHASE_UNIT});
+        this.inputPhaseFramebuffer = new Framebuffer({gl: gl, unit: PHASE1_UNIT, data: phaseArray()});
+        this.outputPhaseFramebuffer = new Framebuffer({gl: gl, unit: PHASE2_UNIT});
         this.spectrumFramebuffer = new Framebuffer({gl: gl, unit: SPECTRUM_UNIT});
+        this.transformFramebuffer = new Framebuffer({gl: gl, unit: TRANSFORM_UNIT});
         this.displacementMapFramebuffer = new Framebuffer({gl: gl, unit: DISPLACEMENT_MAP_UNIT, filter: gl.LINEAR});
         this.normalMapFramebuffer = new Framebuffer({gl: gl, unit: NORMAL_MAP_UNIT, filter: gl.LINEAR});
-        this.pingTransformFramebuffer = new Framebuffer({gl: gl, unit: PING_TRANSFORM_UNIT});
-        this.pongTransformFramebuffer = new Framebuffer({gl: gl, unit: PONG_TRANSFORM_UNIT});
     }
 
     gl() {
@@ -221,30 +220,30 @@ class Simulator {
         //GPU FFT using Stockham formulation
         const iterations = log2(RESOLUTION);
         let subtransformProgram;
-        for (let i = 0; i < 2 * iterations; i += 1) {
-            if (i === 0) {
-                subtransformProgram= this.horizontalSubtransformProgram.activate();
-            }
-            if (i === iterations) {
-                subtransformProgram = this.verticalSubtransformProgram.activate();
-            }
-            if (i == 0) {
-                subtransformProgram.uniform1i('u_input', SPECTRUM_UNIT);
-            } else if (i % 2 === 1) {
-                subtransformProgram.uniform1i('u_input', PING_TRANSFORM_UNIT);
-            } else {
-                subtransformProgram.uniform1i('u_input', PONG_TRANSFORM_UNIT);
-            }
-            subtransformProgram.uniform1f('u_subtransformSize', Math.pow(2, (i % iterations) + 1));
-            if (i === 2 * iterations - 1) {
-                this.displacementMapFramebuffer.draw();
-            } else if (i % 2 === 1) {
-                this.pongTransformFramebuffer.draw();
-            } else {
-                this.pingTransformFramebuffer.draw();
-            }
+        let input = this.spectrumFramebuffer;
+        let output = this.transformFramebuffer;
+        subtransformProgram = this.horizontalSubtransformProgram.activate();
+        for (let i = 0; i < iterations; i += 1) {
+            subtransformProgram.
+                uniform1i('u_input', input.unit).
+                uniform1f('u_subtransformSize', Math.pow(2, i + 1));
+            output.draw();
+            [input, output] = [output, input];
         }
-        this.pingPhase = !this.pingPhase;
+        subtransformProgram = this.verticalSubtransformProgram.activate();
+        for (let i = 0; i < iterations - 1; i += 1) {
+            subtransformProgram.
+                uniform1i('u_input', input.unit).
+                uniform1f('u_subtransformSize', Math.pow(2, i + 1));
+            output.draw();
+            [input, output] = [output, input];
+        }
+        {
+            subtransformProgram.
+                uniform1i('u_input', input.unit).
+                uniform1f('u_subtransformSize', Math.pow(2, iterations));
+            this.displacementMapFramebuffer.draw();
+        }
 
         const normalMap = this.normalMapProgram.activate().
             uniform1f('u_size', this.size);
