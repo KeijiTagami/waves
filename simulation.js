@@ -104,10 +104,6 @@ class OceanProgram extends Program {
 
 }
 
-function swap(a, b) {
-    [a, b] = [b, a];
-}
-
 class Simulator {
 
     constructor(canvas, width, height) {
@@ -201,7 +197,6 @@ class Simulator {
             uniform1f('u_deltaTime', deltaTime).
             uniform1f('u_size', this.size);
         this.outputPhaseFramebuffer.draw();
-        swap(this.inputPhaseFramebuffer, this.outputPhaseFramebuffer);
 
         this.spectrumProgram.activate().
             uniform1i('u_phases', this.outputPhaseFramebuffer.unit).
