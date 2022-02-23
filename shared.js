@@ -28,45 +28,23 @@ function makeIdentityMatrix() {
     ]);
 }
 
-var makeXRotationMatrix = function (matrix, angle) {
-    matrix[0] = 1.0;
-    matrix[1] = 0.0;
-    matrix[2] = 0.0;
-    matrix[3] = 0.0;
-    matrix[4] = 0.0;
-    matrix[5] = Math.cos(angle);
-    matrix[6] = Math.sin(angle);
-    matrix[7] = 0.0;
-    matrix[8] = 0.0;
-    matrix[9] = -Math.sin(angle);
-    matrix[10] = Math.cos(angle);
-    matrix[11] = 0.0;
-    matrix[12] = 0.0;
-    matrix[13] = 0.0;
-    matrix[14] = 0.0;
-    matrix[15] = 1.0;
-    return matrix;
-};
+function makeXRotationMatrix(angle) {
+    return new Float32Array([
+        1.0, 0.0, 0.0, 0.0,
+        0.0, Math.cos(angle), Math.sin(angle), 0.0,
+        0.0, -Math.sin(angle), Math.cos(angle), 0.0,
+        0.0, 0.0, 0.0, 1.0,
+    ]);
+}
 
-var makeYRotationMatrix = function (matrix, angle) {
-    matrix[0] = Math.cos(angle);
-    matrix[1] = 0.0;
-    matrix[2] = -Math.sin(angle);
-    matrix[3] = 0.0;
-    matrix[4] = 0.0;
-    matrix[5] = 1.0;
-    matrix[6] = 0.0;
-    matrix[7] = 0.0;
-    matrix[8] = Math.sin(angle);
-    matrix[9] = 0.0;
-    matrix[10] = Math.cos(angle);
-    matrix[11] = 0.0;
-    matrix[12] = 0.0;
-    matrix[13] = 0.0;
-    matrix[14] = 0.0;
-    matrix[15] = 1.0;
-    return matrix;
-};
+function makeYRotationMatrix(angle) {
+    return new Float32Array([
+        Math.cos(angle), 0.0, -Math.sin(angle), 0.0,
+        0.0, 1.0, 0.0, 0.0,
+        Math.sin(angle), 0.0, Math.cos(angle), 0.0,
+        0.0, 0.0, 0.0, 1.0,
+    ]);
+}
 
 var distanceBetweenVectors = function (a, b) {
     var xDist = b[0] - a[0],

@@ -31,8 +31,8 @@ var Camera = function () {
         if (changed) {
             viewMatrix = makeIdentityMatrix();
 
-            makeXRotationMatrix(xRotationMatrix, elevation);
-            makeYRotationMatrix(yRotationMatrix, azimuth);
+            xRotationMatrix = makeXRotationMatrix(elevation);
+            yRotationMatrix = makeYRotationMatrix(azimuth);
             distanceTranslationMatrix[14] = -CAMERA_DISTANCE;
             orbitTranslationMatrix[12] = -ORBIT_POINT[0];
             orbitTranslationMatrix[13] = -ORBIT_POINT[1];
