@@ -2,7 +2,7 @@ var Camera = function () {
     var azimuth = INITIAL_AZIMUTH,
         elevation = INITIAL_ELEVATION,
 
-        viewMatrix = makeIdentityMatrix(new Float32Array(16)),
+        viewMatrix = makeIdentityMatrix(),
         position = new Float32Array(3),
         changed = true;
 
@@ -22,14 +22,14 @@ var Camera = function () {
         return position;
     };
 
-    var orbitTranslationMatrix = makeIdentityMatrix(new Float32Array(16)),
+    var orbitTranslationMatrix = makeIdentityMatrix(),
         xRotationMatrix = new Float32Array(16),
         yRotationMatrix = new Float32Array(16),
-        distanceTranslationMatrix = makeIdentityMatrix(new Float32Array(16));
+        distanceTranslationMatrix = makeIdentityMatrix();
 
     this.getViewMatrix = function () {
         if (changed) {
-            makeIdentityMatrix(viewMatrix);
+            viewMatrix = makeIdentityMatrix();
 
             makeXRotationMatrix(xRotationMatrix, elevation);
             makeYRotationMatrix(yRotationMatrix, azimuth);
