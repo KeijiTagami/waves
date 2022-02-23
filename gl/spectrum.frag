@@ -36,5 +36,5 @@ void main(void) {
     float phase = texture2D(u_phases, coordinates).r;
     vec2 phaseVector = vec2(sin(phase), -cos(phase));
     vec2 h = multiplyComplex(h0, phaseVector) + conj(multiplyComplex(h1, phaseVector));
-    gl_FragColor = vec4((1.0 - choppiness[0]) * h, -choppiness[1] * h);
+    gl_FragColor = vec4((1.0 - choppiness) * h, 0.0, 0.0);
 }

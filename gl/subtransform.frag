@@ -3,7 +3,6 @@ precision highp float;
 const float PI = 3.14159265359;
 
 uniform float u_resolution;
-uniform float u_transformSize;
 
 uniform sampler2D u_input;
 uniform float u_subtransformSize;
@@ -12,32 +11,36 @@ vec2 multiplyComplex (vec2 a, vec2 b) {
     return vec2(a[0] * b[0] - a[1] * b[1], a[1] * b[0] + a[0] * b[1]);
 }
 
+float toIndex(float x) {
+    return u_resolution * x - 0.5;
+}
+
+float toCoord(float idx) {
+    return (idx + 0.5) / u_resolution;
+}
+
+float modifyIndex(float x) {
+    float hsize = 0.5 * u_subtransformSize;
+    return hsize * floor(x / u_subtransformSize) + mod(x, hsize);
+}
+
 void main (void) {
-    vec2 coordinates = gl_FragCoord.xy / u_resolution;
-
-    #ifdef HORIZONTAL
-    float index = coordinates.x * u_transformSize - 0.5;
-    #else
-    float index = coordinates.y * u_transformSize - 0.5;
-    #endif
-
-    float evenIndex = floor(index / u_subtransformSize) * (u_subtransformSize * 0.5) + mod(index, u_subtransformSize * 0.5);
+    vec2 coord = gl_FragCoord.xy / u_resolution;
 
     //transform two complex sequences simultaneously
     #ifdef HORIZONTAL
-    vec4 even = texture2D(u_input, vec2(evenIndex + 0.5, gl_FragCoord.y) / u_transformSize).rgba;
-    vec4 odd = texture2D(u_input, vec2(evenIndex + u_transformSize * 0.5 + 0.5, gl_FragCoord.y) / u_transformSize).rgba;
+    float idx = toIndex(coord.x);
+    float xcoord = toCoord(modifyIndex(idx));
+    vec4 even = texture2D(u_input, vec2(xcoord, coord.y));
+    vec4 odd = texture2D(u_input, vec2(xcoord + 0.5, coord.y));
     #else
-    vec4 even = texture2D(u_input, vec2(gl_FragCoord.x, evenIndex + 0.5) / u_transformSize).rgba;
-    vec4 odd = texture2D(u_input, vec2(gl_FragCoord.x, evenIndex + u_transformSize * 0.5 + 0.5) / u_transformSize).rgba;
+    float idx = toIndex(coord.y);
+    float ycoord = toCoord(modifyIndex(idx));
+    vec4 even = texture2D(u_input, vec2(coord.x, ycoord));
+    vec4 odd = texture2D(u_input, vec2(coord.x, ycoord + 0.5));
     #endif
 
-    float twiddleArgument = -2.0 * PI * (index / u_subtransformSize);
+    float twiddleArgument = -2.0 * PI * idx / u_subtransformSize;
     vec2 twiddle = vec2(cos(twiddleArgument), sin(twiddleArgument));
-
-    vec2 outputA = even.xy + multiplyComplex(twiddle, odd.xy);
-    vec2 outputB = even.zw + multiplyComplex(twiddle, odd.zw);
-
-    gl_FragColor = vec4(outputA, outputB);
-
+    gl_FragColor = vec4(even.xy + multiplyComplex(twiddle, odd.xy), 0.0, 0.0);
 }
