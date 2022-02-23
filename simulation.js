@@ -26,19 +26,24 @@ class Buffer {
         gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
         this.gl = gl;
         this.buffer = buffer;
+        this.pointer = {};
+    }
+
+    vertexAttribPointer(index, size, stride, offset) {
+        const gl = this.gl
+        this.pointer[index] = [size, stride, offset];
+        gl.vertexAttribPointer(index, size, gl.FLOAT, false, stride * SIZE_OF_FLOAT, offset * SIZE_OF_FLOAT);
+        gl.enableVertexAttribArray(index);
+        return this;
     }
 
     bind() {
         const gl = this.gl
         gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
-        return this;
-    }
-
-    vertexAttribPointer(index, size, stride, offset) {
-        const gl = this.gl
-        gl.vertexAttribPointer(index, size, gl.FLOAT, false, stride * SIZE_OF_FLOAT, offset * SIZE_OF_FLOAT);
-        gl.enableVertexAttribArray(index);
-        return this;
+        for (let index in this.pointer) {
+            let p = this.pointer[index];
+            gl.vertexAttribPointer(index, p[0], gl.FLOAT, false, p[1] * SIZE_OF_FLOAT, p[2] * SIZE_OF_FLOAT);
+        }
     }
 
 }
@@ -87,7 +92,7 @@ class FullscreenProgram extends Program {
             v = buildShader(gl, gl.VERTEX_SHADER, FULLSCREEN_VERTEX_SOURCE);
         }
         const f = buildShader(gl, gl.FRAGMENT_SHADER, src);
-        const p = {'a_position': 0};
+        const p = {'a_position': ATTR_POSITION};
         super(gl, v, f, p);
     }
 
@@ -98,7 +103,7 @@ class OceanProgram extends Program {
     constructor(gl) {
         const v = buildShader(gl, gl.VERTEX_SHADER, OCEAN_VERTEX_SOURCE);
         const f = buildShader(gl, gl.FRAGMENT_SHADER, OCEAN_FRAGMENT_SOURCE);
-        const p = {'a_position': 0, 'a_coodinates': OCEAN_COORDINATES_UNIT};
+        const p = {'a_position': ATTR_POSITION, 'a_coordinates': ATTR_COORDINATES};
         super(gl, v, f, p);
     }
 
@@ -118,13 +123,21 @@ class Simulator {
         gl.getExtension('OES_texture_float_linear');
         gl.clearColor.apply(gl, CLEAR_COLOR);
 
+        this.fullscreenBuffer = new Buffer(gl, fullscreenData()).
+            vertexAttribPointer(ATTR_POSITION, 2, 0, 0);
+
         this.initialSpectrumProgram = new FullscreenProgram(gl, INITIAL_SPECTRUM_FRAGMENT_SOURCE).
             uniform1f('u_resolution', RESOLUTION);
+        this.initialSpectrumFramebuffer = new Framebuffer({gl: gl, unit: INITIAL_SPECTRUM_UNIT, wrap: gl.REPEAT});
+
+        this.inputPhaseFramebuffer = new Framebuffer({gl: gl, unit: PHASE1_UNIT, data: phaseArray()});
         this.phaseProgram = new FullscreenProgram(gl, PHASE_FRAGMENT_SOURCE).
             uniform1f('u_resolution', RESOLUTION);
+        this.outputPhaseFramebuffer = new Framebuffer({gl: gl, unit: PHASE2_UNIT});
         this.spectrumProgram = new FullscreenProgram(gl, SPECTRUM_FRAGMENT_SOURCE).
             uniform1i('u_initialSpectrum', INITIAL_SPECTRUM_UNIT).
             uniform1f('u_resolution', RESOLUTION);
+        this.spectrumFramebuffer = new Framebuffer({gl: gl, unit: SPECTRUM_UNIT});
         this.horizontalSubtransformProgram =
             new FullscreenProgram(gl, '#define HORIZONTAL \n' + SUBTRANSFORM_FRAGMENT_SOURCE).
             uniform1f('u_resolution', RESOLUTION).
@@ -132,8 +145,15 @@ class Simulator {
         this.verticalSubtransformProgram = new FullscreenProgram(gl, SUBTRANSFORM_FRAGMENT_SOURCE).
             uniform1f('u_resolution', RESOLUTION).
             uniform1f('u_transformSize', RESOLUTION);
+        this.displacementMapFramebuffer = new Framebuffer({gl: gl, unit: DISPLACEMENT_MAP_UNIT});
         this.normalMapProgram = new FullscreenProgram(gl, NORMAL_MAP_FRAGMENT_SOURCE).
             uniform1f('u_resolution', RESOLUTION);
+        this.normalMapFramebuffer = new Framebuffer({gl: gl, unit: NORMAL_MAP_UNIT, filter: gl.LINEAR});
+
+        this.oceanBuffer = new Buffer(gl, oceanData()).
+            vertexAttribPointer(ATTR_POSITION, 3, 5, 0).
+            vertexAttribPointer(ATTR_COORDINATES, 2, 5, 3);
+        this.oceanElements = new ElementsBuffer(gl, oceanIndices());
         this.oceanProgram = new OceanProgram(gl).
             uniform1i('u_normalMap', NORMAL_MAP_UNIT).
             uniform1f('u_geometrySize', GEOMETRY_SIZE).
@@ -141,17 +161,6 @@ class Simulator {
             uniform3f('u_skyColor', SKY_COLOR[0], SKY_COLOR[1], SKY_COLOR[2]).
             uniform3f('u_sunDirection', SUN_DIRECTION[0], SUN_DIRECTION[1], SUN_DIRECTION[2]).
             uniform1f('u_exposure', EXPOSURE);
-
-        this.fullscreenBuffer = new Buffer(gl, fullscreenData());
-        this.oceanBuffer = new Buffer(gl, oceanData());
-        this.oceanElements = new ElementsBuffer(gl, oceanIndices());
-
-        this.initialSpectrumFramebuffer = new Framebuffer({gl: gl, unit: INITIAL_SPECTRUM_UNIT, wrap: gl.REPEAT});
-        this.inputPhaseFramebuffer = new Framebuffer({gl: gl, unit: PHASE1_UNIT, data: phaseArray()});
-        this.outputPhaseFramebuffer = new Framebuffer({gl: gl, unit: PHASE2_UNIT});
-        this.spectrumFramebuffer = new Framebuffer({gl: gl, unit: SPECTRUM_UNIT});
-        this.displacementMapFramebuffer = new Framebuffer({gl: gl, unit: DISPLACEMENT_MAP_UNIT});
-        this.normalMapFramebuffer = new Framebuffer({gl: gl, unit: NORMAL_MAP_UNIT, filter: gl.LINEAR});
     }
 
     gl() {
@@ -183,21 +192,20 @@ class Simulator {
         gl.disable(gl.DEPTH_TEST);
         gl.viewport(0, 0, RESOLUTION, RESOLUTION);
 
-        this.fullscreenBuffer.bind().
-            vertexAttribPointer(ATTR_POSITION, 2, 0, 0);
+        this.fullscreenBuffer.bind();
 
         if (this.changed) {
             this.initialSpectrumProgram.activate().
-                uniform2f('u_wind', this.windX, this.windY).
-                uniform1f('u_size', this.size);
+                uniform1f('u_size', this.size).
+                uniform2f('u_wind', this.windX, this.windY);
             this.initialSpectrumFramebuffer.draw();
             this.changed = false;
         }
 
         this.phaseProgram.activate().
             uniform1i('u_phases', this.inputPhaseFramebuffer.unit).
-            uniform1f('u_deltaTime', deltaTime).
-            uniform1f('u_size', this.size);
+            uniform1f('u_size', this.size).
+            uniform1f('u_deltaTime', deltaTime);
         this.outputPhaseFramebuffer.draw();
 
         this.spectrumProgram.activate().
@@ -243,9 +251,7 @@ class Simulator {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.viewport(0, 0, this.canvas.width, this.canvas.height);
 
-        this.oceanBuffer.bind().
-            vertexAttribPointer(ATTR_POSITION, 3, 5, 0).
-            vertexAttribPointer(ATTR_COORDINATES, 2, 5, 3);
+        this.oceanBuffer.bind();
         this.oceanProgram.activate().
             uniform1i('u_displacementMap', this.displacementMapFramebuffer.unit).
             uniform1f('u_size', this.size).
