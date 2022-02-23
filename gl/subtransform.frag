@@ -22,7 +22,7 @@ void main (void) {
     #endif
 
     float evenIndex = floor(index / u_subtransformSize) * (u_subtransformSize * 0.5) + mod(index, u_subtransformSize * 0.5);
-    
+
     //transform two complex sequences simultaneously
     #ifdef HORIZONTAL
     vec4 even = texture2D(u_input, vec2(evenIndex + 0.5, gl_FragCoord.y) / u_transformSize).rgba;
