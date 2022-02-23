@@ -4,8 +4,6 @@ const float PI = 3.14159265359;
 const float G = 9.81;
 const float KM = 370.0;
 
-varying vec2 v_coordinates;
-
 uniform float u_resolution;
 uniform float u_size;
 
@@ -24,10 +22,11 @@ float omega(float k) {
 }
 
 void main (void) {
+    vec2 coordinates = gl_FragCoord.xy / u_resolution;
     vec2 waveVector = getWaveVector();
     float k = length(waveVector);
 
-    float inPhase = texture2D(u_phases, v_coordinates).r;
+    float inPhase = texture2D(u_phases, coordinates).r;
     float outPhase = mod(inPhase + omega(k) * u_deltaTime, 2.0 * PI);
     gl_FragColor = vec4(outPhase, 0.0, 0.0, 0.0);
 }

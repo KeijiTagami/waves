@@ -2,23 +2,23 @@ precision highp float;
 
 const float PI = 3.14159265359;
 
-uniform sampler2D u_input;
-
+uniform float u_resolution;
 uniform float u_transformSize;
-uniform float u_subtransformSize;
 
-varying vec2 v_coordinates;
+uniform sampler2D u_input;
+uniform float u_subtransformSize;
 
 vec2 multiplyComplex (vec2 a, vec2 b) {
     return vec2(a[0] * b[0] - a[1] * b[1], a[1] * b[0] + a[0] * b[1]);
 }
 
 void main (void) {
+    vec2 coordinates = gl_FragCoord.xy / u_resolution;
 
     #ifdef HORIZONTAL
-    float index = v_coordinates.x * u_transformSize - 0.5;
+    float index = coordinates.x * u_transformSize - 0.5;
     #else
-    float index = v_coordinates.y * u_transformSize - 0.5;
+    float index = coordinates.y * u_transformSize - 0.5;
     #endif
 
     float evenIndex = floor(index / u_subtransformSize) * (u_subtransformSize * 0.5) + mod(index, u_subtransformSize * 0.5);

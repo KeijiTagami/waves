@@ -118,11 +118,6 @@ class Simulator {
         gl.getExtension('OES_texture_float_linear');
         gl.clearColor.apply(gl, CLEAR_COLOR);
 
-        this.horizontalSubtransformProgram =
-            new FullscreenProgram(gl, '#define HORIZONTAL \n' + SUBTRANSFORM_FRAGMENT_SOURCE).
-            uniform1f('u_transformSize', RESOLUTION); 
-        this.verticalSubtransformProgram = new FullscreenProgram(gl, SUBTRANSFORM_FRAGMENT_SOURCE).
-            uniform1f('u_transformSize', RESOLUTION);
         this.initialSpectrumProgram = new FullscreenProgram(gl, INITIAL_SPECTRUM_FRAGMENT_SOURCE).
             uniform1f('u_resolution', RESOLUTION);
         this.phaseProgram = new FullscreenProgram(gl, PHASE_FRAGMENT_SOURCE).
@@ -130,6 +125,13 @@ class Simulator {
         this.spectrumProgram = new FullscreenProgram(gl, SPECTRUM_FRAGMENT_SOURCE).
             uniform1i('u_initialSpectrum', INITIAL_SPECTRUM_UNIT).
             uniform1f('u_resolution', RESOLUTION);
+        this.horizontalSubtransformProgram =
+            new FullscreenProgram(gl, '#define HORIZONTAL \n' + SUBTRANSFORM_FRAGMENT_SOURCE).
+            uniform1f('u_resolution', RESOLUTION).
+            uniform1f('u_transformSize', RESOLUTION); 
+        this.verticalSubtransformProgram = new FullscreenProgram(gl, SUBTRANSFORM_FRAGMENT_SOURCE).
+            uniform1f('u_resolution', RESOLUTION).
+            uniform1f('u_transformSize', RESOLUTION);
         this.normalMapProgram = new FullscreenProgram(gl, NORMAL_MAP_FRAGMENT_SOURCE).
             uniform1f('u_resolution', RESOLUTION);
         this.oceanProgram = new OceanProgram(gl).

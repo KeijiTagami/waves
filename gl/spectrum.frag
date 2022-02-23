@@ -2,8 +2,6 @@ precision highp float;
 
 const float PI = 3.14159265359;
 
-varying vec2 v_coordinates;
-
 uniform float u_size;
 uniform float u_resolution;
 
@@ -30,15 +28,12 @@ vec2 conj(vec2 z) {
 void main(void) {
     vec2 waveVector = getWaveVector();
     float k = length(waveVector);
-    vec2 choppiness = vec2(0.0);
-    if (k > 0.0) {
-        choppiness = u_choppiness * (waveVector / k);
-    }
+    vec2 choppiness = (k > 0.0) ? u_choppiness * (waveVector / k) : vec2(0.0);
 
-    vec2 z_coordinates = vec2(1.0 - v_coordinates + 1.0 / u_resolution);
-    vec2 h0 = texture2D(u_initialSpectrum, v_coordinates).rg;
-    vec2 h1 = texture2D(u_initialSpectrum, z_coordinates).rg;
-    float phase = texture2D(u_phases, v_coordinates).r;
+    vec2 coordinates = gl_FragCoord.xy / u_resolution;
+    vec2 h0 = texture2D(u_initialSpectrum, coordinates).rg;
+    vec2 h1 = texture2D(u_initialSpectrum, 1.0 - coordinates).rg;
+    float phase = texture2D(u_phases, coordinates).r;
     vec2 phaseVector = vec2(sin(phase), -cos(phase));
     vec2 h = multiplyComplex(h0, phaseVector) + conj(multiplyComplex(h1, phaseVector));
     gl_FragColor = vec4((1.0 - choppiness[0]) * h, -choppiness[1] * h);

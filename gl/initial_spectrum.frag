@@ -5,27 +5,32 @@ const float G = 9.81;
 const float KM = 370.0;
 const float CM = 0.23;
 
-uniform vec2 u_wind;
 uniform float u_resolution;
+
+uniform vec2 u_wind;
 uniform float u_size;
 
 float square (float x) {
     return x * x;
 }
 
-float omega (float k) {
-    return sqrt(G * k * (1.0 + square(k / KM)));
-}
-
 float tanh (float x) {
     return (1.0 - exp(-2.0 * x)) / (1.0 + exp(-2.0 * x));
 }
 
-void main (void) {
+float omega (float k) {
+    return sqrt(G * k * (1.0 + square(k / KM)));
+}
+
+vec2 getWaveVector() {
     vec2 coordinates = gl_FragCoord.xy - 0.5;
     float n = (coordinates.x < u_resolution * 0.5) ? coordinates.x : coordinates.x - u_resolution;
     float m = (coordinates.y < u_resolution * 0.5) ? coordinates.y : coordinates.y - u_resolution;
-    vec2 waveVector = (2.0 * PI * vec2(n, m)) / u_size;
+    return (2.0 * PI * vec2(n, m)) / u_size;
+}
+
+void main (void) {
+    vec2 waveVector = getWaveVector();
     float k = length(waveVector);
 
     float U10 = length(u_wind);
