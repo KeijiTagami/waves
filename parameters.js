@@ -3,13 +3,13 @@ var INITIAL_SIZE = 250,
     INITIAL_CHOPPINESS = 1.5;
 
 var CLEAR_COLOR = [1.0, 1.0, 1.0, 0.0],
-    GEOMETRY_ORIGIN = [-1000.0, -1000.0],
     SUN_DIRECTION = [-1.0, 1.0, 1.0],
     OCEAN_COLOR = [0.004, 0.016, 0.047],
     SKY_COLOR = [3.2, 9.6, 12.8],
     EXPOSURE = 0.35,
     GEOMETRY_RESOLUTION = 256,
-    GEOMETRY_SIZE = 2000,
+    GEOMETRY_SIZE = 2000.0,
+    GEOMETRY_ORIGIN = -1000.0,
     RESOLUTION = 512;
 
 var SIZE_OF_FLOAT = 4;
@@ -18,7 +18,7 @@ var FULLSCREEN_COORDINATES_UNIT = 0;
 var OCEAN_COORDINATES_UNIT = 1;
 
 var ATTR_POSITION = 0;
-var ATTR_COORDINATES = 1;
+var ATTR_COORDINATES = 0;
 
 var INITIAL_SPECTRUM_UNIT = 0,
     PHASE1_UNIT = 1,
@@ -129,13 +129,12 @@ function phaseArray() {
 
 function oceanData() {
     const a = [];
-    for (let z = 0; z < GEOMETRY_RESOLUTION; z += 1) {
-        for (let x = 0; x < GEOMETRY_RESOLUTION; x += 1) {
-            a.push((x * GEOMETRY_SIZE) / (GEOMETRY_RESOLUTION - 1) + GEOMETRY_ORIGIN[0]);
-            a.push((0.0));
-            a.push((z * GEOMETRY_SIZE) / (GEOMETRY_RESOLUTION - 1) + GEOMETRY_ORIGIN[1]);
-            a.push(x / (GEOMETRY_RESOLUTION - 1));
-            a.push(z / (GEOMETRY_RESOLUTION - 1));
+    for (let zi = 0; zi < GEOMETRY_RESOLUTION; zi += 1) {
+        let z = (zi + 0.5) / GEOMETRY_RESOLUTION;
+        for (let xi = 0; xi < GEOMETRY_RESOLUTION; xi += 1) {
+            let x = (xi + 0.5) / GEOMETRY_RESOLUTION;
+            a.push(x);
+            a.push(z);
         }
     }
     return new Float32Array(a);

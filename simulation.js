@@ -151,12 +151,12 @@ class Simulator {
         this.normalMapFramebuffer = new Framebuffer({gl: gl, unit: NORMAL_MAP_UNIT, filter: gl.LINEAR});
 
         this.oceanBuffer = new Buffer(gl, oceanData()).
-            vertexAttribPointer(ATTR_POSITION, 3, 5, 0).
-            vertexAttribPointer(ATTR_COORDINATES, 2, 5, 3);
+            vertexAttribPointer(ATTR_COORDINATES, 2, 0, 0);
         this.oceanElements = new ElementsBuffer(gl, oceanIndices());
         this.oceanProgram = new OceanProgram(gl).
             uniform1i('u_normalMap', NORMAL_MAP_UNIT).
             uniform1f('u_geometrySize', GEOMETRY_SIZE).
+            uniform1f('u_geometryOrigin', GEOMETRY_ORIGIN).
             uniform3f('u_oceanColor', OCEAN_COLOR[0], OCEAN_COLOR[1], OCEAN_COLOR[2]).
             uniform3f('u_skyColor', SKY_COLOR[0], SKY_COLOR[1], SKY_COLOR[2]).
             uniform3f('u_sunDirection', SUN_DIRECTION[0], SUN_DIRECTION[1], SUN_DIRECTION[2]).
