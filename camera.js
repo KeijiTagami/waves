@@ -1,55 +1,55 @@
-var Camera = function () {
-    var azimuth = INITIAL_AZIMUTH,
-        elevation = INITIAL_ELEVATION,
+class Camera {
 
-        viewMatrix = makeIdentityMatrix(),
-        position = new Float32Array(3),
-        changed = true;
+    constructor() {
+        this.azimuth = INITIAL_AZIMUTH;
+        this.elevation = INITIAL_ELEVATION;
+        this.position = null;
+        this.viewMatrix = null;
+    }
 
-    this.changeAzimuth = function (deltaAzimuth) {
-        azimuth += deltaAzimuth;
-        azimuth = clamp(azimuth, MIN_AZIMUTH, MAX_AZIMUTH);
-        changed = true;
-    };
+    changeAzimuth(deltaAzimuth) {
+        this.azimuth = clamp(this.azimuth + deltaAzimuth, MIN_AZIMUTH, MAX_AZIMUTH);
+        this.position = null;
+        this.viewMatrix = null;
+    }
 
-    this.changeElevation = function (deltaElevation) {
-        elevation += deltaElevation;
-        elevation = clamp(elevation, MIN_ELEVATION, MAX_ELEVATION);
-        changed = true;
-    };
+    changeElevation(deltaElevation) {
+        this.elevation = clamp(this.elevation + deltaElevation, MIN_ELEVATION, MAX_ELEVATION);
+        this.position = null;
+        this.viewMatrix = null;
+    }
 
-    this.getPosition = function () {
-        return position;
-    };
+    getPosition() {
+        if (this.position === null) {
+            this.position = new Float32Array(3);
+            this.position[0] = CAMERA_DISTANCE * Math.sin(Math.PI / 2 - this.elevation) * Math.sin(-this.azimuth) + ORBIT_POINT[0];
+            this.position[1] = CAMERA_DISTANCE * Math.cos(Math.PI / 2 - this.elevation) + ORBIT_POINT[1];
+            this.position[2] = CAMERA_DISTANCE * Math.sin(Math.PI / 2 - this.elevation) * Math.cos(-this.azimuth) + ORBIT_POINT[2];
+        }
+        return this.position;
+    }
 
-    var orbitTranslationMatrix = makeIdentityMatrix(),
-        xRotationMatrix = new Float32Array(16),
-        yRotationMatrix = new Float32Array(16),
-        distanceTranslationMatrix = makeIdentityMatrix();
-
-    this.getViewMatrix = function () {
-        if (changed) {
-            viewMatrix = makeIdentityMatrix();
-
-            xRotationMatrix = makeXRotationMatrix(elevation);
-            yRotationMatrix = makeYRotationMatrix(azimuth);
-            distanceTranslationMatrix[14] = -CAMERA_DISTANCE;
+    getViewMatrix() {
+        if (this.viewMatrix === null) {
+            let orbitTranslationMatrix = makeIdentityMatrix();
             orbitTranslationMatrix[12] = -ORBIT_POINT[0];
             orbitTranslationMatrix[13] = -ORBIT_POINT[1];
             orbitTranslationMatrix[14] = -ORBIT_POINT[2];
 
-            premultiplyMatrix(viewMatrix, viewMatrix, orbitTranslationMatrix);
-            premultiplyMatrix(viewMatrix, viewMatrix, yRotationMatrix);
-            premultiplyMatrix(viewMatrix, viewMatrix, xRotationMatrix);
-            premultiplyMatrix(viewMatrix, viewMatrix, distanceTranslationMatrix);
+            let yRotationMatrix = makeYRotationMatrix(this.azimuth);
 
-            position[0] = CAMERA_DISTANCE * Math.sin(Math.PI / 2 - elevation) * Math.sin(-azimuth) + ORBIT_POINT[0];
-            position[1] = CAMERA_DISTANCE * Math.cos(Math.PI / 2 - elevation) + ORBIT_POINT[1];
-            position[2] = CAMERA_DISTANCE * Math.sin(Math.PI / 2 - elevation) * Math.cos(-azimuth) + ORBIT_POINT[2];
+            let xRotationMatrix = makeXRotationMatrix(this.elevation);
 
-            changed = false;
+            let distanceTranslationMatrix = makeIdentityMatrix();
+            distanceTranslationMatrix[14] = -CAMERA_DISTANCE;
+
+            this.viewMatrix = makeIdentityMatrix();
+            premultiplyMatrix(this.viewMatrix, this.viewMatrix, orbitTranslationMatrix);
+            premultiplyMatrix(this.viewMatrix, this.viewMatrix, yRotationMatrix);
+            premultiplyMatrix(this.viewMatrix, this.viewMatrix, xRotationMatrix);
+            premultiplyMatrix(this.viewMatrix, this.viewMatrix, distanceTranslationMatrix);
         }
+        return this.viewMatrix;
+    }
 
-        return viewMatrix;
-    };
-};
+}
