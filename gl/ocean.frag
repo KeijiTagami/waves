@@ -1,33 +1,31 @@
 precision highp float;
 
-varying vec2 v_coordinates;
-varying vec3 v_position;
 
 uniform sampler2D u_normalMap;
+varying vec2 v_coordinates;
 
 uniform vec3 u_cameraPosition;
+varying vec3 v_position;
+
+uniform vec3 u_sunDirection;
 
 uniform vec3 u_oceanColor;
 uniform vec3 u_skyColor;
 uniform float u_exposure;
 
-uniform vec3 u_sunDirection;
 
-vec3 hdr (vec3 color, float exposure) {
-    return 1.0 - exp(-color * exposure);
+vec3 hdr (vec3 color) {
+    return 1.0 - exp(-color * u_exposure);
 }
 
 void main (void) {
-    vec3 normal = texture2D(u_normalMap, v_coordinates).rgb;
-
+    vec3 normal = texture2D(u_normalMap, v_coordinates).xyz;
     vec3 view = normalize(u_cameraPosition - v_position);
+    vec3 sun = normalize(u_sunDirection);
+
     float fresnel = 0.02 + 0.98 * pow(1.0 - dot(normal, view), 5.0);
-    vec3 sky = fresnel * u_skyColor;
+    float diffuse = clamp(dot(normal, sun), 0.0, 1.0);
 
-    float diffuse = clamp(dot(normal, normalize(u_sunDirection)), 0.0, 1.0);
-    vec3 water = (1.0 - fresnel) * u_oceanColor * u_skyColor * diffuse;
-
-    vec3 color = sky + water;
-
-    gl_FragColor = vec4(hdr(color, u_exposure), 1.0);
+    vec3 color = (fresnel + (1.0 - fresnel) * diffuse * u_oceanColor) * u_skyColor;
+    gl_FragColor = vec4(hdr(color), 1.0);
 }

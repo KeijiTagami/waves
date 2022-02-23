@@ -137,7 +137,7 @@ class Simulator {
         this.spectrumProgram = new FullscreenProgram(gl, SPECTRUM_FRAGMENT_SOURCE).
             uniform1i('u_initialSpectrum', INITIAL_SPECTRUM_UNIT).
             uniform1f('u_resolution', RESOLUTION);
-        this.spectrumFramebuffer = new Framebuffer({gl: gl, unit: SPECTRUM_UNIT});
+        this.spectrumFramebuffer = new Framebuffer({gl: gl, unit: SPECTRUM_UNIT, filter: gl.LINEAR});
         this.horizontalSubtransformProgram =
             new FullscreenProgram(gl, '#define HORIZONTAL \n' + SUBTRANSFORM_FRAGMENT_SOURCE).
             uniform1f('u_resolution', RESOLUTION).
@@ -145,7 +145,7 @@ class Simulator {
         this.verticalSubtransformProgram = new FullscreenProgram(gl, SUBTRANSFORM_FRAGMENT_SOURCE).
             uniform1f('u_resolution', RESOLUTION).
             uniform1f('u_transformSize', RESOLUTION);
-        this.displacementMapFramebuffer = new Framebuffer({gl: gl, unit: DISPLACEMENT_MAP_UNIT});
+        this.displacementMapFramebuffer = new Framebuffer({gl: gl, unit: DISPLACEMENT_MAP_UNIT, filter: gl.LINEAR});
         this.normalMapProgram = new FullscreenProgram(gl, NORMAL_MAP_FRAGMENT_SOURCE).
             uniform1f('u_resolution', RESOLUTION);
         this.normalMapFramebuffer = new Framebuffer({gl: gl, unit: NORMAL_MAP_UNIT, filter: gl.LINEAR});
