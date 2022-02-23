@@ -3,19 +3,16 @@ var INITIAL_SIZE = 250,
     INITIAL_CHOPPINESS = 1.5;
 
 var CLEAR_COLOR = [1.0, 1.0, 1.0, 0.0],
-    SUN_DIRECTION = [-1.0, 1.0, 1.0],
     OCEAN_COLOR = [0.004, 0.016, 0.047],
     SKY_COLOR = [3.2, 9.6, 12.8],
     EXPOSURE = 0.35,
+    SUN_DIRECTION = [-1.0, 1.0, 1.0],
     GEOMETRY_SIZE = 2000.0,
     GEOMETRY_ORIGIN = -1000.0,
     GEOMETRY_RESOLUTION = 256,
     RESOLUTION = 512;
 
 var SIZE_OF_FLOAT = 4;
-
-var FULLSCREEN_COORDINATES_UNIT = 0;
-var OCEAN_COORDINATES_UNIT = 1;
 
 var ATTR_POSITION = 0;
 var ATTR_COORDINATES = 0;
@@ -105,10 +102,10 @@ var CAMERA_DISTANCE = 1500,
     ORBIT_POINT = [-200.0, 0.0, 600.0],
     INITIAL_AZIMUTH = 0.4,
     INITIAL_ELEVATION = 0.5,
-    MIN_AZIMUTH = -0.2,
-    MAX_AZIMUTH = 0.5,
-    MIN_ELEVATION = 0.4,
-    MAX_ELEVATION = 0.8;
+    MIN_AZIMUTH = -1.0,
+    MAX_AZIMUTH = 2.0,
+    MIN_ELEVATION = 0.2,
+    MAX_ELEVATION = 1.0;
 
 function fullscreenData() {
     return new Float32Array([-1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0]);

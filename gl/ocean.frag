@@ -26,6 +26,6 @@ void main (void) {
     float fresnel = 0.02 + 0.98 * pow(1.0 - dot(normal, view), 5.0);
     float diffuse = clamp(dot(normal, sun), 0.0, 1.0);
 
-    vec3 color = (fresnel + (1.0 - fresnel) * diffuse * u_oceanColor) * u_skyColor;
+    vec3 color = fresnel * u_skyColor + (1.0 - fresnel) * diffuse * u_oceanColor;
     gl_FragColor = vec4(hdr(color), 1.0);
 }

@@ -11,10 +11,10 @@ uniform sampler2D u_phases;
 uniform float u_deltaTime;
 
 vec2 getWaveVector() {
-    vec2 coordinates = gl_FragCoord.xy - 0.5;
-    float n = (coordinates.x < u_resolution * 0.5) ? coordinates.x : coordinates.x - u_resolution;
-    float m = (coordinates.y < u_resolution * 0.5) ? coordinates.y : coordinates.y - u_resolution;
-    return (2.0 * PI * vec2(n, m)) / u_size;
+    vec2 ind = gl_FragCoord.xy - 0.5;
+    float n = (ind.x < u_resolution * 0.5) ? ind.x : ind.x - u_resolution;
+    float m = (ind.y < u_resolution * 0.5) ? ind.y : ind.y - u_resolution;
+    return 2.0 * PI * vec2(n, m) / u_size;
 }
 
 float omega(float k) {
@@ -23,10 +23,11 @@ float omega(float k) {
 
 void main (void) {
     vec2 coordinates = gl_FragCoord.xy / u_resolution;
+    float inPhase = texture2D(u_phases, coordinates).r;
+
     vec2 waveVector = getWaveVector();
     float k = length(waveVector);
 
-    float inPhase = texture2D(u_phases, coordinates).r;
     float outPhase = mod(inPhase + omega(k) * u_deltaTime, 2.0 * PI);
     gl_FragColor = vec4(outPhase, 0.0, 0.0, 0.0);
 }

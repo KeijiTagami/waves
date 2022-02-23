@@ -31,16 +31,16 @@ void main (void) {
     #ifdef HORIZONTAL
     float idx = toIndex(coord.x);
     float xcoord = toCoord(modifyIndex(idx));
-    vec4 even = texture2D(u_input, vec2(xcoord, coord.y));
-    vec4 odd = texture2D(u_input, vec2(xcoord + 0.5, coord.y));
+    vec2 even = texture2D(u_input, vec2(xcoord, coord.y)).xy;
+    vec2 odd = texture2D(u_input, vec2(xcoord + 0.5, coord.y)).xy;
     #else
     float idx = toIndex(coord.y);
     float ycoord = toCoord(modifyIndex(idx));
-    vec4 even = texture2D(u_input, vec2(coord.x, ycoord));
-    vec4 odd = texture2D(u_input, vec2(coord.x, ycoord + 0.5));
+    vec2 even = texture2D(u_input, vec2(coord.x, ycoord)).xy;
+    vec2 odd = texture2D(u_input, vec2(coord.x, ycoord + 0.5)).xy;
     #endif
 
     float twiddleArgument = -2.0 * PI * idx / u_subtransformSize;
     vec2 twiddle = vec2(cos(twiddleArgument), sin(twiddleArgument));
-    gl_FragColor = vec4(even.xy + multiplyComplex(twiddle, odd.xy), 0.0, 0.0);
+    gl_FragColor = vec4(even + multiplyComplex(twiddle, odd), 0.0, 0.0);
 }
