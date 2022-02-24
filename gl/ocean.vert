@@ -2,7 +2,6 @@ precision highp float;
 
 uniform float u_size;
 uniform float u_geometrySize;
-uniform float u_geometryOrigin;
 
 uniform sampler2D u_displacementMap;
 attribute vec2 a_coordinates;
@@ -14,9 +13,9 @@ uniform mat4 u_projectionMatrix;
 uniform mat4 u_viewMatrix;
 
 void main (void) {
-    vec3 a_position = vec3(a_coordinates * u_geometrySize + u_geometryOrigin, 0.0).xzy;
-    vec3 z = texture2D(u_displacementMap, a_coordinates).xyz;
-    vec3 position = a_position + (u_geometrySize / u_size) * z;
+    vec3 coord = vec3(a_coordinates - 0.5, 0.0).xzy;
+    vec3 modify = texture2D(u_displacementMap, a_coordinates).xyz;
+    vec3 position = u_geometrySize * (coord + modify / u_size);
     gl_Position = u_projectionMatrix * u_viewMatrix * vec4(position, 1.0);
     v_coordinates = a_coordinates;
     v_position = position;

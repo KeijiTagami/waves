@@ -45,7 +45,6 @@ class Simulator {
         this.oceanProgram = new OceanProgram(gl).
             uniform1i('u_normalMap', NORMAL_MAP_UNIT).
             uniform1f('u_geometrySize', GEOMETRY_SIZE).
-            uniform1f('u_geometryOrigin', GEOMETRY_ORIGIN).
             uniform3f('u_oceanColor', OCEAN_COLOR[0], OCEAN_COLOR[1], OCEAN_COLOR[2]).
             uniform3f('u_skyColor', SKY_COLOR[0], SKY_COLOR[1], SKY_COLOR[2]).
             uniform3f('u_sunDirection', SUN_DIRECTION[0], SUN_DIRECTION[1], SUN_DIRECTION[2]).
