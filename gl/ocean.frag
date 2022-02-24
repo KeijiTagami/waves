@@ -1,6 +1,5 @@
 precision highp float;
 
-
 uniform sampler2D u_normalMap;
 varying vec2 v_coordinates;
 
