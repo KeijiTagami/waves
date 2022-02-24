@@ -52,30 +52,6 @@ class Simulator {
             uniform1f('u_exposure', EXPOSURE);
     }
 
-    gl() {
-        return this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
-    }
-
-    resize(width, height) {
-        this.canvas.width = width;
-        this.canvas.height = height;
-    }
-
-    setWind(x, y) {
-        this.windX = x;
-        this.windY = y;
-        this.changed = true;
-    }
-
-    setSize(newSize) {
-        this.size = newSize;
-        this.changed = true;
-    }
-
-    setChoppiness(newChoppiness) {
-        this.choppiness = newChoppiness;
-    }
-
     update(deltaTime) {
         const gl = this.gl();
         gl.disable(gl.DEPTH_TEST);
@@ -148,6 +124,30 @@ class Simulator {
             uniformMatrix4fv('u_viewMatrix', false, viewMatrix).
             uniform3fv('u_cameraPosition', cameraPosition);
         this.oceanElements.draw();
+    }
+
+    gl() {
+        return this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
+    }
+
+    resize(width, height) {
+        this.canvas.width = width;
+        this.canvas.height = height;
+    }
+
+    setWind(x, y) {
+        this.windX = x;
+        this.windY = y;
+        this.changed = true;
+    }
+
+    setSize(newSize) {
+        this.size = newSize;
+        this.changed = true;
+    }
+
+    setChoppiness(newChoppiness) {
+        this.choppiness = newChoppiness;
     }
 
 }
