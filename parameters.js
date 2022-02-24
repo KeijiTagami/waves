@@ -29,7 +29,7 @@ var CAMERA_DISTANCE = 1500,
 var CLEAR_COLOR = [1.0, 1.0, 1.0, 0.0],
     OCEAN_COLOR = [0.004, 0.016, 0.047],
     SKY_COLOR = [3.2, 9.6, 12.8],
-    SUN_DIRECTION = [0.0, 1.0, 0.0],
+    SUN_DIRECTION = [-1.0, 1.0, 1.0],
     EXPOSURE = 0.35;
 
 

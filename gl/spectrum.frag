@@ -32,12 +32,13 @@ void main(void) {
     vec2 h1 = texture2D(u_initialSpectrum, 1.0 - coordinates).rg;
 
     float phase = texture2D(u_phases, coordinates).r;
-    vec2 phaseVector = vec2(sin(phase), -cos(phase));
+    vec2 phaseVector = vec2(cos(phase), sin(phase));
 
     vec2 waveVector = getWaveVector();
     float k = length(waveVector);
     vec2 choppiness = (k > 0.0) ? u_choppiness * (waveVector / k) : vec2(0.0);
 
     vec2 h = multiplyComplex(h0, phaseVector) + conj(multiplyComplex(h1, phaseVector));
-    gl_FragColor = vec4((1.0 - choppiness) * h, 0.0, 0.0);
+    vec2 hi = vec2(-h[1], h[0]);
+    gl_FragColor = vec4((1.0 - choppiness[0]) * hi, - choppiness[1] * hi);
 }
