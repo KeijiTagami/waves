@@ -1,3 +1,4 @@
+#version 300 es
 precision highp float;
 
 const float PI = 3.14159265359;
@@ -9,6 +10,8 @@ uniform float u_size;
 
 uniform sampler2D u_phases;
 uniform float u_deltaTime;
+
+out vec4 outColor;
 
 vec2 getWaveVector() {
     vec2 ind = gl_FragCoord.xy - 0.5;
@@ -23,11 +26,11 @@ float omega(float k) {
 
 void main (void) {
     vec2 coordinates = gl_FragCoord.xy / u_resolution;
-    float inPhase = texture2D(u_phases, coordinates).r;
+    float inPhase = texture(u_phases, coordinates).r;
 
     vec2 waveVector = getWaveVector();
     float k = length(waveVector);
 
     float outPhase = mod(inPhase + omega(k) * u_deltaTime, 2.0 * PI);
-    gl_FragColor = vec4(outPhase, 0.0, 0.0, 0.0);
+    outColor = vec4(outPhase, 0.0, 0.0, 0.0);
 }

@@ -1,3 +1,4 @@
+#version 300 es
 precision highp float;
 
 const float PI = 3.14159265359;
@@ -12,12 +13,10 @@ uniform float u_resolution;
 uniform vec2 u_wind;
 uniform float u_size;
 
+out vec4 outColor;
+
 float square(float x) {
     return x * x;
-}
-
-float tanh(float x) {
-    return (1.0 - exp(-2.0 * x)) / (1.0 + exp(-2.0 * x));
 }
 
 float omegax(float k) {
@@ -66,5 +65,5 @@ void main(void) {
 
     float lpm = exp(-1.25 / square(k / l));
     float h = (k > 0.0) ? sqrt(PI * b * s * lpm) / square(k) : 0.0;
-    gl_FragColor = vec4(h / u_size, 0.0, 0.0, 0.0);
+    outColor = vec4(h / u_size, 0.0, 0.0, 0.0);
 }

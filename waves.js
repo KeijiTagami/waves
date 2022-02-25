@@ -201,7 +201,8 @@ var main = function () {
     render();
 };
 
-if (hasWebGLSupportWithExtensions(['OES_texture_float', 'OES_texture_float_linear'])) {
+const exts = ['EXT_color_buffer_float', 'OES_texture_float_linear'];
+if (hasWebGLSupportWithExtensions(exts)) {
     load_gl().then(() => main());
 } else {
     document.getElementById('error').style.display = 'block';

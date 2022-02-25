@@ -1,18 +1,22 @@
 let FULLSCREEN_VERTEX_SOURCE;
-let SUBTRANSFORM_FRAGMENT_SOURCE;
 let INITIAL_SPECTRUM_FRAGMENT_SOURCE;
 let PHASE_FRAGMENT_SOURCE;
 let SPECTRUM_FRAGMENT_SOURCE;
+let SUBTRANSFORM_FRAGMENT_SOURCE;
+let SUBTRANSFORM_H_FRAGMENT_SOURCE;
+let SUBTRANSFORM_V_FRAGMENT_SOURCE;
 let NORMAL_MAP_FRAGMENT_SOURCE;
 let OCEAN_VERTEX_SOURCE;
 let OCEAN_FRAGMENT_SOURCE;
 
 async function load_gl() {
     FULLSCREEN_VERTEX_SOURCE = await fetch('./gl/fullscreen.vert').then(res => res.text());
-    SUBTRANSFORM_FRAGMENT_SOURCE = await fetch('./gl/subtransform.frag').then(res => res.text());
     INITIAL_SPECTRUM_FRAGMENT_SOURCE = await fetch('./gl/initial_spectrum.frag').then(res => res.text());
     PHASE_FRAGMENT_SOURCE = await fetch('./gl/phase.frag').then(res => res.text());
     SPECTRUM_FRAGMENT_SOURCE = await fetch('./gl/spectrum.frag').then(res => res.text());
+    SUBTRANSFORM_FRAGMENT_SOURCE = await fetch('./gl/subtransform.frag').then(res => res.text());
+    SUBTRANSFORM_H_FRAGMENT_SOURCE = await fetch('./gl/subtransform_h.frag').then(res => res.text());
+    SUBTRANSFORM_V_FRAGMENT_SOURCE = await fetch('./gl/subtransform_v.frag').then(res => res.text());
     NORMAL_MAP_FRAGMENT_SOURCE = await fetch('./gl/normal_map.frag').then(res => res.text());
     OCEAN_VERTEX_SOURCE = await fetch('./gl/ocean.vert').then(res => res.text());
     OCEAN_FRAGMENT_SOURCE = await fetch('./gl/ocean.frag').then(res => res.text());
@@ -22,7 +26,7 @@ function hasWebGLSupportWithExtensions(extensions) {
     var canvas = document.createElement('canvas');
     var gl = null;
     try {
-        gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        gl = canvas.getContext('webgl2');
     } catch (e) {
         return false;
     }
@@ -32,6 +36,7 @@ function hasWebGLSupportWithExtensions(extensions) {
 
     for (var i = 0; i < extensions.length; ++i) {
         if (gl.getExtension(extensions[i]) === null) {
+            console.log('ext', extensions[i], gl.getExtension(extensions[i]));
             return false
         }
     }
@@ -53,8 +58,8 @@ class Buffer {
     vertexAttribPointer(index, size, stride, offset) {
         const gl = this.gl
         this.pointer[index] = [size, stride, offset];
-        gl.vertexAttribPointer(index, size, gl.FLOAT, false, stride * SIZE_OF_FLOAT, offset * SIZE_OF_FLOAT);
         gl.enableVertexAttribArray(index);
+        gl.vertexAttribPointer(index, size, gl.FLOAT, false, stride * SIZE_OF_FLOAT, offset * SIZE_OF_FLOAT);
         return this;
     }
 
@@ -88,13 +93,11 @@ class ElementsBuffer {
 
 class Framebuffer {
 
-    constructor({gl, unit, data=null, wrap=gl.CLAMP_TO_EDGE, filter=gl.NEAREST}) {
+    constructor({gl, unit, data=null, filter=gl.NEAREST}) {
         const texture = gl.createTexture();
         gl.activeTexture(gl.TEXTURE0 + unit);
         gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, RESOLUTION, RESOLUTION, 0, gl.RGBA, gl.FLOAT, data);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrap);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrap);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, RESOLUTION, RESOLUTION, 0, gl.RGBA, gl.FLOAT, data);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
         const framebuffer = gl.createFramebuffer();
@@ -118,7 +121,7 @@ const vertex_shader_dict = {};
 
 class Program {
 
-    constructor(gl, vertexSource, fragmentSource, attributeLocations) {
+    constructor(gl, vertexSource, fragmentSource) {
         const program = gl.createProgram();
 
         if (vertex_shader_dict[vertexSource] === undefined) {
@@ -133,10 +136,6 @@ class Program {
         gl.shaderSource(fragmentShader, fragmentSource);
         gl.compileShader(fragmentShader);
         gl.attachShader(program, fragmentShader);
-
-        for (let attributeName in attributeLocations) {
-            gl.bindAttribLocation(program, attributeLocations[attributeName], attributeName);
-        }
         gl.linkProgram(program);
 
         const uniformLocations = {};
@@ -192,12 +191,12 @@ class Program {
 
 class FullscreenProgram extends Program {
     constructor(gl, src) {
-        super(gl, FULLSCREEN_VERTEX_SOURCE, src, {'a_position': ATTR_POSITION});
+        super(gl, FULLSCREEN_VERTEX_SOURCE, src);
     }
 }
 
 class OceanProgram extends Program {
     constructor(gl) {
-        super(gl, OCEAN_VERTEX_SOURCE, OCEAN_FRAGMENT_SOURCE, {'a_coordinates': ATTR_COORDINATES});
+        super(gl, OCEAN_VERTEX_SOURCE, OCEAN_FRAGMENT_SOURCE);
     }
 }

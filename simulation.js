@@ -8,7 +8,7 @@ class Simulator {
         this.setChoppiness(INITIAL_CHOPPINESS);
 
         const gl = this.gl();
-        gl.getExtension('OES_texture_float');
+        gl.getExtension('EXT_color_buffer_float');
         gl.getExtension('OES_texture_float_linear');
         gl.clearColor.apply(gl, CLEAR_COLOR);
 
@@ -17,7 +17,7 @@ class Simulator {
 
         this.initialSpectrumProgram = new FullscreenProgram(gl, INITIAL_SPECTRUM_FRAGMENT_SOURCE).
             uniform1f('u_resolution', RESOLUTION);
-        this.initialSpectrumFramebuffer = new Framebuffer({gl: gl, unit: INITIAL_SPECTRUM_UNIT, wrap: gl.REPEAT});
+        this.initialSpectrumFramebuffer = new Framebuffer({gl: gl, unit: INITIAL_SPECTRUM_UNIT});
 
         this.inputPhaseFramebuffer = new Framebuffer({gl: gl, unit: PHASE1_UNIT, data: phaseArray()});
         this.phaseProgram = new FullscreenProgram(gl, PHASE_FRAGMENT_SOURCE).
@@ -26,15 +26,10 @@ class Simulator {
         this.spectrumProgram = new FullscreenProgram(gl, SPECTRUM_FRAGMENT_SOURCE).
             uniform1i('u_initialSpectrum', INITIAL_SPECTRUM_UNIT).
             uniform1f('u_resolution', RESOLUTION);
-        this.spectrumFramebuffer = new Framebuffer({gl: gl, unit: SPECTRUM_UNIT, filter: gl.LINEAR});
-        this.horizontalSubtransformProgram =
-            new FullscreenProgram(gl, '#define HORIZONTAL \n' + SUBTRANSFORM_FRAGMENT_SOURCE).
-            uniform1f('u_resolution', RESOLUTION).
-            uniform1f('u_transformSize', RESOLUTION); 
-        this.verticalSubtransformProgram = new FullscreenProgram(gl, SUBTRANSFORM_FRAGMENT_SOURCE).
-            uniform1f('u_resolution', RESOLUTION).
-            uniform1f('u_transformSize', RESOLUTION);
-        this.displacementMapFramebuffer = new Framebuffer({gl: gl, unit: DISPLACEMENT_MAP_UNIT, filter: gl.LINEAR});
+        this.spectrumFramebuffer = new Framebuffer({gl: gl, unit: SPECTRUM_UNIT});
+        this.subtransformProgram = new FullscreenProgram(gl, SUBTRANSFORM_FRAGMENT_SOURCE).
+            uniform1f('u_resolution', RESOLUTION);
+        this.displacementMapFramebuffer = new Framebuffer({gl: gl, unit: DISPLACEMENT_MAP_UNIT});
         this.normalMapProgram = new FullscreenProgram(gl, NORMAL_MAP_FRAGMENT_SOURCE).
             uniform1f('u_resolution', RESOLUTION);
         this.normalMapFramebuffer = new Framebuffer({gl: gl, unit: NORMAL_MAP_UNIT, filter: gl.LINEAR});
@@ -78,23 +73,24 @@ class Simulator {
             uniform1f('u_choppiness', this.choppiness);
         this.spectrumFramebuffer.draw();
 
-        //GPU FFT using Stockham formulation
+        this.subtransformProgram.activate();
         const iterations = log2(RESOLUTION);
-        let subtransformProgram;
         let output = this.spectrumFramebuffer;
         let input = this.displacementMapFramebuffer;
-        subtransformProgram = this.horizontalSubtransformProgram.activate();
+        this.subtransformProgram.
+            uniform1f('u_direction', 0.0);
         for (let i = 0; i < iterations; i += 1) {
             [input, output] = [output, input];
-            subtransformProgram.
+            this.subtransformProgram.
                 uniform1i('u_input', input.unit).
                 uniform1f('u_subtransformSize', Math.pow(2, i + 1));
             output.draw();
         }
-        subtransformProgram = this.verticalSubtransformProgram.activate();
+        this.subtransformProgram.
+            uniform1f('u_direction', 1.0);
         for (let i = 0; i < iterations; i += 1) {
             [input, output] = [output, input];
-            subtransformProgram.
+            this.subtransformProgram.
                 uniform1i('u_input', input.unit).
                 uniform1f('u_subtransformSize', Math.pow(2, i + 1));
             output.draw();
@@ -126,7 +122,7 @@ class Simulator {
     }
 
     gl() {
-        return this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
+        return this.canvas.getContext('webgl2');
     }
 
     resize(width, height) {
