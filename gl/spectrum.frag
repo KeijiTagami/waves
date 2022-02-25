@@ -27,18 +27,13 @@ vec2 getWaveVector() {
 
 void main(void) {
     vec2 coordinates = gl_FragCoord.xy / u_resolution;
-
-    vec2 h0 = texture2D(u_initialSpectrum, coordinates).rg;
-    vec2 h1 = texture2D(u_initialSpectrum, 1.0 - coordinates).rg;
-
+    float h0 = texture2D(u_initialSpectrum, coordinates).r;
     float phase = texture2D(u_phases, coordinates).r;
-    vec2 phaseVector = vec2(cos(phase), sin(phase));
+    float ht = 2.0 * h0 * cos(phase);
 
     vec2 waveVector = getWaveVector();
     float k = length(waveVector);
     vec2 choppiness = (k > 0.0) ? u_choppiness * (waveVector / k) : vec2(0.0);
 
-    vec2 h = multiplyComplex(h0, phaseVector) + conj(multiplyComplex(h1, phaseVector));
-    vec2 hi = vec2(-h[1], h[0]);
-    gl_FragColor = vec4((1.0 - choppiness[0]) * hi, - choppiness[1] * hi);
+    gl_FragColor = vec4(0.0, (1.0 - choppiness.x) * ht, 0.0, -choppiness.y * ht);
 }
