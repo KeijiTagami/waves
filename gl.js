@@ -58,7 +58,7 @@ class Buffer {
         const gl = this.gl
         gl.bindVertexArray(this.vao);
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.index);
-        gl.drawElements(gl.TRIANGLES, this.length, gl.UNSIGNED_SHORT, 0);
+        gl.drawElements(gl.TRIANGLE_STRIP, this.length, gl.UNSIGNED_SHORT, 0);
     }
 
 }

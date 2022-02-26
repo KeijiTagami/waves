@@ -140,17 +140,11 @@ function oceanData() {
 function oceanIndices() {
     const a = []
     for (let z = 0; z < RESOLUTION - 1; z += 1) {
+        const zi = (z + 0) * RESOLUTION;
+        const zj = (z + 1) * RESOLUTION;
         for (let x = 0; x < RESOLUTION - 1; x += 1) {
-            let topLeft = z * RESOLUTION + x;
-            let topRight = topLeft + 1;
-            let bottomLeft = topLeft + RESOLUTION;
-            let bottomRight = bottomLeft + 1;
-            a.push(topLeft);
-            a.push(bottomLeft);
-            a.push(bottomRight);
-            a.push(bottomRight);
-            a.push(topRight);
-            a.push(topLeft);
+            a.push(zi + x);
+            a.push(zj + x);
         }
     }
     return new Uint16Array(a);
