@@ -16,24 +16,27 @@ class Simulator {
         this.fullscreenBuffer = new Buffer(gl, fullscreenData()).
             vertexAttribPointer(ATTR_POSITION, 2, 0, 0);
 
+        this.initialSpectrumFramebuffer = new Framebuffer(gl);
+        this.inputPhaseFramebuffer = new Framebuffer(gl, phaseArray());
+        this.outputPhaseFramebuffer = new Framebuffer(gl);
+        this.spectrumFramebuffer = new Framebuffer(gl);
+        this.displacementMapFramebuffer = new Framebuffer(gl);
+
         this.initialSpectrumProgram = new FullscreenProgram(gl, INITIAL_SPECTRUM_FRAGMENT_SOURCE).
             uniform1f('u_resolution', RESOLUTION);
-        this.initialSpectrumFramebuffer = new Framebuffer({gl: gl, unit: INITIAL_SPECTRUM_UNIT});
-
-        this.inputPhaseFramebuffer = new Framebuffer({gl: gl, unit: PHASE1_UNIT, data: phaseArray()});
-        this.outputPhaseFramebuffer = new Framebuffer({gl: gl, unit: PHASE2_UNIT});
         this.phaseProgram = new FullscreenProgram(gl, PHASE_FRAGMENT_SOURCE);
+            // inputPhase
         this.spectrumProgram = new FullscreenProgram(gl, SPECTRUM_FRAGMENT_SOURCE).
             uniform1i('u_initialSpectrum', INITIAL_SPECTRUM_UNIT);
-
-        this.spectrumFramebuffer = new Framebuffer({gl: gl, unit: SPECTRUM_UNIT});
-        this.displacementMapFramebuffer = new Framebuffer({gl: gl, unit: DISPLACEMENT_MAP_UNIT});
+            // outputPhase
         this.subtransformProgram = new FullscreenProgram(gl, SUBTRANSFORM_FRAGMENT_SOURCE);
+            // spectrum
 
         this.oceanBuffer = new Buffer(gl, oceanData()).
             vertexAttribPointer(ATTR_COORDINATES, 2, 0, 0).
             addIndex(oceanIndices());
         this.oceanProgram = new OceanProgram(gl).
+            // displacementMap
             uniform1f('u_geometrySize', GEOMETRY_SIZE).
             uniform3f('u_oceanColor', OCEAN_COLOR[0], OCEAN_COLOR[1], OCEAN_COLOR[2]).
             uniform3f('u_skyColor', SKY_COLOR[0], SKY_COLOR[1], SKY_COLOR[2]).

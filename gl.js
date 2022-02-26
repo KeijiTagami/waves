@@ -3,9 +3,6 @@ let INITIAL_SPECTRUM_FRAGMENT_SOURCE;
 let PHASE_FRAGMENT_SOURCE;
 let SPECTRUM_FRAGMENT_SOURCE;
 let SUBTRANSFORM_FRAGMENT_SOURCE;
-let SUBTRANSFORM_H_FRAGMENT_SOURCE;
-let SUBTRANSFORM_V_FRAGMENT_SOURCE;
-let NORMAL_MAP_FRAGMENT_SOURCE;
 let OCEAN_VERTEX_SOURCE;
 let OCEAN_FRAGMENT_SOURCE;
 
@@ -15,7 +12,6 @@ async function load_gl() {
     PHASE_FRAGMENT_SOURCE = await fetch('./gl/phase.frag').then(res => res.text());
     SPECTRUM_FRAGMENT_SOURCE = await fetch('./gl/spectrum.frag').then(res => res.text());
     SUBTRANSFORM_FRAGMENT_SOURCE = await fetch('./gl/subtransform.frag').then(res => res.text());
-    NORMAL_MAP_FRAGMENT_SOURCE = await fetch('./gl/normal_map.frag').then(res => res.text());
     OCEAN_VERTEX_SOURCE = await fetch('./gl/ocean.vert').then(res => res.text());
     OCEAN_FRAGMENT_SOURCE = await fetch('./gl/ocean.frag').then(res => res.text());
 }
@@ -63,23 +59,26 @@ class Buffer {
 
 }
 
+let curr_unit = 0;
+
 class Framebuffer {
 
-    constructor({gl, unit, data=null, filter=gl.NEAREST}) {
+    constructor(gl, data=null) {
         const texture = gl.createTexture();
-        gl.activeTexture(gl.TEXTURE0 + unit);
+        gl.activeTexture(gl.TEXTURE0 + curr_unit);
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, RESOLUTION, RESOLUTION, 0, gl.RGBA, gl.FLOAT, data);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         const framebuffer = gl.createFramebuffer();
         gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
         this.gl = gl;
-        this.unit = unit;
+        this.unit = curr_unit;
         this.framebuffer = framebuffer;
+        curr_unit += 1;
     }
 
     draw() {
