@@ -12,6 +12,7 @@ class Simulator {
         this.fullscreenBuffer = this.buffer(fullscreenData()).
             vertexAttribPointer(ATTR_POSITION, 2, 0, 0);
 
+        this.waveFramebuffer = this.framebuffer(waveArray(), 2);
         this.inputPhaseFramebuffer = this.framebuffer(phaseArray(), 1);
         this.outputPhaseFramebuffer = this.framebuffer(null, 1);
         this.initialSpectrumFramebuffer = this.framebuffer(null, 1);
@@ -19,12 +20,14 @@ class Simulator {
         this.displacementMapFramebuffer = this.framebuffer();
 
         this.initialSpectrumProgram = this.program('init').
-            uniform1i('u_resolution', RESOLUTION);
-        this.phaseProgram = this.program('phase');
-            // inputPhase
+            uniform1i('u_wave', this.waveFramebuffer.unit);
+        this.phaseProgram = this.program('phase').
+            // phase
+            uniform1i('u_wave', this.waveFramebuffer.unit);
         this.spectrumProgram = this.program('spectrum').
-            uniform1i('u_initialSpectrum', this.initialSpectrumFramebuffer.unit);
-            // outputPhase
+            uniform1i('u_initialSpectrum', this.initialSpectrumFramebuffer.unit).
+            // phase
+            uniform1i('u_wave', this.waveFramebuffer.unit);
         this.subtransformProgram = this.program('fft');
             // spectrum
 

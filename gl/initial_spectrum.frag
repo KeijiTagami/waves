@@ -8,7 +8,7 @@ const float CM = 0.23;
 const float OMEGA = 0.84;
 const float GAMMA = 1.7;
 
-uniform int u_resolution;
+uniform sampler2D u_wave;
 
 uniform vec2 u_wind;
 uniform float u_size;
@@ -23,14 +23,6 @@ float omegax(float k) {
     return sqrt(G * (1.0 + square(k / KM)) / k);
 }
 
-vec2 getWaveVector() {
-    ivec2 res = ivec2(u_resolution, u_resolution);
-    ivec2 ind = ivec2(gl_FragCoord.xy - 0.5);
-    int n = (ind.x < res.x / 2) ? ind.x : ind.x - res.x;
-    int m = (ind.y < res.y / 2) ? ind.y : ind.y - res.y;
-    return 2.0 * PI * vec2(float(n), float(m)) / u_size;
-}
-
 void main(void) {
     float ALPHA = pow(OMEGA, -2.9) * pow(G, -0.45) / 0.0000037;
     float BETA = CM / (0.41 * OMEGA * sqrt(G));
@@ -40,7 +32,8 @@ void main(void) {
     float FP = 0.006 * sqrt(OMEGA);
     float FM = 0.01;
 
-    vec2 waveVector = getWaveVector();
+    ivec2 ind = ivec2(gl_FragCoord.xy - 0.5);
+    vec2 waveVector = texelFetch(u_wave, ind, 0).xy / u_size;
     float k = length(waveVector);
     float ok = omegax(k);
 

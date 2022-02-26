@@ -119,6 +119,17 @@ function phaseArray() {
     return new Float32Array(a);
 }
 
+function waveArray() {
+    const a = []
+    for (let z = 0; z < RESOLUTION; z += 1) {
+        for (let x = 0; x < RESOLUTION; x += 1) {
+            a.push(2.0 * Math.PI * ((x < RESOLUTION / 2) ? x : x - RESOLUTION));
+            a.push(2.0 * Math.PI * ((z < RESOLUTION / 2) ? z : z - RESOLUTION));
+        }
+    }
+    return new Float32Array(a);
+}
+
 function oceanData() {
     const a = [];
     for (let zi = 0; zi < RESOLUTION; zi += 1) {
