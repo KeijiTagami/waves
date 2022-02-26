@@ -13,7 +13,7 @@ uniform int u_resolution;
 uniform vec2 u_wind;
 uniform float u_size;
 
-out vec4 outColor;
+out vec4 phase;
 
 float square(float x) {
     return x * x;
@@ -66,5 +66,5 @@ void main(void) {
 
     float lpm = exp(-1.25 / square(k / l));
     float h = (k > 0.0) ? sqrt(PI * b * s * lpm) / square(k) : 0.0;
-    outColor = vec4(h / u_size, 0.0, 0.0, 0.0);
+    phase = vec4(h / u_size, 0.0, 0.0, 0.0);
 }

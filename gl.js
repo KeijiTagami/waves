@@ -134,13 +134,13 @@ class Program {
         return this;
     }
 
-    uniform2f(name, v1, v2) {
-        this.gl.uniform2f(this.uniformLocations[name], v1, v2);
+    uniform2f(name, val) {
+        this.gl.uniform2f(this.uniformLocations[name], val[0], val[1]);
         return this;
     }
 
-    uniform3f(name, v1, v2, v3) {
-        this.gl.uniform3f(this.uniformLocations[name], v1, v2, v3);
+    uniform3f(name, val) {
+        this.gl.uniform3f(this.uniformLocations[name], val[0], val[1], val[2]);
         return this;
     }
 

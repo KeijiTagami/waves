@@ -118,7 +118,7 @@ var main = function () {
             lastMouseY = mouseY;
         } else if (mode === ROTATING) {
             windArrow.update(point[0], point[2]);
-            simulator.setWind(windArrow.getValueX(), windArrow.getValueY());
+            simulator.setWind([windArrow.getValueX(), windArrow.getValueY()]);
             setText(windSpeedSpan, windArrow.getValue(), WIND_SPEED_DECIMAL_PLACES);
 
             setTransform(windDiv, 'translate3d(' + WIND_SPEED_X + 'px, 0px, ' + Math.max(MIN_WIND_SPEED_Z, windArrow.getTipZ() + WIND_SPEED_OFFSET) + 'px) rotateX(90deg)');

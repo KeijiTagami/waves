@@ -5,7 +5,7 @@ class Simulator {
         this.init();
 
         this.resize(width, height);
-        this.setWind(INITIAL_WIND[0], INITIAL_WIND[1]);
+        this.setWind(INITIAL_WIND);
         this.setSize(INITIAL_SIZE);
         this.setChoppiness(INITIAL_CHOPPINESS);
 
@@ -34,9 +34,9 @@ class Simulator {
         this.oceanProgram = this.program('ocean').
             // displacementMap
             uniform1f('u_geometrySize', GEOMETRY_SIZE).
-            uniform3f('u_oceanColor', OCEAN_COLOR[0], OCEAN_COLOR[1], OCEAN_COLOR[2]).
-            uniform3f('u_skyColor', SKY_COLOR[0], SKY_COLOR[1], SKY_COLOR[2]).
-            uniform3f('u_sunDirection', SUN_DIRECTION[0], SUN_DIRECTION[1], SUN_DIRECTION[2]).
+            uniform3f('u_oceanColor', OCEAN_COLOR).
+            uniform3f('u_skyColor', SKY_COLOR).
+            uniform3f('u_sunDirection', SUN_DIRECTION).
             uniform1f('u_exposure', EXPOSURE);
     }
 
@@ -57,7 +57,7 @@ class Simulator {
         if (this.changed) {
             this.initialSpectrumProgram.activate().
                 uniform1f('u_size', this.size).
-                uniform2f('u_wind', this.windX, this.windY);
+                uniform2f('u_wind', this.wind);
             this.initialSpectrumFramebuffer.draw();
             this.changed = false;
         }
@@ -112,9 +112,8 @@ class Simulator {
         this.gl.canvas.height = height;
     }
 
-    setWind(x, y) {
-        this.windX = x;
-        this.windY = y;
+    setWind(wind) {
+        this.wind = wind;
         this.changed = true;
     }
 
