@@ -1,19 +1,15 @@
 class Simulator {
 
     constructor(canvas, width, height) {
-        const gl = canvas.getContext('webgl2');
+        this.gl = canvas.getContext('webgl2');
+        this.init();
 
-        this.gl = gl;
         this.resize(width, height);
         this.setWind(INITIAL_WIND[0], INITIAL_WIND[1]);
         this.setSize(INITIAL_SIZE);
         this.setChoppiness(INITIAL_CHOPPINESS);
 
-        gl.getExtension('EXT_color_buffer_float');
-        gl.getExtension('OES_texture_float_linear');
-        gl.clearColor.apply(gl, CLEAR_COLOR);
-
-        this.fullscreenBuffer = new Buffer(gl, fullscreenData()).
+        this.fullscreenBuffer = this.buffer(fullscreenData()).
             vertexAttribPointer(ATTR_POSITION, 2, 0, 0);
 
         this.inputPhaseFramebuffer = this.framebuffer(phaseArray(), 1);
@@ -32,7 +28,7 @@ class Simulator {
         this.subtransformProgram = this.program('fft');
             // spectrum
 
-        this.oceanBuffer = new Buffer(gl, oceanData()).
+        this.oceanBuffer = this.buffer(oceanData()).
             vertexAttribPointer(ATTR_COORDINATES, 2, 0, 0).
             addIndex(oceanIndices());
         this.oceanProgram = this.program('ocean').
@@ -42,6 +38,13 @@ class Simulator {
             uniform3f('u_skyColor', SKY_COLOR[0], SKY_COLOR[1], SKY_COLOR[2]).
             uniform3f('u_sunDirection', SUN_DIRECTION[0], SUN_DIRECTION[1], SUN_DIRECTION[2]).
             uniform1f('u_exposure', EXPOSURE);
+    }
+
+    init() {
+        const gl = this.gl;
+        gl.getExtension('EXT_color_buffer_float');
+        gl.getExtension('OES_texture_float_linear');
+        gl.clearColor.apply(gl, CLEAR_COLOR);
     }
 
     update(deltaTime) {
@@ -122,6 +125,10 @@ class Simulator {
 
     setChoppiness(newChoppiness) {
         this.choppiness = newChoppiness;
+    }
+
+    buffer(...args) {
+        return new Buffer(this.gl, ...args);
     }
 
     framebuffer(...args) {

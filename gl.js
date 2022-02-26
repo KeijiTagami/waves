@@ -41,7 +41,6 @@ class Buffer {
 
 }
 
-
 class Framebuffer {
 
     static curr_unit = 0;
