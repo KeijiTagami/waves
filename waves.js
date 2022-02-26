@@ -201,4 +201,4 @@ var main = function () {
     render();
 };
 
-load_gl().then(() => main());
+Simulator.load_gl().then(() => main());

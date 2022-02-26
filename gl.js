@@ -1,21 +1,3 @@
-let FULLSCREEN_VERTEX_SOURCE;
-let INITIAL_SPECTRUM_FRAGMENT_SOURCE;
-let PHASE_FRAGMENT_SOURCE;
-let SPECTRUM_FRAGMENT_SOURCE;
-let SUBTRANSFORM_FRAGMENT_SOURCE;
-let OCEAN_VERTEX_SOURCE;
-let OCEAN_FRAGMENT_SOURCE;
-
-async function load_gl() {
-    FULLSCREEN_VERTEX_SOURCE = await fetch('./gl/fullscreen.vert').then(res => res.text());
-    INITIAL_SPECTRUM_FRAGMENT_SOURCE = await fetch('./gl/initial_spectrum.frag').then(res => res.text());
-    PHASE_FRAGMENT_SOURCE = await fetch('./gl/phase.frag').then(res => res.text());
-    SPECTRUM_FRAGMENT_SOURCE = await fetch('./gl/spectrum.frag').then(res => res.text());
-    SUBTRANSFORM_FRAGMENT_SOURCE = await fetch('./gl/subtransform.frag').then(res => res.text());
-    OCEAN_VERTEX_SOURCE = await fetch('./gl/ocean.vert').then(res => res.text());
-    OCEAN_FRAGMENT_SOURCE = await fetch('./gl/ocean.frag').then(res => res.text());
-}
-
 class Buffer {
 
     constructor(gl, data) {
@@ -59,9 +41,10 @@ class Buffer {
 
 }
 
-let curr_unit = 0;
 
 class Framebuffer {
+
+    static curr_unit = 0;
 
     constructor(gl, data=null, size=4) {
         let internalformat;
@@ -77,7 +60,7 @@ class Framebuffer {
             format = gl.RED;
         }
         const texture = gl.createTexture();
-        gl.activeTexture(gl.TEXTURE0 + curr_unit);
+        gl.activeTexture(gl.TEXTURE0 + Framebuffer.curr_unit);
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texImage2D(gl.TEXTURE_2D, 0, internalformat, RESOLUTION, RESOLUTION, 0, format, gl.FLOAT, data);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -88,9 +71,9 @@ class Framebuffer {
         gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
         this.gl = gl;
-        this.unit = curr_unit;
+        this.unit = Framebuffer.curr_unit;
         this.framebuffer = framebuffer;
-        curr_unit += 1;
+        Framebuffer.curr_unit += 1;
     }
 
     draw() {
@@ -102,20 +85,20 @@ class Framebuffer {
 
 }
 
-const vertex_shader_dict = {};
-
 class Program {
+
+    static vertex_shader_dict = {};
 
     constructor(gl, vertexSource, fragmentSource) {
         const program = gl.createProgram();
 
-        if (vertex_shader_dict[vertexSource] === undefined) {
+        if (Program.vertex_shader_dict[vertexSource] === undefined) {
             const vertexShader = gl.createShader(gl.VERTEX_SHADER);
             gl.shaderSource(vertexShader, vertexSource);
             gl.compileShader(vertexShader);
-            vertex_shader_dict[vertexSource] = vertexShader;
+            Program.vertex_shader_dict[vertexSource] = vertexShader;
         }
-        gl.attachShader(program, vertex_shader_dict[vertexSource]);
+        gl.attachShader(program, Program.vertex_shader_dict[vertexSource]);
 
         const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
         gl.shaderSource(fragmentShader, fragmentSource);
@@ -172,16 +155,4 @@ class Program {
         return this;
     }
 
-}
-
-class FullscreenProgram extends Program {
-    constructor(gl, src) {
-        super(gl, FULLSCREEN_VERTEX_SOURCE, src);
-    }
-}
-
-class OceanProgram extends Program {
-    constructor(gl) {
-        super(gl, OCEAN_VERTEX_SOURCE, OCEAN_FRAGMENT_SOURCE);
-    }
 }
