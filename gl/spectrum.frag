@@ -1,8 +1,6 @@
 #version 300 es
 precision highp float;
 
-const float PI = 3.14159265359;
-
 uniform sampler2D u_initialSpectrum;
 uniform sampler2D u_phases;
 uniform sampler2D u_wave;
