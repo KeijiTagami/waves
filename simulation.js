@@ -1,10 +1,9 @@
 class Simulator {
 
-    constructor(canvas, width, height) {
+    constructor(canvas) {
         this.gl = canvas.getContext('webgl2');
         this.init();
 
-        this.resize(width, height);
         this.setWind(INITIAL_WIND);
         this.setSize(INITIAL_SIZE);
         this.setChoppiness(INITIAL_CHOPPINESS);
