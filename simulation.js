@@ -19,7 +19,7 @@ class Simulator {
         this.spectrumFramebuffer = this.framebuffer();
         this.displacementMapFramebuffer = this.framebuffer();
 
-        this.initialSpectrumProgram = this.program('init').
+        this.initialSpectrumProgram = this.program('initial_spectrum').
             uniform1i('u_wave', this.waveFramebuffer.unit);
         this.phaseProgram = this.program('phase').
             // phase
@@ -28,7 +28,7 @@ class Simulator {
             uniform1i('u_initialSpectrum', this.initialSpectrumFramebuffer.unit).
             // phase
             uniform1i('u_wave', this.waveFramebuffer.unit);
-        this.subtransformProgram = this.program('fft');
+        this.subtransformProgram = this.program('subtransform');
             // spectrum
 
         this.oceanBuffer = this.buffer(oceanData()).
@@ -138,33 +138,29 @@ class Simulator {
     }
 
     program(name) {
-        const programs = {
-            'init': [Simulator.FULLSCREEN_VERTEX_SOURCE, Simulator.INITIAL_SPECTRUM_FRAGMENT_SOURCE],
-            'phase': [Simulator.FULLSCREEN_VERTEX_SOURCE, Simulator.PHASE_FRAGMENT_SOURCE],
-            'spectrum': [Simulator.FULLSCREEN_VERTEX_SOURCE, Simulator.SPECTRUM_FRAGMENT_SOURCE],
-            'fft': [Simulator.FULLSCREEN_VERTEX_SOURCE, Simulator.SUBTRANSFORM_FRAGMENT_SOURCE],
-            'ocean': [Simulator.OCEAN_VERTEX_SOURCE, Simulator.OCEAN_FRAGMENT_SOURCE],
-        };
-        const src = programs[name];
+        const src = Simulator.src[name];
         return new Program(this.gl, src[0], src[1]);
     }
 
-    static FULLSCREEN_VERTEX_SOURCE;
-    static INITIAL_SPECTRUM_FRAGMENT_SOURCE;
-    static PHASE_FRAGMENT_SOURCE;
-    static SPECTRUM_FRAGMENT_SOURCE;
-    static SUBTRANSFORM_FRAGMENT_SOURCE;
-    static OCEAN_VERTEX_SOURCE;
-    static OCEAN_FRAGMENT_SOURCE;
+    static src = {};
 
     static async load_gl() {
-        Simulator.FULLSCREEN_VERTEX_SOURCE = await fetch('./gl/fullscreen.vert').then(res => res.text());
-        Simulator.INITIAL_SPECTRUM_FRAGMENT_SOURCE = await fetch('./gl/initial_spectrum.frag').then(res => res.text());
-        Simulator.PHASE_FRAGMENT_SOURCE = await fetch('./gl/phase.frag').then(res => res.text());
-        Simulator.SPECTRUM_FRAGMENT_SOURCE = await fetch('./gl/spectrum.frag').then(res => res.text());
-        Simulator.SUBTRANSFORM_FRAGMENT_SOURCE = await fetch('./gl/subtransform.frag').then(res => res.text());
-        Simulator.OCEAN_VERTEX_SOURCE = await fetch('./gl/ocean.vert').then(res => res.text());
-        Simulator.OCEAN_FRAGMENT_SOURCE = await fetch('./gl/ocean.frag').then(res => res.text());
+        const vert_names = ['square', 'surface'];
+        for (let name of vert_names) {
+            Simulator.src[name] = await fetch('./gl/' + name + '.vert').then(res => res.text());
+        }
+        for (let name of ['initial_spectrum', 'phase', 'spectrum', 'subtransform']) {
+            Simulator.src[name] = [
+                Simulator.src['square'],
+                await fetch('./gl/' + name + '.frag').then(res => res.text()),
+            ];
+        }
+        for (let name of ['ocean']) {
+            Simulator.src[name] = [
+                Simulator.src['surface'],
+                await fetch('./gl/' + name + '.frag').then(res => res.text()),
+            ];
+        }
     }
 
 }
