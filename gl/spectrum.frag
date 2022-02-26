@@ -3,13 +3,11 @@ precision highp float;
 
 const float PI = 3.14159265359;
 
-uniform float u_size;
-uniform float u_resolution;
-
-uniform float u_choppiness;
-
 uniform sampler2D u_initialSpectrum;
 uniform sampler2D u_phases;
+
+uniform float u_size;
+uniform float u_choppiness;
 
 out vec4 outColor;
 
@@ -22,21 +20,21 @@ vec2 conj(vec2 z) {
 }
 
 vec2 getWaveVector() {
-    vec2 ind = gl_FragCoord.xy - 0.5;
-    float n = (ind.x < u_resolution * 0.5) ? ind.x : ind.x - u_resolution;
-    float m = (ind.y < u_resolution * 0.5) ? ind.y : ind.y - u_resolution;
-    return 2.0 * PI * vec2(n, m) / u_size;
+    ivec2 res = textureSize(u_phases, 0);
+    ivec2 ind = ivec2(gl_FragCoord.xy - 0.5);
+    int n = (ind.x < res.x / 2) ? ind.x : ind.x - res.x;
+    int m = (ind.y < res.y / 2) ? ind.y : ind.y - res.y;
+    return 2.0 * PI * vec2(float(n), float(m)) / u_size;
 }
 
 void main(void) {
-    vec2 coordinates = gl_FragCoord.xy / u_resolution;
-    float h0 = texture(u_initialSpectrum, coordinates).r;
-    float phase = texture(u_phases, coordinates).r;
+    ivec2 ind = ivec2(gl_FragCoord.xy - 0.5);
+    float h0 = texelFetch(u_initialSpectrum, ind, 0).r;
+    float phase = texelFetch(u_phases, ind, 0).r;
     float ht = 2.0 * h0 * cos(phase);
 
     vec2 waveVector = getWaveVector();
     float k = length(waveVector);
     vec2 choppiness = (k > 0.0) ? u_choppiness * (waveVector / k) : vec2(0.0);
-
     outColor = vec4(0.0, (1.0 - choppiness.x) * ht, 0.0, -choppiness.y * ht);
 }

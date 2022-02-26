@@ -21,23 +21,19 @@ class Simulator {
         this.initialSpectrumFramebuffer = new Framebuffer({gl: gl, unit: INITIAL_SPECTRUM_UNIT});
 
         this.inputPhaseFramebuffer = new Framebuffer({gl: gl, unit: PHASE1_UNIT, data: phaseArray()});
-        this.phaseProgram = new FullscreenProgram(gl, PHASE_FRAGMENT_SOURCE);
         this.outputPhaseFramebuffer = new Framebuffer({gl: gl, unit: PHASE2_UNIT});
+        this.phaseProgram = new FullscreenProgram(gl, PHASE_FRAGMENT_SOURCE);
         this.spectrumProgram = new FullscreenProgram(gl, SPECTRUM_FRAGMENT_SOURCE).
-            uniform1i('u_initialSpectrum', INITIAL_SPECTRUM_UNIT).
-            uniform1f('u_resolution', RESOLUTION);
+            uniform1i('u_initialSpectrum', INITIAL_SPECTRUM_UNIT);
+
         this.spectrumFramebuffer = new Framebuffer({gl: gl, unit: SPECTRUM_UNIT});
-        this.subtransformProgram = new FullscreenProgram(gl, SUBTRANSFORM_FRAGMENT_SOURCE);
         this.displacementMapFramebuffer = new Framebuffer({gl: gl, unit: DISPLACEMENT_MAP_UNIT});
-        this.normalMapProgram = new FullscreenProgram(gl, NORMAL_MAP_FRAGMENT_SOURCE).
-            uniform1f('u_resolution', RESOLUTION);
-        this.normalMapFramebuffer = new Framebuffer({gl: gl, unit: NORMAL_MAP_UNIT, filter: gl.LINEAR});
+        this.subtransformProgram = new FullscreenProgram(gl, SUBTRANSFORM_FRAGMENT_SOURCE);
 
         this.oceanBuffer = new Buffer(gl, oceanData()).
             vertexAttribPointer(ATTR_COORDINATES, 2, 0, 0).
             addIndex(oceanIndices());
         this.oceanProgram = new OceanProgram(gl).
-            uniform1i('u_normalMap', NORMAL_MAP_UNIT).
             uniform1f('u_geometrySize', GEOMETRY_SIZE).
             uniform3f('u_oceanColor', OCEAN_COLOR[0], OCEAN_COLOR[1], OCEAN_COLOR[2]).
             uniform3f('u_skyColor', SKY_COLOR[0], SKY_COLOR[1], SKY_COLOR[2]).
@@ -85,11 +81,6 @@ class Simulator {
                 output.draw();
             }
         }
-
-        const normalMap = this.normalMapProgram.activate().
-            uniform1i('u_displacementMap', output.unit).
-            uniform1f('u_size', this.size);
-        this.normalMapFramebuffer.draw();
 
         [this.inputPhaseFramebuffer, this.outputPhaseFramebuffer] = [this.outputPhaseFramebuffer, this.inputPhaseFramebuffer];
         [this.spectrumFramebuffer, this.displacementMapFramebuffer] = [input, output];

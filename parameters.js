@@ -17,7 +17,7 @@ var FOV = (60 / 180) * Math.PI,
     MIN_ASPECT = 16 / 9;
 
 var CAMERA_DISTANCE = 1500,
-    ORBIT_POINT = [-100.0, 0.0, 600.0],
+    ORBIT_POINT = [-100.0, 200.0, 600.0],
     INITIAL_AZIMUTH = 0.0,
     MIN_AZIMUTH = -Math.PI,
     MAX_AZIMUTH = Math.PI,

@@ -4,7 +4,9 @@ precision highp float;
 in vec2 v_coordinates;
 in vec3 v_position;
 
-uniform sampler2D u_normalMap;
+uniform sampler2D u_displacementMap;
+
+uniform float u_size;
 
 uniform vec3 u_cameraPosition;
 uniform vec3 u_sunDirection;
@@ -15,12 +17,31 @@ uniform float u_exposure;
 
 out vec4 outColor;
 
-vec3 hdr (vec3 color) {
+vec3 getNormal(void) {
+    ivec2 res = textureSize(u_displacementMap, 0);
+    vec2 pscale = 1.0 / vec2(float(res.x), float(res.y));
+    vec3 scale = u_size * vec3(pscale, 0.0).xzy;
+    vec2 z = vec2(1.0, 0.0);
+
+    vec3 center = texture(u_displacementMap, v_coordinates).xyz;
+    vec3 right = texture(u_displacementMap, v_coordinates + z.xy * pscale).xyz - center + z.xyy * scale;
+    vec3 left = texture(u_displacementMap, v_coordinates - z.xy * pscale).xyz - center - z.xyy * scale;
+    vec3 top = texture(u_displacementMap, v_coordinates - z.yx * pscale).xyz - center - z.yyx * scale;
+    vec3 bottom = texture(u_displacementMap, v_coordinates + z.yx * pscale).xyz - center + z.yyx * scale;
+
+    vec3 topRight = cross(right, top);
+    vec3 topLeft = cross(top, left);
+    vec3 bottomLeft = cross(left, bottom);
+    vec3 bottomRight = cross(bottom, right);
+    return normalize(topRight + topLeft + bottomLeft + bottomRight);
+}
+
+vec3 hdr(vec3 color) {
     return 1.0 - exp(-color * u_exposure);
 }
 
-void main (void) {
-    vec3 normal = texture(u_normalMap, v_coordinates).xyz;
+void main(void) {
+    vec3 normal = getNormal();
     vec3 view = normalize(u_cameraPosition - v_position);
     vec3 sun = normalize(u_sunDirection);
 
