@@ -1,57 +1,47 @@
-class Main {
+var main = function () {
+    var simulatorCanvas = document.getElementById(SIMULATOR_CANVAS_ID),
+        overlayDiv = document.getElementById(OVERLAY_DIV_ID),
+        uiDiv = document.getElementById(UI_DIV_ID),
+        cameraDiv = document.getElementById(CAMERA_DIV_ID),
+        windDiv = document.getElementById(WIND_SPEED_DIV_ID),
+        windSpeedSpan = document.getElementById(WIND_SPEED_SPAN_ID),
+        choppinessDiv = document.getElementById(CHOPPINESS_DIV_ID),
+        sizeSpan = document.getElementById('size-value');
 
-    constructor() {
-        this.simulatorCanvas = document.getElementById(SIMULATOR_CANVAS_ID);
-        this.simulator = new Simulator(this.simulatorCanvas);
-        this.profile = new Profile(document.getElementById(PROFILE_CANVAS_ID)),
-        this.camera = new Camera();
+    setText(choppinessDiv, INITIAL_CHOPPINESS, CHOPPINESS_DECIMAL_PLACES);
+    setText(sizeSpan, INITIAL_SIZE, SIZE_DECIMAL_PLACES);
 
-        this.cameraDiv = document.getElementById(CAMERA_DIV_ID);
-        this.windArrow = new Arrow(this.cameraDiv, INITIAL_WIND[0], INITIAL_WIND[1]);
-        this.sizeSlider = new Slider(this.cameraDiv, SIZE_SLIDER_X, SIZE_SLIDER_Z,
-                SIZE_SLIDER_LENGTH, MIN_SIZE, MAX_SIZE, INITIAL_SIZE, SIZE_SLIDER_BREADTH, SIZE_HANDLE_SIZE);
-        this.choppinessSlider = new Slider(this.cameraDiv, CHOPPINESS_SLIDER_X, CHOPPINESS_SLIDER_Z,
-                CHOPPINESS_SLIDER_LENGTH, MIN_CHOPPINESS, MAX_CHOPPINESS, INITIAL_CHOPPINESS, CHOPPINESS_SLIDER_BREADTH, CHOPPINESS_HANDLE_SIZE);
+    var camera = new Camera(),
+        projectionMatrix = makePerspectiveMatrix(new Float32Array(16), FOV, MIN_ASPECT, NEAR, FAR);
 
-        this.windSpeedSpan = document.getElementById(WIND_SPEED_SPAN_ID),
-        setText(this.windSpeedSpan, this.windArrow.getValue(), WIND_SPEED_DECIMAL_PLACES);
-        this.windDiv = document.getElementById(WIND_SPEED_DIV_ID),
-        setTransform(this.windDiv, 'translate3d(' + WIND_SPEED_X + 'px, 0px, ' + Math.max(MIN_WIND_SPEED_Z, this.windArrow.getTipZ() + WIND_SPEED_OFFSET) + 'px) rotateX(90deg)');
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    const simulator = new Simulator(simulatorCanvas, width, height);
 
-        this.sizeSpan = document.getElementById('size-value');
-        setText(this.sizeSpan, INITIAL_SIZE, SIZE_DECIMAL_PLACES);
+    var profile = new Profile(document.getElementById(PROFILE_CANVAS_ID)),
+        sizeSlider = new Slider(cameraDiv, SIZE_SLIDER_X, SIZE_SLIDER_Z,
+            SIZE_SLIDER_LENGTH, MIN_SIZE, MAX_SIZE, INITIAL_SIZE, SIZE_SLIDER_BREADTH, SIZE_HANDLE_SIZE),
+        choppinessSlider = new Slider(cameraDiv, CHOPPINESS_SLIDER_X, CHOPPINESS_SLIDER_Z,
+            CHOPPINESS_SLIDER_LENGTH, MIN_CHOPPINESS, MAX_CHOPPINESS, INITIAL_CHOPPINESS, CHOPPINESS_SLIDER_BREADTH, CHOPPINESS_HANDLE_SIZE);
 
-        this.choppinessDiv = document.getElementById(CHOPPINESS_DIV_ID);
-        setText(this.choppinessDiv, INITIAL_CHOPPINESS, CHOPPINESS_DECIMAL_PLACES);
+    var lastMouseX = 0;
+    var lastMouseY = 0;
+    var mode = NONE;
 
-        this.uiDiv = document.getElementById(UI_DIV_ID);
+    var setUIPerspective = function (height) {
+        var fovValue = 0.5 / Math.tan(FOV / 2) * height;
+        setPerspective(uiDiv, fovValue + 'px');
+    };
 
-        this.overlayDiv = document.getElementById(OVERLAY_DIV_ID);
-        this.overlayDiv.addEventListener('mousedown', this.onMouseDown.bind(this));
-        this.overlayDiv.addEventListener('mousemove', this.onMouseMove.bind(this));
-        this.overlayDiv.addEventListener('mouseup', this.onMouseUp.bind(this));
+    var windArrow = new Arrow(cameraDiv, INITIAL_WIND[0], INITIAL_WIND[1]);
+    setText(windSpeedSpan, windArrow.getValue(), WIND_SPEED_DECIMAL_PLACES);
+    setTransform(windDiv, 'translate3d(' + WIND_SPEED_X + 'px, 0px, ' + Math.max(MIN_WIND_SPEED_Z, windArrow.getTipZ() + WIND_SPEED_OFFSET) + 'px) rotateX(90deg)');
 
-        window.addEventListener('mouseout', this.onMouseOut.bind(this));
-        window.addEventListener('resize', this.onresize.bind(this));
-
-        this.mode = NONE;
-        this.lastMouseX = 0;
-        this.lastMouseY = 0;
-        this.projectionMatrix = makePerspectiveMatrix(new Float32Array(16), FOV, MIN_ASPECT, NEAR, FAR);
-        this.onresize();
-        this.render();
-    }
-
-    setUIPerspective(height) {
-        const fovValue = 0.5 / Math.tan(FOV / 2) * height;
-        setPerspective(this.uiDiv, fovValue + 'px');
-    }
-
-    unproject(viewMatrix, x, y, width, height) {
-        let inverseProjectionViewMatrix = [];
-        let nearPoint = [];
-        let farPoint = [];
-        premultiplyMatrix(inverseProjectionViewMatrix, viewMatrix, this.projectionMatrix);
+    var inverseProjectionViewMatrix = [],
+        nearPoint = [],
+        farPoint = [];
+    var unproject = function (viewMatrix, x, y, width, height) {
+        premultiplyMatrix(inverseProjectionViewMatrix, viewMatrix, projectionMatrix);
         invertMatrix(inverseProjectionViewMatrix, inverseProjectionViewMatrix);
 
         setVector4(nearPoint, (x / width) * 2.0 - 1.0, ((height - y) / height) * 2.0 - 1.0, 1.0, 1.0);
@@ -63,153 +53,154 @@ class Main {
         projectVector4(nearPoint, nearPoint);
         projectVector4(farPoint, farPoint);
 
-        const t = -nearPoint[1] / (farPoint[1] - nearPoint[1]);
-        return [
+        var t = -nearPoint[1] / (farPoint[1] - nearPoint[1]);
+        var point = [
             nearPoint[0] + t * (farPoint[0] - nearPoint[0]),
             nearPoint[1] + t * (farPoint[1] - nearPoint[1]),
             nearPoint[2] + t * (farPoint[2] - nearPoint[2]),
         ];
-    }
 
-    onMouseDown(event) {
+        return point;
+    };
+
+    var onMouseDown = function (event) {
         event.preventDefault();
 
-        var mousePosition = getMousePosition(event, this.uiDiv);
+        var mousePosition = getMousePosition(event, uiDiv);
         var mouseX = mousePosition.x,
             mouseY = mousePosition.y;
 
-        var point = this.unproject(this.camera.getViewMatrix(), mouseX, mouseY, this.width, this.height);
+        var point = unproject(camera.getViewMatrix(), mouseX, mouseY, width, height);
 
-        if (this.windArrow.distanceToTip(point) < ARROW_TIP_RADIUS) {
-            this.mode = ROTATING;
-        } else if (this.sizeSlider.distanceToHandle(point) < SIZE_HANDLE_RADIUS) {
-            this.mode = SLIDING_SIZE;
-        } else if (this.choppinessSlider.distanceToHandle(point) < CHOPPINESS_HANDLE_RADIUS) {
-            this.mode = SLIDING_CHOPPINESS;
+        if (windArrow.distanceToTip(point) < ARROW_TIP_RADIUS) {
+            mode = ROTATING;
+        } else if (sizeSlider.distanceToHandle(point) < SIZE_HANDLE_RADIUS) {
+            mode = SLIDING_SIZE;
+        } else if (choppinessSlider.distanceToHandle(point) < CHOPPINESS_HANDLE_RADIUS) {
+            mode = SLIDING_CHOPPINESS;
         } else {
-            this.mode = ORBITING;
-            this.lastMouseX = mouseX;
-            this.lastMouseY = mouseY;
+            mode = ORBITING;
+            lastMouseX = mouseX;
+            lastMouseY = mouseY;
         }
-    }
+    };
+    overlayDiv.addEventListener('mousedown', onMouseDown, false);
 
-    onMouseMove(event) {
+    overlayDiv.addEventListener('mousemove', function (event) {
         event.preventDefault();
 
-        const mousePosition = getMousePosition(event, this.uiDiv),
+        var mousePosition = getMousePosition(event, uiDiv),
             mouseX = mousePosition.x,
             mouseY = mousePosition.y;
 
-        const point = this.unproject(this.camera.getViewMatrix(), mouseX, mouseY, this.width, this.height);
+        var point = unproject(camera.getViewMatrix(), mouseX, mouseY, width, height);
 
-        if (this.windArrow.distanceToTip(point) < ARROW_TIP_RADIUS || this.mode === ROTATING) {
-            this.overlayDiv.style.cursor = 'move';
-        } else if (this.sizeSlider.distanceToHandle(point) < SIZE_HANDLE_RADIUS || 
-            this.choppinessSlider.distanceToHandle(point) < CHOPPINESS_HANDLE_RADIUS || 
-            this.mode === SLIDING_SIZE || this.mode === SLIDING_CHOPPINESS) {
-            this.overlayDiv.style.cursor = 'ew-resize';
-        } else if (this.mode === ORBITING) {
-            this.overlayDiv.style.cursor = '-webkit-grabbing';
-            this.overlayDiv.style.cursor = '-moz-grabbing';
-            this.overlayDiv.style.cursor = 'grabbing';
+        if (windArrow.distanceToTip(point) < ARROW_TIP_RADIUS || mode === ROTATING) {
+            overlayDiv.style.cursor = 'move';
+        } else if (sizeSlider.distanceToHandle(point) < SIZE_HANDLE_RADIUS || 
+            choppinessSlider.distanceToHandle(point) < CHOPPINESS_HANDLE_RADIUS || 
+            mode === SLIDING_SIZE || mode === SLIDING_CHOPPINESS) {
+            overlayDiv.style.cursor = 'ew-resize';
+        } else if (mode === ORBITING) {
+            overlayDiv.style.cursor = '-webkit-grabbing';
+            overlayDiv.style.cursor = '-moz-grabbing';
+            overlayDiv.style.cursor = 'grabbing';
         } else {
-            this.overlayDiv.style.cursor = '-webkit-grab';
-            this.overlayDiv.style.cursor = '-moz-grab';
-            this.overlayDiv.style.cursor = 'grab';
+            overlayDiv.style.cursor = '-webkit-grab';
+            overlayDiv.style.cursor = '-moz-grab';
+            overlayDiv.style.cursor = 'grab';
         }
 
-        if (this.mode === ORBITING) {
-            this.camera.changeAzimuth((mouseX - this.lastMouseX) / this.width * SENSITIVITY);
-            this.camera.changeElevation((mouseY - this.lastMouseY) / this.height * SENSITIVITY);
-            this.lastMouseX = mouseX;
-            this.lastMouseY = mouseY;
-        } else if (this.mode === ROTATING) {
-            this.windArrow.update(point[0], point[2]);
-            this.simulator.setWind([this.windArrow.getValueX(), this.windArrow.getValueY()]);
-            setText(this.windSpeedSpan, this.windArrow.getValue(), WIND_SPEED_DECIMAL_PLACES);
+        if (mode === ORBITING) {
+            camera.changeAzimuth((mouseX - lastMouseX) / width * SENSITIVITY);
+            camera.changeElevation((mouseY - lastMouseY) / height * SENSITIVITY);
+            lastMouseX = mouseX;
+            lastMouseY = mouseY;
+        } else if (mode === ROTATING) {
+            windArrow.update(point[0], point[2]);
+            simulator.setWind([windArrow.getValueX(), windArrow.getValueY()]);
+            setText(windSpeedSpan, windArrow.getValue(), WIND_SPEED_DECIMAL_PLACES);
 
-            setTransform(this.windDiv, 'translate3d(' + WIND_SPEED_X + 'px, 0px, ' + Math.max(MIN_WIND_SPEED_Z, this.windArrow.getTipZ() + WIND_SPEED_OFFSET) + 'px) rotateX(90deg)');
-        } else if (this.mode === SLIDING_SIZE) {
-            this.sizeSlider.update(point[0], (size) => {
-                this.simulator.setSize(size);
-                setText(this.sizeSpan, size, SIZE_DECIMAL_PLACES);
+            setTransform(windDiv, 'translate3d(' + WIND_SPEED_X + 'px, 0px, ' + Math.max(MIN_WIND_SPEED_Z, windArrow.getTipZ() + WIND_SPEED_OFFSET) + 'px) rotateX(90deg)');
+        } else if (mode === SLIDING_SIZE) {
+            sizeSlider.update(point[0], function (size) {
+                simulator.setSize(size);
+                setText(sizeSpan, size, SIZE_DECIMAL_PLACES);
             });
-        } else if (this.mode === SLIDING_CHOPPINESS) {
-            this.choppinessSlider.update(point[0], (choppiness) => {
-                this.simulator.setChoppiness(choppiness);
-                setText(this.choppinessDiv, choppiness, CHOPPINESS_DECIMAL_PLACES);
-                this.profile.render(choppiness);
+        } else if (mode === SLIDING_CHOPPINESS) {
+            choppinessSlider.update(point[0], function (choppiness) {
+                simulator.setChoppiness(choppiness);
+                setText(choppinessDiv, choppiness, CHOPPINESS_DECIMAL_PLACES);
+                profile.render(choppiness);
             });
         }
-    }
+    });
 
-    onMouseUp(event) {
+    overlayDiv.addEventListener('mouseup', function (event) {
         event.preventDefault();
-        this.mode = NONE;
-    }
+        mode = NONE;
+    });
 
-    onMouseOut(event) {
-        const from = event.relatedTarget || event.toElement;
+    window.addEventListener('mouseout', function (event) {
+        var from = event.relatedTarget || event.toElement;
         if (!from || from.nodeName === 'HTML') {
-            this.mode = NONE;
+            mode = NONE;
         }
-    }
+    });
 
-    onresize() {
+    var onresize = function () {
         var windowWidth = window.innerWidth,
-            windowHeight = window.innerHeight;
+        windowHeight = window.innerHeight;
 
-        this.overlayDiv.style.width = windowWidth + 'px';
-        this.overlayDiv.style.height = windowHeight + 'px';
+        overlayDiv.style.width = windowWidth + 'px';
+        overlayDiv.style.height = windowHeight + 'px';
 
         if (windowWidth / windowHeight > MIN_ASPECT) {
-            makePerspectiveMatrix(this.projectionMatrix, FOV, windowWidth / windowHeight, NEAR, FAR);
-            this.simulator.resize(windowWidth, windowHeight);
-            this.uiDiv.style.width = windowWidth + 'px';
-            this.uiDiv.style.height = windowHeight + 'px';
-            this.cameraDiv.style.width = windowWidth + 'px';
-            this.cameraDiv.style.height = windowHeight + 'px';
-            this.simulatorCanvas.style.top = '0px';
-            this.uiDiv.style.top = '0px';
-            this.setUIPerspective(windowHeight);
-            this.width = windowWidth;
-            this.height = windowHeight;
+            makePerspectiveMatrix(projectionMatrix, FOV, windowWidth / windowHeight, NEAR, FAR);
+            simulator.resize(windowWidth, windowHeight);
+            uiDiv.style.width = windowWidth + 'px';
+            uiDiv.style.height = windowHeight + 'px';
+            cameraDiv.style.width = windowWidth + 'px';
+            cameraDiv.style.height = windowHeight + 'px';
+            simulatorCanvas.style.top = '0px';
+            uiDiv.style.top = '0px';
+            setUIPerspective(windowHeight);
+            width = windowWidth;
+            height = windowHeight;
         } else {
-            const newHeight = windowWidth / MIN_ASPECT;
-            makePerspectiveMatrix(this.projectionMatrix, FOV, windowWidth / newHeight, NEAR, FAR);
-            this.simulator.resize(windowWidth, newHeight);
-            this.simulatorCanvas.style.top = (windowHeight - newHeight) * 0.5 + 'px';
-            this.uiDiv.style.top = (windowHeight - newHeight) * 0.5 + 'px';
-            this.setUIPerspective(newHeight);
-            this.uiDiv.style.width = windowWidth + 'px';
-            this.uiDiv.style.height = newHeight + 'px';
-            this.cameraDiv.style.width = windowWidth + 'px';
-            this.cameraDiv.style.height = newHeight + 'px';
-            this.width = windowWidth;
-            this.height = newHeight;
+            var newHeight = windowWidth / MIN_ASPECT;
+            makePerspectiveMatrix(projectionMatrix, FOV, windowWidth / newHeight, NEAR, FAR);
+            simulator.resize(windowWidth, newHeight);
+            simulatorCanvas.style.top = (windowHeight - newHeight) * 0.5 + 'px';
+            uiDiv.style.top = (windowHeight - newHeight) * 0.5 + 'px';
+            setUIPerspective(newHeight);
+            uiDiv.style.width = windowWidth + 'px';
+            uiDiv.style.height = newHeight + 'px';
+            cameraDiv.style.width = windowWidth + 'px';
+            cameraDiv.style.height = newHeight + 'px';
+            width = windowWidth;
+            height = newHeight;
         }
-    }
+    };
 
-    render(currentTime) {
-        let deltaTime;
-        if (currentTime) {
-            deltaTime = (currentTime - this.lastTime) / 1000 || 0.0;
-            this.lastTime = currentTime;
-        } else {
-            deltaTime = 0.0;
-            this.lastTime = (new Date()).getTime();
-        }
+    window.addEventListener('resize', onresize);
+    onresize();
 
-        const fovValue = 0.5 / Math.tan(FOV / 2) * this.height;
-        setTransform(this.cameraDiv, 'translate3d(0px, 0px, ' + fovValue + 'px) ' + toCSSMatrix(this.camera.getViewMatrix()) + ' translate3d(' + this.width / 2 + 'px, ' + this.height / 2 + 'px, 0px)');
-        this.simulator.update(deltaTime);
-        this.simulator.render(this.projectionMatrix, this.camera.getViewMatrix(), this.camera.getPosition());
+    var lastTime = (new Date()).getTime();
+    var render = function render (currentTime) {
+        var deltaTime = (currentTime - lastTime) / 1000 || 0.0;
+        lastTime = currentTime;
 
-        requestAnimationFrame(this.render.bind(this));
-    }
+        var fovValue = 0.5 / Math.tan(FOV / 2) * height;
+        setTransform(cameraDiv, 'translate3d(0px, 0px, ' + fovValue + 'px) ' + toCSSMatrix(camera.getViewMatrix()) + ' translate3d(' + width / 2 + 'px, ' + height / 2 + 'px, 0px)');
+        simulator.update(deltaTime);
+        simulator.render(projectionMatrix, camera.getViewMatrix(), camera.getPosition());
 
-}
+        requestAnimationFrame(render);
+    };
+    render();
+};
 
 window.onload = () => {
-    Simulator.load_gl().then(() => new Main());
+    Simulator.load_gl().then(() => main());
 }

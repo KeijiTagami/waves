@@ -1,184 +1,163 @@
 //waves in simulation are not actually Gerstner waves but Gerstner waves are used for visualisation purposes
-class Profile {
+var Profile = function (canvas) {
+    var context = canvas.getContext('2d');
+    var width = canvas.width;
+    var height = canvas.height;
 
-    constructor(canvas) {
-        this.context = canvas.getContext('2d');
-        this.width = canvas.width;
-        this.height = canvas.height;
+    context.strokeStyle = PROFILE_COLOR;
+    context.lineWidth = PROFILE_LINE_WIDTH;
 
-        this.context.strokeStyle = PROFILE_COLOR;
-        this.context.lineWidth = PROFILE_LINE_WIDTH;
-        this.render(INITIAL_CHOPPINESS);
-    }
-
-    render(choppiness) {
-        this.context.clearRect(0, 0, this.width, this.height);
-        this.context.beginPath();
-        this.context.moveTo(this.evaluateX(0, choppiness), this.evaluateY(0));
-        for (let x = 0; x <= this.width; x += PROFILE_STEP) {
-            this.context.lineTo(this.evaluateX(x, choppiness), this.evaluateY(x));
-        }
-        this.context.stroke();
-    }
-
-    evaluateX(x, choppiness) {
+    var evaluateX = function (x, choppiness) {
         return x - choppiness * CHOPPINESS_SCALE * PROFILE_AMPLITUDE * Math.sin(x * PROFILE_OMEGA + PROFILE_PHI);
-    }
+    };
 
-    evaluateY(x) {
+    var evaluateY = function (x) {
         return PROFILE_AMPLITUDE * Math.cos(x * PROFILE_OMEGA + PROFILE_PHI) + PROFILE_OFFSET;
-    }
+    };
 
-}
+    this.render = function (choppiness) {
+        context.clearRect(0, 0, width, height);
+        context.beginPath();
+        context.moveTo(evaluateX(0, choppiness), evaluateY(0));
+        for (var x = 0; x <= width; x += PROFILE_STEP) {
+            context.lineTo(evaluateX(x, choppiness), evaluateY(x)
+            );
+        }
+        context.stroke();
+    };
+    this.render(INITIAL_CHOPPINESS);
+};
 
-class Arrow {
+var Arrow = function (parent, valueX, valueY) {
+    var arrow = [valueX * WIND_SCALE, 0.0, valueY * WIND_SCALE];
+    var tip = addToVector([], ARROW_ORIGIN, arrow);
 
-    constructor(parent, valueX, valueY) {
-        const arrow = [valueX * WIND_SCALE, 0.0, valueY * WIND_SCALE];
-        const tip = addToVector([], ARROW_ORIGIN, arrow);
+    var shaftDiv = document.createElement('div');
+    shaftDiv.style.position = 'absolute';
+    shaftDiv.style.width = ARROW_SHAFT_WIDTH + 'px';
+    shaftDiv.style.background = UI_COLOR;
+    setTransformOrigin(shaftDiv, 'center top');
+    setTransform(shaftDiv, 'translate3d(' + (ARROW_ORIGIN[0] - ARROW_SHAFT_WIDTH / 2) + 'px, ' + ARROW_ORIGIN[1] + 'px, ' + ARROW_ORIGIN[2] + 'px) rotateX(90deg)');
+    parent.appendChild(shaftDiv);
 
-        const shaftDiv = document.createElement('div');
-        shaftDiv.style.position = 'absolute';
-        shaftDiv.style.width = ARROW_SHAFT_WIDTH + 'px';
-        shaftDiv.style.background = UI_COLOR;
-        setTransformOrigin(shaftDiv, 'center top');
-        setTransform(shaftDiv, 'translate3d(' + (ARROW_ORIGIN[0] - ARROW_SHAFT_WIDTH / 2) + 'px, ' + ARROW_ORIGIN[1] + 'px, ' + ARROW_ORIGIN[2] + 'px) rotateX(90deg)');
-        parent.appendChild(shaftDiv);
+    var headDiv = document.createElement('div');
+    headDiv.style.position = 'absolute';
+    headDiv.style.borderStyle = 'solid';
+    headDiv.style.borderColor = UI_COLOR + ' transparent transparent transparent';
+    headDiv.style.borderWidth = ARROW_HEAD_HEIGHT + 'px ' + ARROW_HEAD_WIDTH / 2 + 'px 0px ' + ARROW_HEAD_WIDTH / 2 + 'px';
+    setTransformOrigin(headDiv, 'center top');
+    setTransform(headDiv, 'translate3d(' + (ARROW_ORIGIN[0] - ARROW_HEAD_WIDTH / 2) + 'px, ' + ARROW_ORIGIN[1] + 'px, ' + ARROW_ORIGIN[2] + 'px) rotateX(90deg)');
+    parent.appendChild(headDiv);
 
-        const headDiv = document.createElement('div');
-        headDiv.style.position = 'absolute';
-        headDiv.style.borderStyle = 'solid';
-        headDiv.style.borderColor = UI_COLOR + ' transparent transparent transparent';
-        headDiv.style.borderWidth = ARROW_HEAD_HEIGHT + 'px ' + ARROW_HEAD_WIDTH / 2 + 'px 0px ' + ARROW_HEAD_WIDTH / 2 + 'px';
-        setTransformOrigin(headDiv, 'center top');
-        setTransform(headDiv, 'translate3d(' + (ARROW_ORIGIN[0] - ARROW_HEAD_WIDTH / 2) + 'px, ' + ARROW_ORIGIN[1] + 'px, ' + ARROW_ORIGIN[2] + 'px) rotateX(90deg)');
-        parent.appendChild(headDiv);
+    var render = function () {
+        var angle = Math.atan2(arrow[2], arrow[0]);
 
-        this.valueX = valueX;
-        this.valueY = valueY;
-        this.arrow = arrow;
-        this.tip = tip;
-        this.shaftDiv = shaftDiv;
-        this.headDiv = headDiv;
-        this.render();
-    }
+        var arrowLength = lengthOfVector(arrow);
 
-    render() {
-        const angle = Math.atan2(this.arrow[2], this.arrow[0]);
-        const arrowLength = lengthOfVector(this.arrow);
+        shaftDiv.style.height = (arrowLength - ARROW_HEAD_HEIGHT + 1 + ARROW_OFFSET) + 'px';
+        setTransform(shaftDiv, 'translate3d(' + (ARROW_ORIGIN[0] - ARROW_SHAFT_WIDTH / 2) + 'px, ' + ARROW_ORIGIN[1] + 'px, ' + ARROW_ORIGIN[2] + 'px) rotateX(90deg) rotateZ(' + (angle - Math.PI / 2) + 'rad) translateY(' + -ARROW_OFFSET + 'px)');
+        setTransform(headDiv, 'translate3d(' + (ARROW_ORIGIN[0] - ARROW_HEAD_WIDTH / 2) + 'px, ' + ARROW_ORIGIN[1] + 'px, ' + ARROW_ORIGIN[2] + 'px) rotateX(90deg) rotateZ(' + (angle - Math.PI / 2) + 'rad) translateY(' + (arrowLength - ARROW_HEAD_HEIGHT - 1) + 'px)');
+    };
 
-        this.shaftDiv.style.height = (arrowLength - ARROW_HEAD_HEIGHT + 1 + ARROW_OFFSET) + 'px';
-        setTransform(this.shaftDiv, 'translate3d(' + (ARROW_ORIGIN[0] - ARROW_SHAFT_WIDTH / 2) + 'px, ' + ARROW_ORIGIN[1] + 'px, ' + ARROW_ORIGIN[2] + 'px) rotateX(90deg) rotateZ(' + (angle - Math.PI / 2) + 'rad) translateY(' + -ARROW_OFFSET + 'px)');
-        setTransform(this.headDiv, 'translate3d(' + (ARROW_ORIGIN[0] - ARROW_HEAD_WIDTH / 2) + 'px, ' + ARROW_ORIGIN[1] + 'px, ' + ARROW_ORIGIN[2] + 'px) rotateX(90deg) rotateZ(' + (angle - Math.PI / 2) + 'rad) translateY(' + (arrowLength - ARROW_HEAD_HEIGHT - 1) + 'px)');
-    }
-
-    update(mouseX, mouseZ) {
-        const arrow = [mouseX, 0, mouseZ];
-        const arrowLength = lengthOfVector(arrow);
+    this.update = function (mouseX, mouseZ) {
+        arrow = [mouseX, 0, mouseZ];
         subtractFromVector(arrow, arrow, ARROW_ORIGIN);
+
+        var arrowLength = lengthOfVector(arrow);
         if (arrowLength > MAX_WIND_SPEED * WIND_SCALE) {
             multiplyVectorByScalar(arrow, arrow, (MAX_WIND_SPEED * WIND_SCALE) / arrowLength);
         } else if (lengthOfVector(arrow) < MIN_WIND_SPEED * WIND_SCALE) {
             multiplyVectorByScalar(arrow, arrow, (MIN_WIND_SPEED * WIND_SCALE) / arrowLength);
         }
-        addToVector(this.tip, ARROW_ORIGIN, arrow);
-        this.arrow = arrow;
-        this.render();
-        this.valueX = mouseX / WIND_SCALE;
-        this.valueY = mouseZ / WIND_SCALE;
-    }
 
-    getValue() {
-        return lengthOfVector(this.arrow) / WIND_SCALE;
-    }
+        addToVector(tip, ARROW_ORIGIN, arrow);
 
-    getValueX() {
-        return this.valueX;
-    }
+        render();
 
-    getValueY() {
-        return this.valueY;
-    }
+        valueX = arrow[0] / WIND_SCALE;
+        valueY = arrow[2] / WIND_SCALE;
+    };
 
-    distanceToTip(vector) {
-        return distanceBetweenVectors(this.tip, vector);
-    }
+    this.getValue = function () {
+        return lengthOfVector(arrow) / WIND_SCALE;
+    };
 
-    getTipZ() {
-        return this.tip[2];
-    }
+    this.getValueX = function () {
+        return valueX;
+    };
 
-}
+    this.getValueY = function () {
+        return valueY;
+    };
 
-class Slider {
+    this.distanceToTip = function (vector) {
+        return distanceBetweenVectors(tip, vector);
+    };
 
-    constructor(parent, x, z, length, minValue, maxValue, value, sliderBreadth, handleSize) {
-        const sliderLeftDiv = document.createElement('div');
-        sliderLeftDiv.style.position = 'absolute';
-        sliderLeftDiv.style.width = length + 'px';
-        sliderLeftDiv.style.height = sliderBreadth + 'px';
-        sliderLeftDiv.style.backgroundColor = SLIDER_LEFT_COLOR;
-        setTransformOrigin(sliderLeftDiv, 'center top');
-        setTransform(sliderLeftDiv, 'translate3d(' + x + 'px, 0, ' + z + 'px) rotateX(90deg)');
-        parent.appendChild(sliderLeftDiv);
+    this.getTipZ = function () {
+        return tip[2];
+    };
 
-        const sliderRightDiv = document.createElement('div');
-        sliderRightDiv.style.position = 'absolute';
-        sliderRightDiv.style.width = length + 'px';
-        sliderRightDiv.style.height = sliderBreadth + 'px';
-        sliderRightDiv.style.backgroundColor = SLIDER_RIGHT_COLOR;
-        setTransformOrigin(sliderRightDiv, 'center top');
-        setTransform(sliderRightDiv, 'translate3d(' + x + 'px, 0, ' + z + 'px) rotateX(90deg)');
-        parent.appendChild(sliderRightDiv);
+    render();
+};
 
-        const handleDiv = document.createElement('div');
-        handleDiv.style.position = 'absolute';
-        handleDiv.style.width = handleSize + 'px';
-        handleDiv.style.height = handleSize + 'px';
-        handleDiv.style.borderRadius = handleSize * 0.5 + 'px';
-        handleDiv.style.background = HANDLE_COLOR;
-        setTransformOrigin(handleDiv, 'center top');
-        setTransform(handleDiv, 'translate3d(' + x + 'px, 0px, ' + z + 'px) rotateX(90deg)');
-        parent.appendChild(handleDiv);
+var Slider = function (parent, x, z, length, minValue, maxValue, value, sliderBreadth, handleSize) {
+    var sliderLeftDiv = document.createElement('div');
+    sliderLeftDiv.style.position = 'absolute';
+    sliderLeftDiv.style.width = length + 'px';
+    sliderLeftDiv.style.height = sliderBreadth + 'px';
+    sliderLeftDiv.style.backgroundColor = SLIDER_LEFT_COLOR;
+    setTransformOrigin(sliderLeftDiv, 'center top');
+    setTransform(sliderLeftDiv, 'translate3d(' + x + 'px, 0, ' + z + 'px) rotateX(90deg)');
+    parent.appendChild(sliderLeftDiv);
 
-        const handleX = (x + ((value - minValue) / (maxValue - minValue)) * length) - handleDiv.offsetWidth / 2;
+    var sliderRightDiv = document.createElement('div');
+    sliderRightDiv.style.position = 'absolute';
+    sliderRightDiv.style.width = length + 'px';
+    sliderRightDiv.style.height = sliderBreadth + 'px';
+    sliderRightDiv.style.backgroundColor = SLIDER_RIGHT_COLOR;
+    setTransformOrigin(sliderRightDiv, 'center top');
+    setTransform(sliderRightDiv, 'translate3d(' + x + 'px, 0, ' + z + 'px) rotateX(90deg)');
+    parent.appendChild(sliderRightDiv);
 
-        this.x = x;
-        this.z = z;
-        this.length = length;
-        this.value = value;
-        this.minValue = minValue;
-        this.maxValue = maxValue;
-        this.sliderLeftDiv = sliderLeftDiv; 
-        this.sliderRightDiv = sliderRightDiv; 
-        this.handleDiv = handleDiv;
-        this.handleX = handleX;
-        this.render();
-    }
+    var handleDiv = document.createElement('div');
+    handleDiv.style.position = 'absolute';
+    handleDiv.style.width = handleSize + 'px';
+    handleDiv.style.height = handleSize + 'px';
+    handleDiv.style.borderRadius = handleSize * 0.5 + 'px';
+    handleDiv.style.background = HANDLE_COLOR;
+    setTransformOrigin(handleDiv, 'center top');
+    setTransform(handleDiv, 'translate3d(' + x + 'px, 0px, ' + z + 'px) rotateX(90deg)');
+    parent.appendChild(handleDiv);
 
-    render() {
-        const fraction = (this.value - this.minValue) / (this.maxValue - this.minValue);
+    var handleX = (x + ((value - minValue) / (maxValue - minValue)) * length) - handleDiv.offsetWidth / 2;
 
-        setTransform(this.handleDiv, 'translate3d(' + (this.handleX - this.handleDiv.offsetWidth * 0.5) + 'px, 0, ' + (this.z - this.handleDiv.offsetHeight * 0.5) + 'px) rotateX(90deg)');
-        this.sliderLeftDiv.style.width = fraction * this.length + 'px';
-        this.sliderRightDiv.style.width = (1.0 - fraction) * this.length + 'px';
-        setTransform(this.sliderRightDiv, 'translate3d(' + (this.x + fraction * this.length) + 'px, 0, ' + this.z + 'px) rotateX(90deg)');
-    }
+    var render = function () {
+        var fraction = (value - minValue) / (maxValue - minValue);
 
-    update(mouseX, callback) {
-        this.handleX = clamp(mouseX, this.x, this.x + this.length);
-        const fraction = clamp((mouseX - this.x) / this.length, 0.0, 1.0);
-        this.value = this.minValue + fraction * (this.maxValue - this.minValue);
-        callback(this.value);
-        this.render();
-    }
+        setTransform(handleDiv, 'translate3d(' + (handleX - handleDiv.offsetWidth * 0.5) + 'px, 0, ' + (z - handleDiv.offsetHeight * 0.5) + 'px) rotateX(90deg)');
+        sliderLeftDiv.style.width = fraction * length + 'px';
+        sliderRightDiv.style.width = (1.0 - fraction) * length + 'px';
+        setTransform(sliderRightDiv, 'translate3d(' + (x + fraction * length) + 'px, 0, ' + z + 'px) rotateX(90deg)');
+    };
 
-    getValue() {
-        return this.value;
-    }
+    this.update = function (mouseX, callback) {
+        handleX = clamp(mouseX, x, x + length);
+        var fraction = clamp((mouseX - x) / length, 0.0, 1.0);
+        value = minValue + fraction * (maxValue - minValue);
 
-    distanceToHandle(vector) {
-        return distanceBetweenVectors([this.handleX, 0, this.z], vector);
-    }
+        callback(value);
 
-}
+        render();
+    };
+
+    this.getValue = function () {
+        return value;
+    };
+
+    this.distanceToHandle = function (vector) {
+        return distanceBetweenVectors([handleX, 0, z], vector);
+    };
+
+    render();
+};
