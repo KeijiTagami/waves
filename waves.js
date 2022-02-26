@@ -126,7 +126,7 @@ class Main {
         } else if (this.mode === ROTATING) {
             this.windArrow.update(point[0], point[2]);
             this.simulator.setWind([this.windArrow.getValueX(), this.windArrow.getValueY()]);
-            this.setText(windSpeedSpan, this.windArrow.getValue(), WIND_SPEED_DECIMAL_PLACES);
+            setText(this.windSpeedSpan, this.windArrow.getValue(), WIND_SPEED_DECIMAL_PLACES);
 
             setTransform(this.windDiv, 'translate3d(' + WIND_SPEED_X + 'px, 0px, ' + Math.max(MIN_WIND_SPEED_Z, this.windArrow.getTipZ() + WIND_SPEED_OFFSET) + 'px) rotateX(90deg)');
         } else if (this.mode === SLIDING_SIZE) {

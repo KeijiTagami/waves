@@ -146,7 +146,7 @@ function oceanIndices() {
     for (let z = 0; z < RESOLUTION - 1; z += 1) {
         const zi = (z + 0) * RESOLUTION;
         const zj = (z + 1) * RESOLUTION;
-        for (let x = 0; x < RESOLUTION - 1; x += 1) {
+        for (let x = 0; x < RESOLUTION; x += 1) {
             a.push(zi + x);
             a.push(zj + x);
         }

@@ -13,7 +13,7 @@ uniform sampler2D u_wave;
 uniform vec2 u_wind;
 uniform float u_size;
 
-out vec4 phase;
+out vec4 spectrum;
 
 float square(float x) {
     return x * x;
@@ -59,5 +59,5 @@ void main(void) {
 
     float lpm = exp(-1.25 / square(k / l));
     float h = (k > 0.0) ? sqrt(PI * b * s * lpm) / square(k) : 0.0;
-    phase = vec4(h / u_size, 0.0, 0.0, 0.0);
+    spectrum = vec4(h / u_size, 0.0, 0.0, 0.0);
 }
