@@ -19,7 +19,7 @@ class Simulator {
         this.displacementMapFramebuffer = this.framebuffer();
 
         this.initialSpectrumProgram = this.program('init').
-            uniform1f('u_resolution', RESOLUTION);
+            uniform1i('u_resolution', RESOLUTION);
         this.phaseProgram = this.program('phase');
             // inputPhase
         this.spectrumProgram = this.program('spectrum').

@@ -8,7 +8,7 @@ const float CM = 0.23;
 const float OMEGA = 0.84;
 const float GAMMA = 1.7;
 
-uniform float u_resolution;
+uniform int u_resolution;
 
 uniform vec2 u_wind;
 uniform float u_size;
@@ -24,10 +24,11 @@ float omegax(float k) {
 }
 
 vec2 getWaveVector() {
-    vec2 ind = gl_FragCoord.xy - 0.5;
-    float n = (ind.x < u_resolution * 0.5) ? ind.x : ind.x - u_resolution;
-    float m = (ind.y < u_resolution * 0.5) ? ind.y : ind.y - u_resolution;
-    return 2.0 * PI * vec2(n, m) / u_size;
+    ivec2 res = ivec2(u_resolution, u_resolution);
+    ivec2 ind = ivec2(gl_FragCoord.xy - 0.5);
+    int n = (ind.x < res.x / 2) ? ind.x : ind.x - res.x;
+    int m = (ind.y < res.y / 2) ? ind.y : ind.y - res.y;
+    return 2.0 * PI * vec2(float(n), float(m)) / u_size;
 }
 
 void main(void) {
