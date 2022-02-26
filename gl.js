@@ -10,10 +10,23 @@ class Buffer {
         this.vao = vao;
     }
 
-    vertexAttribPointer(index, size, stride, offset) {
+    vertexAttribPointer(index, size, type, stride, offset) {
         const gl = this.gl
         gl.enableVertexAttribArray(index);
-        gl.vertexAttribPointer(index, size, gl.FLOAT, false, stride * SIZE_OF_FLOAT, offset * SIZE_OF_FLOAT);
+        let type_size;
+        let func;
+        if (type == gl.FLOAT) {
+            type_size = 4;
+        } else if (type == gl.INT) {
+            type_size = 4;
+        } else if (type == gl.SHORT) {
+            type_size = 2;
+        }
+        if (type == gl.FLOAT) {
+            gl.vertexAttribPointer(index, size, type, false, stride * type_size, offset * type_size);
+        } else {
+            gl.vertexAttribIPointer(index, size, type, stride * type_size, offset * type_size);
+        }
         return this;
     }
 

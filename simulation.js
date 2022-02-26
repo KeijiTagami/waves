@@ -10,7 +10,7 @@ class Simulator {
         this.setChoppiness(INITIAL_CHOPPINESS);
 
         this.fullscreenBuffer = this.buffer(fullscreenData()).
-            vertexAttribPointer(ATTR_POSITION, 2, 0, 0);
+            vertexAttribPointer(ATTR_POSITION, 2, this.gl.FLOAT, 0, 0);
 
         this.waveFramebuffer = this.framebuffer(waveArray(), 2);
         this.phaseFramebuffer = this.framebuffer(phaseArray(), 1);
@@ -32,7 +32,7 @@ class Simulator {
             // spectrum
 
         this.oceanBuffer = this.buffer(oceanData()).
-            vertexAttribPointer(ATTR_COORDINATES, 2, 0, 0).
+            vertexAttribPointer(ATTR_COORDINATES, 2, this.gl.SHORT, 0, 0).
             addIndex(oceanIndices());
         this.oceanProgram = this.program('ocean').
             // displacementMap
@@ -102,7 +102,6 @@ class Simulator {
 
         this.oceanProgram.activate().
             uniform1i('u_displacementMap', this.displacementMapFramebuffer.unit).
-            uniform1f('u_size', this.size).
             uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix).
             uniformMatrix4fv('u_viewMatrix', false, viewMatrix).
             uniform3fv('u_cameraPosition', cameraPosition);

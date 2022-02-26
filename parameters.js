@@ -132,15 +132,13 @@ function waveArray() {
 
 function oceanData() {
     const a = [];
-    for (let zi = 0; zi < RESOLUTION; zi += 1) {
-        let z = (zi + 0.5) / RESOLUTION;
-        for (let xi = 0; xi < RESOLUTION; xi += 1) {
-            let x = (xi + 0.5) / RESOLUTION;
+    for (let z = 0; z < RESOLUTION; z += 1) {
+        for (let x = 0; x < RESOLUTION; x += 1) {
             a.push(x);
             a.push(z);
         }
     }
-    return new Float32Array(a);
+    return new Int16Array(a);
 }
 
 function oceanIndices() {

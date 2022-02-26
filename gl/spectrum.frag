@@ -20,7 +20,7 @@ void main(void) {
     float phase = texelFetch(u_phases, ind, 0).r;
     vec2 waveVector = texelFetch(u_wave, ind, 0).xy / u_size;
 
-    float ht = 2.0 * h0 * cos(phase);
+    float ht = 2.0 * h0 * cos(phase) / u_size;
     float k = length(waveVector);
     vec2 choppiness = (k > 0.0) ? u_choppiness * (waveVector / k) : vec2(0.0);
     spectrum = vec4(0.0, (1.0 - choppiness.x) * ht, 0.0, -choppiness.y * ht);

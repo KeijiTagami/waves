@@ -6,8 +6,6 @@ in vec3 v_position;
 
 uniform sampler2D u_displacementMap;
 
-uniform float u_size;
-
 uniform vec3 u_cameraPosition;
 uniform vec3 u_sunDirection;
 
@@ -19,15 +17,13 @@ out vec4 outColor;
 
 vec3 getNormal(void) {
     ivec2 res = textureSize(u_displacementMap, 0);
-    vec2 pscale = 1.0 / vec2(float(res.x), float(res.y));
-    vec3 scale = u_size * vec3(pscale, 0.0).xzy;
-    vec2 z = vec2(1.0, 0.0);
+    vec2 z = vec2(1.0, 0.0) / vec2(res);
 
     vec3 center = texture(u_displacementMap, v_coordinates).xyz;
-    vec3 right = texture(u_displacementMap, v_coordinates + z.xy * pscale).xyz - center + z.xyy * scale;
-    vec3 left = texture(u_displacementMap, v_coordinates - z.xy * pscale).xyz - center - z.xyy * scale;
-    vec3 top = texture(u_displacementMap, v_coordinates - z.yx * pscale).xyz - center - z.yyx * scale;
-    vec3 bottom = texture(u_displacementMap, v_coordinates + z.yx * pscale).xyz - center + z.yyx * scale;
+    vec3 right = texture(u_displacementMap, v_coordinates + z.xy).xyz - center + z.xyy;
+    vec3 left = texture(u_displacementMap, v_coordinates - z.xy).xyz - center - z.xyy;
+    vec3 top = texture(u_displacementMap, v_coordinates - z.yx).xyz - center - z.yyx;
+    vec3 bottom = texture(u_displacementMap, v_coordinates + z.yx).xyz - center + z.yyx;
 
     vec3 topRight = cross(right, top);
     vec3 topLeft = cross(top, left);

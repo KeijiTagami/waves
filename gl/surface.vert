@@ -1,8 +1,7 @@
 #version 300 es
 precision highp float;
 
-layout (location = 0) in vec2 a_coordinates;
-uniform float u_size;
+layout (location = 0) in ivec2 a_index;
 uniform sampler2D u_displacementMap;
 
 uniform float u_geometrySize;
@@ -14,10 +13,10 @@ out vec2 v_coordinates;
 out vec3 v_position;
 
 void main (void) {
-    vec3 coord = u_size * vec3(a_coordinates - 0.5, 0.0);
-    vec3 modify = texture(u_displacementMap, a_coordinates).xzy;
-    vec3 position = (u_geometrySize / u_size) * (coord + modify).xzy;
-    v_coordinates = a_coordinates;
-    v_position = position;
-    gl_Position = u_projectionMatrix * u_viewMatrix * vec4(position, 1.0);
+    ivec2 res = textureSize(u_displacementMap, 0);
+    v_coordinates = (vec2(a_index) + 0.5) / vec2(res);
+    vec3 coord = vec3(v_coordinates - 0.5, 0.0);
+    vec3 modify = texture(u_displacementMap, v_coordinates).xzy;
+    v_position = u_geometrySize * (coord + modify).xzy;
+    gl_Position = u_projectionMatrix * u_viewMatrix * vec4(v_position, 1.0);
 }
