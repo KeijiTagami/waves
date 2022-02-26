@@ -36,8 +36,8 @@ class Simulator {
         this.normalMapFramebuffer = new Framebuffer({gl: gl, unit: NORMAL_MAP_UNIT, filter: gl.LINEAR});
 
         this.oceanBuffer = new Buffer(gl, oceanData()).
-            vertexAttribPointer(ATTR_COORDINATES, 2, 0, 0);
-        this.oceanElements = new ElementsBuffer(gl, oceanIndices());
+            vertexAttribPointer(ATTR_COORDINATES, 2, 0, 0).
+            addIndex(oceanIndices());
         this.oceanProgram = new OceanProgram(gl).
             uniform1i('u_normalMap', NORMAL_MAP_UNIT).
             uniform1f('u_geometrySize', GEOMETRY_SIZE).
@@ -112,14 +112,13 @@ class Simulator {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
 
-        this.oceanBuffer.bind();
         this.oceanProgram.activate().
             uniform1i('u_displacementMap', this.displacementMapFramebuffer.unit).
             uniform1f('u_size', this.size).
             uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix).
             uniformMatrix4fv('u_viewMatrix', false, viewMatrix).
             uniform3fv('u_cameraPosition', cameraPosition);
-        this.oceanElements.draw();
+        this.oceanBuffer.draw();
     }
 
     resize(width, height) {

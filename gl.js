@@ -39,25 +39,25 @@ class Buffer {
         return this;
     }
 
+    addIndex(data) {
+        const gl = this.gl
+        const index = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, data, gl.STATIC_DRAW);
+        this.index = index;
+        this.length = data.length;
+        return this;
+    }
+
     bind() {
         const gl = this.gl
         gl.bindVertexArray(this.vao);
     }
 
-}
-
-class ElementsBuffer {
-
-    constructor(gl, data) {
-        const buffer = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, data, gl.STATIC_DRAW);
-        this.gl = gl;
-        this.length = data.length;
-    }
-
     draw() {
         const gl = this.gl
+        gl.bindVertexArray(this.vao);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.index);
         gl.drawElements(gl.TRIANGLES, this.length, gl.UNSIGNED_SHORT, 0);
     }
 
