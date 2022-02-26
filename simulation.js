@@ -21,8 +21,7 @@ class Simulator {
         this.initialSpectrumFramebuffer = new Framebuffer({gl: gl, unit: INITIAL_SPECTRUM_UNIT});
 
         this.inputPhaseFramebuffer = new Framebuffer({gl: gl, unit: PHASE1_UNIT, data: phaseArray()});
-        this.phaseProgram = new FullscreenProgram(gl, PHASE_FRAGMENT_SOURCE).
-            uniform1f('u_resolution', RESOLUTION);
+        this.phaseProgram = new FullscreenProgram(gl, PHASE_FRAGMENT_SOURCE);
         this.outputPhaseFramebuffer = new Framebuffer({gl: gl, unit: PHASE2_UNIT});
         this.spectrumProgram = new FullscreenProgram(gl, SPECTRUM_FRAGMENT_SOURCE).
             uniform1i('u_initialSpectrum', INITIAL_SPECTRUM_UNIT).
