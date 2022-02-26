@@ -101,20 +101,22 @@ var NONE = 0,
     SLIDING_CHOPPINESS = 4;
 
 function fullscreenData() {
-    return new Float32Array([-1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0]);
+    return new Float32Array([
+        -1.0, -1.0,
+        -1.0, 1.0,
+        1.0, -1.0,
+        1.0, 1.0,
+    ]);
 }
 
 function phaseArray() {
-    const a = new Float32Array(RESOLUTION * RESOLUTION * 4);
+    const a = [];
     for (let i = 0; i < RESOLUTION; i += 1) {
         for (let j = 0; j < RESOLUTION; j += 1) {
-            a[i * RESOLUTION * 4 + j * 4] = Math.random() * 2.0 * Math.PI;
-            a[i * RESOLUTION * 4 + j * 4 + 1] = 0;
-            a[i * RESOLUTION * 4 + j * 4 + 2] = 0;
-            a[i * RESOLUTION * 4 + j * 4 + 3] = 0;
+            a.push(Math.random() * 2.0 * Math.PI);
         }
     }
-    return a
+    return new Float32Array(a);
 }
 
 function oceanData() {

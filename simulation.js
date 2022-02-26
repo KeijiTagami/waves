@@ -16,18 +16,18 @@ class Simulator {
         this.fullscreenBuffer = new Buffer(gl, fullscreenData()).
             vertexAttribPointer(ATTR_POSITION, 2, 0, 0);
 
-        this.initialSpectrumFramebuffer = new Framebuffer(gl);
-        this.inputPhaseFramebuffer = new Framebuffer(gl, phaseArray());
-        this.outputPhaseFramebuffer = new Framebuffer(gl);
-        this.spectrumFramebuffer = new Framebuffer(gl);
-        this.displacementMapFramebuffer = new Framebuffer(gl);
+        this.initialSpectrumFramebuffer = this.framebuffer();
+        this.inputPhaseFramebuffer = this.framebuffer(phaseArray(), 1);
+        this.outputPhaseFramebuffer = this.framebuffer();
+        this.spectrumFramebuffer = this.framebuffer();
+        this.displacementMapFramebuffer = this.framebuffer();
 
         this.initialSpectrumProgram = new FullscreenProgram(gl, INITIAL_SPECTRUM_FRAGMENT_SOURCE).
             uniform1f('u_resolution', RESOLUTION);
         this.phaseProgram = new FullscreenProgram(gl, PHASE_FRAGMENT_SOURCE);
             // inputPhase
         this.spectrumProgram = new FullscreenProgram(gl, SPECTRUM_FRAGMENT_SOURCE).
-            uniform1i('u_initialSpectrum', INITIAL_SPECTRUM_UNIT);
+            uniform1i('u_initialSpectrum', this.initialSpectrumFramebuffer.unit);
             // outputPhase
         this.subtransformProgram = new FullscreenProgram(gl, SUBTRANSFORM_FRAGMENT_SOURCE);
             // spectrum
@@ -124,4 +124,7 @@ class Simulator {
         this.choppiness = newChoppiness;
     }
 
+    framebuffer(...args) {
+        return new Framebuffer(this.gl, ...args);
+    }
 }
