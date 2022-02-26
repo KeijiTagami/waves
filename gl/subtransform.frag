@@ -3,49 +3,42 @@ precision highp float;
 
 const float PI = 3.14159265359;
 
-uniform float u_resolution;
-
 uniform sampler2D u_input;
-uniform float u_direction;
-uniform float u_subtransformSize;
+uniform int u_direction;
+uniform int u_subtransformSize;
 
-out vec4 outColor;
-
-vec2 trans(vec2 orig) {
-    float u = 1.0 - u_direction;
-    float v = u_direction;
-    return vec2(orig.x * u + orig.y * v, orig.x * v + orig.y * u);
-}
+out vec4 dispatch;
 
 vec2 multiplyComplex (vec2 a, vec2 b) {
     return vec2(a[0] * b[0] - a[1] * b[1], a[1] * b[0] + a[0] * b[1]);
 }
 
-float toIndex(float x) {
-    return u_resolution * x - 0.5;
-}
-
-float toCoord(float idx) {
-    return (idx + 0.5) / u_resolution;
-}
-
-float modifyIndex(float idx) {
-    float hsize = 0.5 * u_subtransformSize;
-    return floor(idx / u_subtransformSize) * hsize + mod(idx, hsize);
+int modifyIndex(int ind) {
+    int hsize = u_subtransformSize / 2;
+    int r = (ind / u_subtransformSize) * hsize;
+    int m = ind - (ind / hsize) * hsize;
+    return r + m;
 }
 
 void main (void) {
-    vec2 coord = trans(gl_FragCoord.xy / u_resolution);
+    int res = textureSize(u_input, 0).x;
+    ivec2 ind = ivec2(gl_FragCoord.xy - 0.5);
+    if (u_direction == 1) {
+        ind = ind.yx;
+    }
 
-    float idx = toIndex(coord.x);
-    vec2 m = vec2(toCoord(modifyIndex(idx)), coord.y);
-    vec2 n = vec2(m.x + 0.5, m.y);
-    vec4 even = texture(u_input, trans(m));
-    vec4 odd = texture(u_input, trans(n));
+    ivec2 m = ivec2(modifyIndex(ind.x), ind.y);
+    ivec2 n = ivec2(m.x + res / 2, m.y);
+    if (u_direction == 1) {
+        m = m.yx;
+        n = n.yx;
+    }
+    vec4 even = texelFetch(u_input, m, 0);
+    vec4 odd = texelFetch(u_input, n, 0);
 
-    float twiddleArgument = -2.0 * PI * idx / u_subtransformSize;
+    float twiddleArgument = -2.0 * PI * float(ind.x) / float(u_subtransformSize);
     vec2 twiddle = vec2(cos(twiddleArgument), sin(twiddleArgument));
     vec2 out1 = even.xy + multiplyComplex(twiddle, odd.xy);
     vec2 out2 = even.zw + multiplyComplex(twiddle, odd.zw);
-    outColor = vec4(out1, out2);
+    dispatch = vec4(out1, out2);
 }

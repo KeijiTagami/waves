@@ -28,8 +28,7 @@ class Simulator {
             uniform1i('u_initialSpectrum', INITIAL_SPECTRUM_UNIT).
             uniform1f('u_resolution', RESOLUTION);
         this.spectrumFramebuffer = new Framebuffer({gl: gl, unit: SPECTRUM_UNIT});
-        this.subtransformProgram = new FullscreenProgram(gl, SUBTRANSFORM_FRAGMENT_SOURCE).
-            uniform1f('u_resolution', RESOLUTION);
+        this.subtransformProgram = new FullscreenProgram(gl, SUBTRANSFORM_FRAGMENT_SOURCE);
         this.displacementMapFramebuffer = new Framebuffer({gl: gl, unit: DISPLACEMENT_MAP_UNIT});
         this.normalMapProgram = new FullscreenProgram(gl, NORMAL_MAP_FRAGMENT_SOURCE).
             uniform1f('u_resolution', RESOLUTION);
@@ -74,27 +73,18 @@ class Simulator {
             uniform1f('u_choppiness', this.choppiness);
         this.spectrumFramebuffer.draw();
 
-        this.subtransformProgram.activate();
-        const iterations = log2(RESOLUTION);
         let output = this.spectrumFramebuffer;
         let input = this.displacementMapFramebuffer;
-        this.subtransformProgram.
-            uniform1f('u_direction', 0.0);
-        for (let i = 0; i < iterations; i += 1) {
-            [input, output] = [output, input];
-            this.subtransformProgram.
-                uniform1i('u_input', input.unit).
-                uniform1f('u_subtransformSize', Math.pow(2, i + 1));
-            output.draw();
-        }
-        this.subtransformProgram.
-            uniform1f('u_direction', 1.0);
-        for (let i = 0; i < iterations; i += 1) {
-            [input, output] = [output, input];
-            this.subtransformProgram.
-                uniform1i('u_input', input.unit).
-                uniform1f('u_subtransformSize', Math.pow(2, i + 1));
-            output.draw();
+        this.subtransformProgram.activate();
+        for (let mode in [0, 1]) {
+            this.subtransformProgram.uniform1i('u_direction', mode);
+            for (let i = 2; i <= RESOLUTION; i *= 2) {
+                [input, output] = [output, input];
+                this.subtransformProgram.
+                    uniform1i('u_input', input.unit).
+                    uniform1i('u_subtransformSize', i);
+                output.draw();
+            }
         }
 
         const normalMap = this.normalMapProgram.activate().
