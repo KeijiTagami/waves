@@ -1,4 +1,4 @@
-var main = function () {
+function main() {
     var simulatorCanvas = document.getElementById(SIMULATOR_CANVAS_ID),
         overlayDiv = document.getElementById(OVERLAY_DIV_ID),
         uiDiv = document.getElementById(UI_DIV_ID),
@@ -199,6 +199,8 @@ var main = function () {
         requestAnimationFrame(render);
     };
     render();
-};
+}
 
-Simulator.load_gl().then(() => main());
+window.onload = function() {
+    Simulator.load_gl().then(() => main());
+}
