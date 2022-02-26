@@ -15,10 +15,6 @@ vec2 multiplyComplex(vec2 a, vec2 b) {
     return vec2(a[0] * b[0] - a[1] * b[1], a[1] * b[0] + a[0] * b[1]);
 }
 
-vec2 conj(vec2 z) {
-    return vec2(z[0], -z[1]);
-}
-
 vec2 getWaveVector() {
     ivec2 res = textureSize(u_phases, 0);
     ivec2 ind = ivec2(gl_FragCoord.xy - 0.5);
