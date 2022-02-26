@@ -1,13 +1,14 @@
 class Simulator {
 
     constructor(canvas, width, height) {
-        this.canvas = canvas;
+        const gl = canvas.getContext('webgl2');
+
+        this.gl = gl;
         this.resize(width, height);
         this.setWind(INITIAL_WIND[0], INITIAL_WIND[1]);
         this.setSize(INITIAL_SIZE);
         this.setChoppiness(INITIAL_CHOPPINESS);
 
-        const gl = this.gl();
         gl.getExtension('EXT_color_buffer_float');
         gl.getExtension('OES_texture_float_linear');
         gl.clearColor.apply(gl, CLEAR_COLOR);
@@ -47,7 +48,7 @@ class Simulator {
     }
 
     update(deltaTime) {
-        const gl = this.gl();
+        const gl = this.gl;
         gl.disable(gl.DEPTH_TEST);
         gl.viewport(0, 0, RESOLUTION, RESOLUTION);
 
@@ -106,10 +107,10 @@ class Simulator {
     }
 
     render(projectionMatrix, viewMatrix, cameraPosition) {
-        const gl = this.gl();
+        const gl = this.gl;
         gl.enable(gl.DEPTH_TEST);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+        gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
 
         this.oceanBuffer.bind();
         this.oceanProgram.activate().
@@ -121,13 +122,9 @@ class Simulator {
         this.oceanElements.draw();
     }
 
-    gl() {
-        return this.canvas.getContext('webgl2');
-    }
-
     resize(width, height) {
-        this.canvas.width = width;
-        this.canvas.height = height;
+        this.gl.canvas.width = width;
+        this.gl.canvas.height = height;
     }
 
     setWind(x, y) {
