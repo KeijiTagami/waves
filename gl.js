@@ -23,17 +23,17 @@ async function load_gl() {
 class Buffer {
 
     constructor(gl, data) {
+        const vao = gl.createVertexArray();
+        gl.bindVertexArray(vao);
         const buffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
         gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
         this.gl = gl;
-        this.buffer = buffer;
-        this.pointer = {};
+        this.vao = vao;
     }
 
     vertexAttribPointer(index, size, stride, offset) {
         const gl = this.gl
-        this.pointer[index] = [size, stride, offset];
         gl.enableVertexAttribArray(index);
         gl.vertexAttribPointer(index, size, gl.FLOAT, false, stride * SIZE_OF_FLOAT, offset * SIZE_OF_FLOAT);
         return this;
@@ -41,11 +41,7 @@ class Buffer {
 
     bind() {
         const gl = this.gl
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
-        for (let index in this.pointer) {
-            let p = this.pointer[index];
-            gl.vertexAttribPointer(index, p[0], gl.FLOAT, false, p[1] * SIZE_OF_FLOAT, p[2] * SIZE_OF_FLOAT);
-        }
+        gl.bindVertexArray(this.vao);
     }
 
 }
