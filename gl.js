@@ -20,28 +20,6 @@ async function load_gl() {
     OCEAN_FRAGMENT_SOURCE = await fetch('./gl/ocean.frag').then(res => res.text());
 }
 
-function hasWebGLSupportWithExtensions(extensions) {
-    var canvas = document.createElement('canvas');
-    var gl = null;
-    try {
-        gl = canvas.getContext('webgl2');
-    } catch (e) {
-        return false;
-    }
-    if (gl === null) {
-        return false;
-    }
-
-    for (var i = 0; i < extensions.length; ++i) {
-        if (gl.getExtension(extensions[i]) === null) {
-            console.log('ext', extensions[i], gl.getExtension(extensions[i]));
-            return false
-        }
-    }
-
-    return true;
-}
-
 class Buffer {
 
     constructor(gl, data) {
