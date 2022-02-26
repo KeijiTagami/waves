@@ -201,10 +201,4 @@ var main = function () {
     render();
 };
 
-const exts = ['EXT_color_buffer_float', 'OES_texture_float_linear'];
-if (hasWebGLSupportWithExtensions(exts)) {
-    load_gl().then(() => main());
-} else {
-    document.getElementById('error').style.display = 'block';
-    document.getElementById('footer').style.display = 'none';
-}
+load_gl().then(() => main());

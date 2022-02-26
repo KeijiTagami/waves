@@ -15,8 +15,6 @@ async function load_gl() {
     PHASE_FRAGMENT_SOURCE = await fetch('./gl/phase.frag').then(res => res.text());
     SPECTRUM_FRAGMENT_SOURCE = await fetch('./gl/spectrum.frag').then(res => res.text());
     SUBTRANSFORM_FRAGMENT_SOURCE = await fetch('./gl/subtransform.frag').then(res => res.text());
-    SUBTRANSFORM_H_FRAGMENT_SOURCE = await fetch('./gl/subtransform_h.frag').then(res => res.text());
-    SUBTRANSFORM_V_FRAGMENT_SOURCE = await fetch('./gl/subtransform_v.frag').then(res => res.text());
     NORMAL_MAP_FRAGMENT_SOURCE = await fetch('./gl/normal_map.frag').then(res => res.text());
     OCEAN_VERTEX_SOURCE = await fetch('./gl/ocean.vert').then(res => res.text());
     OCEAN_FRAGMENT_SOURCE = await fetch('./gl/ocean.frag').then(res => res.text());
