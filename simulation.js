@@ -28,7 +28,7 @@ class Simulator {
             uniform1i('u_initialSpectrum', this.initialSpectrumFramebuffer.unit).
             // phase
             uniform1i('u_wave', this.waveFramebuffer.unit);
-        this.subtransformProgram = this.program('subtransform');
+        this.fftProgram = this.program('fft');
             // spectrum
 
         this.oceanBuffer = this.buffer(oceanData()).
@@ -80,11 +80,11 @@ class Simulator {
 
         let buffer1 = this.spectrumFramebuffer;
         let buffer2 = this.displacementMapFramebuffer;
-        this.subtransformProgram.activate();
+        this.fftProgram.activate();
         for (let mode in [0, 1]) {
-            this.subtransformProgram.uniform1i('u_direction', mode);
+            this.fftProgram.uniform1i('u_direction', mode);
             for (let i = 2; i <= RESOLUTION; i *= 2) {
-                this.subtransformProgram.
+                this.fftProgram.
                     uniform1i('u_input', buffer1.unit).
                     uniform1i('u_subtransformSize', i);
                 buffer2.draw();
@@ -147,7 +147,7 @@ class Simulator {
         for (let name of vert_names) {
             Simulator.src[name] = await fetch('./gl/' + name + '.vert').then(res => res.text());
         }
-        for (let name of ['initial_spectrum', 'phase', 'spectrum', 'subtransform']) {
+        for (let name of ['initial_spectrum', 'phase', 'spectrum', 'fft']) {
             Simulator.src[name] = [
                 Simulator.src['square'],
                 await fetch('./gl/' + name + '.frag').then(res => res.text()),
