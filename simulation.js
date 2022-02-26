@@ -13,8 +13,8 @@ class Simulator {
             vertexAttribPointer(ATTR_POSITION, 2, 0, 0);
 
         this.waveFramebuffer = this.framebuffer(waveArray(), 2);
-        this.inputPhaseFramebuffer = this.framebuffer(phaseArray(), 1);
-        this.outputPhaseFramebuffer = this.framebuffer(null, 1);
+        this.phaseFramebuffer = this.framebuffer(phaseArray(), 1);
+        this.tmpPhaseFramebuffer = this.framebuffer(null, 1);
         this.initialSpectrumFramebuffer = this.framebuffer(null, 1);
         this.spectrumFramebuffer = this.framebuffer();
         this.displacementMapFramebuffer = this.framebuffer();
@@ -66,33 +66,32 @@ class Simulator {
         }
 
         this.phaseProgram.activate().
-            uniform1i('u_phases', this.inputPhaseFramebuffer.unit).
+            uniform1i('u_phases', this.phaseFramebuffer.unit).
             uniform1f('u_size', this.size).
             uniform1f('u_deltaTime', deltaTime);
-        this.outputPhaseFramebuffer.draw();
+        this.tmpPhaseFramebuffer.draw();
+        [this.phaseFramebuffer, this.tmpPhaseFramebuffer] = [this.tmpPhaseFramebuffer, this.phaseFramebuffer];
 
         this.spectrumProgram.activate().
-            uniform1i('u_phases', this.outputPhaseFramebuffer.unit).
+            uniform1i('u_phases', this.phaseFramebuffer.unit).
             uniform1f('u_size', this.size).
             uniform1f('u_choppiness', this.choppiness);
         this.spectrumFramebuffer.draw();
 
-        let output = this.spectrumFramebuffer;
-        let input = this.displacementMapFramebuffer;
+        let buffer1 = this.spectrumFramebuffer;
+        let buffer2 = this.displacementMapFramebuffer;
         this.subtransformProgram.activate();
         for (let mode in [0, 1]) {
             this.subtransformProgram.uniform1i('u_direction', mode);
             for (let i = 2; i <= RESOLUTION; i *= 2) {
-                [input, output] = [output, input];
                 this.subtransformProgram.
-                    uniform1i('u_input', input.unit).
+                    uniform1i('u_input', buffer1.unit).
                     uniform1i('u_subtransformSize', i);
-                output.draw();
+                buffer2.draw();
+                [buffer1, buffer2] = [buffer2, buffer1];
             }
         }
-
-        [this.inputPhaseFramebuffer, this.outputPhaseFramebuffer] = [this.outputPhaseFramebuffer, this.inputPhaseFramebuffer];
-        [this.spectrumFramebuffer, this.displacementMapFramebuffer] = [input, output];
+        [this.spectrumFramebuffer, this.displacementMapFramebuffer] = [buffer2, buffer1];
     }
 
     render(projectionMatrix, viewMatrix, cameraPosition) {
