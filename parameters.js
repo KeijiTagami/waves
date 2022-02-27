@@ -146,9 +146,16 @@ function oceanIndices() {
     for (let z = 0; z < RESOLUTION - 1; z += 1) {
         const zi = (z + 0) * RESOLUTION;
         const zj = (z + 1) * RESOLUTION;
-        for (let x = 0; x < RESOLUTION; x += 1) {
-            a.push(zi + x);
-            a.push(zj + x);
+        for (let x = 0; x < RESOLUTION - 1; x += 1) {
+        const xi = (x + 0);
+        const xj = (x + 1);
+            a.push(zi + xi);
+            a.push(zj + xi);
+            a.push(zj + xj);
+
+            a.push(zj + xj);
+            a.push(zi + xj);
+            a.push(zi + xi);
         }
     }
     return new Uint16Array(a);
