@@ -4,46 +4,28 @@
         <meta charset="utf-8">
         <title>Ocean Wave Simulation</title>
 
-        <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700,800' rel='stylesheet' type='text/css'>
         <link href="waves.css" rel="stylesheet" type="text/css">
 
-        <script src="m4.js"></script>
-        <script src="parameters.js"></script>
         <script src="shared.js"></script>
+        <script src="m4.js"></script>
         <script src="gl.js"></script>
+        <script src="parameters.js"></script>
         <script src="camera.js"></script>
         <script src="simulation.js"></script>
-        <script src="ui.js"></script>
         <script src="waves.js"></script>
     </head>
 
     <body>
-        <div id="overlay"></div>
         <div id="ui">
-            <div id="camera">
-                <canvas id="profile" width="350" height="105"></canvas>
-                <div id="length"></div>
-                <div id="end"></div>
-                <div id="wind">
-                    <span id="wind-speed"></span><span id="wind-unit"> m/s</span>
-                    <div id="wind-label">WIND</div>
-                </div>
-
-                <div id="size">
-                    <span id="size-value"></span><span id="size-unit"> m</span>
-                </div>
-                <div id="size-label">SIZE</div>
-                <div id="choppiness"></div>
-                <div id="choppiness-label">CHOPPINESS</div>
-            </div>
+            <div id="size"></div>
+            <div id="wind-speed"></div>
+            <div id="wind-direction"></div>
+            <div id="choppiness"></div>
         </div>
         <canvas id="simulator">
             <div id="error">
                 Your browser does not appear to support the required technologies. You can still view this on <a href="http://youtu.be/IrUehq6vJss">YouTube</a>.
             </div>
         </canvas>
-
-
-        <div id="footer"><a href="http://david.li">David.Li</a> | <a href="http://youtu.be/IrUehq6vJss">Video</a></div>
     </body>
 </html>

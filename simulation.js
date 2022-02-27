@@ -1,10 +1,12 @@
+"use strict";
+
 class Simulator {
 
     constructor(canvas) {
         this.gl = canvas.getContext('webgl2');
         this.init();
 
-        this.setWind(INITIAL_WIND);
+        this.setWind([INITIAL_WIND_SPEED, 0]);
         this.setSize(INITIAL_SIZE);
         this.setChoppiness(INITIAL_CHOPPINESS);
 

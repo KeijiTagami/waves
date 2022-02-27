@@ -1,65 +1,70 @@
-var projectVector4 = function (out, v) {
-    var reciprocalW = 1 / v[3];
-    out[0] = v[0] * reciprocalW;
-    out[1] = v[1] * reciprocalW;
-    out[2] = v[2] * reciprocalW;
-    return out;
-};
+"use strict"
 
-var clamp = function (x, min, max) {
-    return Math.min(Math.max(x, min), max);
-};
+function setupSlider(selector, options) {
+    var parent = document.querySelector(selector);
+    if (!parent) {
+        // like jquery don't fail on a bad selector
+        return;
+    }
+    if (!options.name) {
+        options.name = selector.substring(1);
+    }
+    return createSlider(parent, options); // eslint-disable-line
+}
 
-var epsilon = function (x) {
-    return Math.abs(x) < 0.000001 ? 0 : x;
-};
+function createSlider(parent, options) {
+    var precision = options.precision || 0;
+    var min = options.min || 0;
+    var step = options.step || 1;
+    var value = options.value || 0;
+    var max = options.max || 1;
+    var fn = options.slide;
+    //var name = gopt["ui-" + options.name] || options.name;
+    var name = options.name;
+    var uiPrecision = options.uiPrecision === undefined ? precision : options.uiPrecision;
+    var uiMult = options.uiMult || 1;
 
-var toCSSMatrix = function (m) { //flip y to make css and webgl coordinates consistent
-    return 'matrix3d(' +
-        epsilon(m[0]) + ',' +
-        -epsilon(m[1]) + ',' +
-        epsilon(m[2]) + ',' +
-        epsilon(m[3]) + ',' +
-        epsilon(m[4]) + ',' +
-        -epsilon(m[5]) + ',' +
-        epsilon(m[6]) + ',' +
-        epsilon(m[7]) + ',' +
-        epsilon(m[8]) + ',' +
-        -epsilon(m[9]) + ',' +
-        epsilon(m[10]) + ',' +
-        epsilon(m[11]) + ',' +
-        epsilon(m[12]) + ',' +
-        -epsilon(m[13]) + ',' +
-        epsilon(m[14]) + ',' +
-        epsilon(m[15]) +
-    ')';
-};
+    min /= step;
+    max /= step;
+    value /= step;
 
-var setPerspective = function (element, value) {
-    element.style.WebkitPerspective = value;
-    element.style.perspective = value;
-};
+    parent.innerHTML = `
+      <div class="gman-widget-outer">
+        <div class="gman-widget-label">${name}</div>
+        <div class="gman-widget-value"></div>
+        <input class="gman-widget-slider" type="range" min="${min}" max="${max}" value="${value}" />
+      </div>
+    `;
+    var valueElem = parent.querySelector(".gman-widget-value");
+    var sliderElem = parent.querySelector(".gman-widget-slider");
 
-var setTransformOrigin = function (element, value) {
-    element.style.WebkitTransformOrigin = value;
-    element.style.transformOrigin = value;
-};
+    function updateValue(value) {
+        valueElem.textContent = (value * step * uiMult).toFixed(uiPrecision);
+    }
 
-var setTransform = function (element, value) {
-    element.style.WebkitTransform = value;
-    element.style.transform = value;
-};
+    updateValue(value);
 
-var setText = function (element, value, decimalPlaces) {
-    element.textContent = value.toFixed(decimalPlaces);
-};
+    function handleChange(event) {
+        var value = parseInt(event.target.value);
+        updateValue(value);
+        fn(event, { value: value * step });
+    }
 
-var getMousePosition = function (event, element) {
-    var boundingRect = element.getBoundingClientRect();
+    sliderElem.addEventListener('input', handleChange);
+    sliderElem.addEventListener('change', handleChange);
+
     return {
-        x: event.clientX - boundingRect.left,
-        y: event.clientY - boundingRect.top
+        elem: parent,
+        updateValue: (v) => {
+            v /= step;
+            sliderElem.value = v;
+            updateValue(v);
+        },
     };
+}
+
+function clamp(x, min, max) {
+    return Math.min(Math.max(x, min), max);
 };
 
 var requestAnimationFrame = window.requestAnimationFrame || 
