@@ -6,7 +6,8 @@ class Simulator {
         this.gl = canvas.getContext('webgl2');
         this.init();
 
-        this.setWind([INITIAL_WIND_SPEED, 0]);
+        this.setWindSpeed(INITIAL_WIND_SPEED);
+        this.setWindDirection(INITIAL_WIND_DIRECTION);
         this.setSize(INITIAL_SIZE);
         this.setChoppiness(INITIAL_CHOPPINESS);
 
@@ -59,9 +60,12 @@ class Simulator {
         this.fullscreenBuffer.bind();
 
         if (this.changed) {
+            const spd = this.wind_speed;
+            const dir = (Math.PI / 180) * this.wind_direction;
+            const wind = [spd * Math.cos(dir), spd * Math.sin(dir)];
             this.initialSpectrumProgram.activate().
                 uniform1f('u_size', this.size).
-                uniform2f('u_wind', this.wind);
+                uniform2f('u_wind', wind);
             this.initialSpectrumFramebuffer.draw();
             this.changed = false;
         }
@@ -114,8 +118,13 @@ class Simulator {
         this.gl.canvas.height = height;
     }
 
-    setWind(wind) {
-        this.wind = wind;
+    setWindSpeed(val) {
+        this.wind_speed = val;
+        this.changed = true;
+    }
+
+    setWindDirection(val) {
+        this.wind_direction= val;
         this.changed = true;
     }
 

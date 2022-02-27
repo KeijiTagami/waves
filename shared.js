@@ -1,6 +1,6 @@
 "use strict"
 
-function setupSlider(selector, options) {
+function setupSlider(selector, fn, options) {
     var parent = document.querySelector(selector);
     if (!parent) {
         // like jquery don't fail on a bad selector
@@ -9,16 +9,15 @@ function setupSlider(selector, options) {
     if (!options.name) {
         options.name = selector.substring(1);
     }
-    return createSlider(parent, options); // eslint-disable-line
+    return createSlider(parent, fn, options); // eslint-disable-line
 }
 
-function createSlider(parent, options) {
+function createSlider(parent, fn, options) {
     var precision = options.precision || 0;
     var min = options.min || 0;
     var step = options.step || 1;
     var value = options.value || 0;
     var max = options.max || 1;
-    var fn = options.slide;
     //var name = gopt["ui-" + options.name] || options.name;
     var name = options.name;
     var uiPrecision = options.uiPrecision === undefined ? precision : options.uiPrecision;

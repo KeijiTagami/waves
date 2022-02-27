@@ -1,89 +1,85 @@
 "use strict";
 
-function main() {
-    const simulatorCanvas = document.getElementById('simulator');
-    const camera = new Camera();
-    const simulator = new Simulator(simulatorCanvas);
+class Main {
 
-    function updateSize(e, o) {
-        simulator.setSize(o.value);
-    }
-    function updateWindSpeed(e, o) {
-        wind_speed = o.value;
-        const dir = Math.PI * wind_direction / 180;
-        simulator.setWind([wind_speed * Math.cos(dir), wind_speed * Math.sin(dir)]);
-    }
-    function updateWindDirection(e, o) {
-        wind_direction = o.value;
-        const dir = Math.PI * wind_direction / 180;
-        simulator.setWind([wind_speed * Math.cos(dir), wind_speed * Math.sin(dir)]);
-    }
-    function updateChoppiness(e, o) {
-        simulator.setChoppiness(o.value);
-    }
-    let wind_speed = INITIAL_WIND_SPEED;
-    let wind_direction = 180.0;
-    setupSlider("#size", {value: INITIAL_SIZE, slide: updateSize, min: MIN_SIZE, max: MAX_SIZE, step: 1, precision: 0});
-    setupSlider("#wind-speed", {value: INITIAL_WIND_SPEED, slide: updateWindSpeed, min: MIN_WIND_SPEED, max: MAX_WIND_SPEED, step: 0.1, precision: 1});
-    setupSlider("#wind-direction", {value: 0.0, slide: updateWindDirection, min: -180.0, max: 180.0, step: 1, precision: 0});
-    setupSlider("#choppiness", {value: INITIAL_CHOPPINESS, slide: updateChoppiness, min: MIN_CHOPPINESS, max: MAX_CHOPPINESS, step: 0.1, precision: 1});
+    constructor() {
+        const canvas = document.getElementById('simulator');
+        this.simulator = new Simulator(canvas);
+        this.camera = new Camera();
 
-    function onResize() {
-        width = window.innerWidth;
-        height = window.innerHeight;
-        projectionMatrix = m4.perspective(FOV, width / height, NEAR, FAR);
-        simulator.resize(width, height);
-    }
-    let width;
-    let height;
-    let projectionMatrix;
-    onResize();
-    window.addEventListener('resize', onResize);
+        setupSlider("#size", this.updateSize.bind(this),
+            {value: INITIAL_SIZE, min: MIN_SIZE, max: MAX_SIZE, step: 1, precision: 0});
+        setupSlider("#wind-speed", this.updateWindSpeed.bind(this),
+            {value: INITIAL_WIND_SPEED, min: MIN_WIND_SPEED, max: MAX_WIND_SPEED, step: 0.1, precision: 1});
+        setupSlider("#wind-direction", this.updateWindDirection.bind(this),
+            {value: INITIAL_WIND_DIRECTION, min: -180.0, max: 180.0, step: 1, precision: 0});
+        setupSlider("#choppiness", this.updateChoppiness.bind(this),
+            {value: INITIAL_CHOPPINESS, min: MIN_CHOPPINESS, max: MAX_CHOPPINESS, step: 0.1, precision: 1});
 
-    function onMouseDown(event) {
+        canvas.addEventListener('mousedown', this.onMouseDown.bind(this), false);
+        canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
+        canvas.addEventListener('mouseup', this.onMouseUp.bind(this));
+
+        window.addEventListener('resize', this.onResize.bind(this));
+        this.onResize();
+        requestAnimationFrame(this.render.bind(this));
+    }
+
+    updateSize(e, o) {
+        this.simulator.setWindSpeed(o.value);
+    }
+
+    updateWindSpeed(e, o) {
+        this.simulator.setWindSpeed(o.value);
+    }
+
+    updateWindDirection(e, o) {
+        this.simulator.setWindDirection(o.value);
+    }
+
+    updateChoppiness(e, o) {
+        this.simulator.setChoppiness(o.value);
+    }
+
+    onMouseDown(event) {
         event.preventDefault();
-        lastMouseX = event.clientX;
-        lastMouseY = event.clientY;
-        orbiting = true;
+        this.lastMouseX = event.clientX;
+        this.lastMouseY = event.clientY;
+        this.orbiting = true;
     }
-    function onMouseMove(event) {
+
+    onMouseUp(event) {
         event.preventDefault();
-        if (orbiting) {
-            simulatorCanvas.style.cursor = '-webkit-grabbing';
-            simulatorCanvas.style.cursor = '-moz-grabbing';
-            simulatorCanvas.style.cursor = 'grabbing';
-            camera.changeAzimuth((event.clientX - lastMouseX) / width * SENSITIVITY);
-            camera.changeElevation((event.clientY - lastMouseY) / height * SENSITIVITY);
-            lastMouseX = event.clientX;
-            lastMouseY = event.clientY;
-        } else {
-            simulatorCanvas.style.cursor = '-webkit-grab';
-            simulatorCanvas.style.cursor = '-moz-grab';
-            simulatorCanvas.style.cursor = 'grab';
+        this.orbiting = false;
+    }
+
+    onMouseMove(event) {
+        event.preventDefault();
+        if (this.orbiting) {
+            this.camera.changeAzimuth((event.clientX - this.lastMouseX) / this.width * SENSITIVITY);
+            this.camera.changeElevation((event.clientY - this.lastMouseY) / this.height * SENSITIVITY);
+            this.lastMouseX = event.clientX;
+            this.lastMouseY = event.clientY;
         }
     }
-    function onMouseUp(event) {
-        event.preventDefault();
-        orbiting = false;
-    }
-    let lastMouseX;
-    let lastMouseY;
-    let orbiting = false;
-    simulatorCanvas.addEventListener('mousedown', onMouseDown, false);
-    simulatorCanvas.addEventListener('mousemove', onMouseMove);
-    simulatorCanvas.addEventListener('mouseup', onMouseUp);
 
-    function render(currentTime) {
-        const deltaTime = (currentTime - lastTime) / 1000 || 0.0;
-        lastTime = currentTime;
-        simulator.update(deltaTime);
-        simulator.render(projectionMatrix, camera.getViewMatrix(), camera.getPosition());
-        requestAnimationFrame(render);
+    onResize() {
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+        this.projectionMatrix = m4.perspective(FOV, this.width / this.height, NEAR, FAR);
+        this.simulator.resize(this.width, this.height);
     }
-    let lastTime;
-    requestAnimationFrame(render);
+
+    render(currentTime) {
+        const deltaTime = (currentTime - this.lastTime) / 1000 || 0.0;
+        this.lastTime = currentTime;
+        this.simulator.update(deltaTime);
+        this.simulator.render(this.projectionMatrix, this.camera.getViewMatrix(), this.camera.getPosition());
+        requestAnimationFrame(this.render.bind(this));
+    }
+
 }
 
 window.onload = () => {
-    Simulator.load_gl().then(() => main());
+    Simulator.load_gl().then(() => new Main());
 }
