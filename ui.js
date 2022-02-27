@@ -30,7 +30,7 @@ var Profile = function (canvas) {
 
 var Arrow = function (parent, valueX, valueY) {
     var arrow = [valueX * WIND_SCALE, 0.0, valueY * WIND_SCALE];
-    var tip = addToVector([], ARROW_ORIGIN, arrow);
+    var tip = m4.addVectors(ARROW_ORIGIN, arrow);
 
     var shaftDiv = document.createElement('div');
     shaftDiv.style.position = 'absolute';
@@ -52,7 +52,7 @@ var Arrow = function (parent, valueX, valueY) {
     var render = function () {
         var angle = Math.atan2(arrow[2], arrow[0]);
 
-        var arrowLength = lengthOfVector(arrow);
+        var arrowLength = m4.length(arrow);
 
         shaftDiv.style.height = (arrowLength - ARROW_HEAD_HEIGHT + 1 + ARROW_OFFSET) + 'px';
         setTransform(shaftDiv, 'translate3d(' + (ARROW_ORIGIN[0] - ARROW_SHAFT_WIDTH / 2) + 'px, ' + ARROW_ORIGIN[1] + 'px, ' + ARROW_ORIGIN[2] + 'px) rotateX(90deg) rotateZ(' + (angle - Math.PI / 2) + 'rad) translateY(' + -ARROW_OFFSET + 'px)');
@@ -61,16 +61,16 @@ var Arrow = function (parent, valueX, valueY) {
 
     this.update = function (mouseX, mouseZ) {
         arrow = [mouseX, 0, mouseZ];
-        subtractFromVector(arrow, arrow, ARROW_ORIGIN);
+        m4.subtractVectors(arrow, ARROW_ORIGIN, arrow);
 
-        var arrowLength = lengthOfVector(arrow);
+        var arrowLength = m4.length(arrow);
         if (arrowLength > MAX_WIND_SPEED * WIND_SCALE) {
-            multiplyVectorByScalar(arrow, arrow, (MAX_WIND_SPEED * WIND_SCALE) / arrowLength);
-        } else if (lengthOfVector(arrow) < MIN_WIND_SPEED * WIND_SCALE) {
-            multiplyVectorByScalar(arrow, arrow, (MIN_WIND_SPEED * WIND_SCALE) / arrowLength);
+            m4.scaleVector(arrow, (MAX_WIND_SPEED * WIND_SCALE) / arrowLength, arrow);
+        } else if (m4.length(arrow) < MIN_WIND_SPEED * WIND_SCALE) {
+            m4.scaleVector(arrow, (MIN_WIND_SPEED * WIND_SCALE) / arrowLength, arrow);
         }
 
-        addToVector(tip, ARROW_ORIGIN, arrow);
+        m4.addVectors(ARROW_ORIGIN, arrow, tip);
 
         render();
 
@@ -79,7 +79,7 @@ var Arrow = function (parent, valueX, valueY) {
     };
 
     this.getValue = function () {
-        return lengthOfVector(arrow) / WIND_SCALE;
+        return m4.length(arrow) / WIND_SCALE;
     };
 
     this.getValueX = function () {
@@ -91,7 +91,7 @@ var Arrow = function (parent, valueX, valueY) {
     };
 
     this.distanceToTip = function (vector) {
-        return distanceBetweenVectors(tip, vector);
+        return m4.distance(tip, vector);
     };
 
     this.getTipZ = function () {
@@ -156,7 +156,7 @@ var Slider = function (parent, x, z, length, minValue, maxValue, value, sliderBr
     };
 
     this.distanceToHandle = function (vector) {
-        return distanceBetweenVectors([handleX, 0, z], vector);
+        return m4.distance([handleX, 0, z], vector);
     };
 
     render();

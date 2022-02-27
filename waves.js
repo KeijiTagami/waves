@@ -12,7 +12,7 @@ var main = function () {
     setText(sizeSpan, INITIAL_SIZE, SIZE_DECIMAL_PLACES);
 
     var camera = new Camera(),
-        projectionMatrix = makePerspectiveMatrix(new Float32Array(16), FOV, MIN_ASPECT, NEAR, FAR);
+        projectionMatrix = m4.perspective(FOV, MIN_ASPECT, NEAR, FAR);
 
     let width = window.innerWidth;
     let height = window.innerHeight;
@@ -41,14 +41,14 @@ var main = function () {
         nearPoint = [],
         farPoint = [];
     var unproject = function (viewMatrix, x, y, width, height) {
-        premultiplyMatrix(inverseProjectionViewMatrix, viewMatrix, projectionMatrix);
-        invertMatrix(inverseProjectionViewMatrix, inverseProjectionViewMatrix);
+        m4.multiply(viewMatrix, projectionMatrix, inverseProjectionViewMatrix);
+        m4.inverse(inverseProjectionViewMatrix, inverseProjectionViewMatrix);
 
-        setVector4(nearPoint, (x / width) * 2.0 - 1.0, ((height - y) / height) * 2.0 - 1.0, 1.0, 1.0);
-        transformVectorByMatrix(nearPoint, nearPoint, inverseProjectionViewMatrix);
+        nearPoint = [(x / width) * 2.0 - 1.0, ((height - y) / height) * 2.0 - 1.0, 1.0, 1.0];
+        m4.transformVector(nearPoint, inverseProjectionViewMatrix, nearPoint);
 
-        setVector4(farPoint, (x / width) * 2.0 - 1.0, ((height - y) / height) * 2.0 - 1.0, -1.0, 1.0);
-        transformVectorByMatrix(farPoint, farPoint, inverseProjectionViewMatrix);
+        farPoint = [(x / width) * 2.0 - 1.0, ((height - y) / height) * 2.0 - 1.0, -1.0, 1.0];
+        m4.transformVector(farPoint, inverseProjectionViewMatrix, farPoint);
 
         projectVector4(nearPoint, nearPoint);
         projectVector4(farPoint, farPoint);
@@ -156,7 +156,7 @@ var main = function () {
         overlayDiv.style.height = windowHeight + 'px';
 
         if (windowWidth / windowHeight > MIN_ASPECT) {
-            makePerspectiveMatrix(projectionMatrix, FOV, windowWidth / windowHeight, NEAR, FAR);
+            m4.perspective(FOV, windowWidth / windowHeight, NEAR, FAR, projectionMatrix);
             simulator.resize(windowWidth, windowHeight);
             uiDiv.style.width = windowWidth + 'px';
             uiDiv.style.height = windowHeight + 'px';
@@ -169,7 +169,7 @@ var main = function () {
             height = windowHeight;
         } else {
             var newHeight = windowWidth / MIN_ASPECT;
-            makePerspectiveMatrix(projectionMatrix, FOV, windowWidth / newHeight, NEAR, FAR);
+            m4.perspective(projectionMatrix, FOV, windowWidth / newHeight, NEAR, FAR, projectionMatrix);
             simulator.resize(windowWidth, newHeight);
             simulatorCanvas.style.top = (windowHeight - newHeight) * 0.5 + 'px';
             uiDiv.style.top = (windowHeight - newHeight) * 0.5 + 'px';
