@@ -15,8 +15,8 @@ out vec3 v_position;
 void main (void) {
     ivec2 res = textureSize(u_displacementMap, 0);
     v_coordinates = (vec2(a_index) + 0.5) / vec2(res);
-    vec3 coord = vec3(v_coordinates - 0.5, 0.0);
-    vec3 modify = texture(u_displacementMap, v_coordinates).xzy;
-    v_position = u_geometrySize * (coord + modify).xzy;
+    vec3 coord = vec3(v_coordinates - 0.5, 0.0).xzy;
+    vec3 modify = texture(u_displacementMap, v_coordinates).xyz;
+    v_position = u_geometrySize * (coord + modify);
     gl_Position = u_projectionMatrix * u_viewMatrix * vec4(v_position, 1.0);
 }

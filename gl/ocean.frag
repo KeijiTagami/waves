@@ -20,14 +20,14 @@ vec3 getNormal(void) {
     vec2 z = vec2(1.0, 0.0) / vec2(res);
 
     vec3 center = texture(u_displacementMap, v_coordinates).xyz;
-    vec3 right = texture(u_displacementMap, v_coordinates + z.xy).xyz - center + z.xyy;
-    vec3 left = texture(u_displacementMap, v_coordinates - z.xy).xyz - center - z.xyy;
-    vec3 top = texture(u_displacementMap, v_coordinates - z.yx).xyz - center - z.yyx;
+    vec3 right  = texture(u_displacementMap, v_coordinates + z.xy).xyz - center + z.xyy;
+    vec3 left   = texture(u_displacementMap, v_coordinates - z.xy).xyz - center - z.xyy;
+    vec3 top    = texture(u_displacementMap, v_coordinates - z.yx).xyz - center - z.yyx;
     vec3 bottom = texture(u_displacementMap, v_coordinates + z.yx).xyz - center + z.yyx;
 
-    vec3 topRight = cross(right, top);
-    vec3 topLeft = cross(top, left);
-    vec3 bottomLeft = cross(left, bottom);
+    vec3 topRight    = cross(right, top);
+    vec3 topLeft     = cross(top, left);
+    vec3 bottomLeft  = cross(left, bottom);
     vec3 bottomRight = cross(bottom, right);
     return normalize(topRight + topLeft + bottomLeft + bottomRight);
 }
