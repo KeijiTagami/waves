@@ -42,7 +42,7 @@ class Camera {
                 -this.scale * CAMERA_POSITION[1],
                 -this.scale * CAMERA_POSITION[2], this.view);
             m4.yRotate(this.view, this.azimuth, this.view);
-            m4.xRotate(this.view, 0.5 * Math.PI + this.elevation, this.view);
+            m4.xRotate(this.view, this.elevation - 0.5 * Math.PI, this.view);
         }
         return this.view;
     }

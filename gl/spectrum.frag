@@ -18,7 +18,8 @@ void main(void) {
 
     float h0 = texelFetch(u_initialSpectrum, ind, 0).r;
     float phase = texelFetch(u_phases, ind, 0).r;
-    vec2 delta = (k > 0.0) ? -u_choppiness * wave / k : vec2(0.0);
-    real = h0 * cos(-phase) * vec4(delta, 1.0, 0.0);
-    imag = h0 * sin(-phase) * vec4(delta, 1.0, 0.0);
+    vec2 ht = h0 * vec2(cos(phase), sin(phase));
+    vec2 delta = (k > 0.0) ? u_choppiness * wave / k : vec2(0.0);
+    real = vec4(delta * ht.y, ht.x, 0.0);
+    imag = vec4(delta * ht.x, ht.y, 0.0);
 }

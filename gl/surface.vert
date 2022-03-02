@@ -20,12 +20,12 @@ void main(void) {
     vec3 top    = texture(u_surface, a_coordinates - z.yx).xyz - center;
     vec3 bottom = texture(u_surface, a_coordinates + z.yx).xyz - center;
 
-    vec3 topRight    = cross(right, top);
-    vec3 topLeft     = cross(top, left);
-    vec3 bottomLeft  = cross(left, bottom);
-    vec3 bottomRight = cross(bottom, right);
+    vec3 topRight    = cross(top, right);
+    vec3 topLeft     = cross(left, top);
+    vec3 bottomLeft  = cross(bottom, left);
+    vec3 bottomRight = cross(right, bottom);
 
-    v_position = vec3(center.x, center.y, center.z);
+    v_position = center;
     v_normal = normalize(topRight + topLeft + bottomLeft + bottomRight);
     gl_Position = u_projectionMatrix * u_viewMatrix * vec4(v_position, 1.0);
 }

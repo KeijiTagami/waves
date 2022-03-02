@@ -9,7 +9,7 @@ var INITIAL_SIZE = 250,
     MAX_WIND_SPEED = 25.0,
     INITIAL_CHOPPINESS = 1.5,
     MIN_CHOPPINESS = 0,
-    MAX_CHOPPINESS = 2.5;
+    MAX_CHOPPINESS = 5.0;
 
 var FOV = (60 / 180) * Math.PI,
     NEAR = 1,
@@ -27,7 +27,7 @@ var CAMERA_POSITION = [0.0, 0.0, 1.0],
 var CLEAR_COLOR = [1.0, 1.0, 1.0, 0.0],
     OCEAN_COLOR = [0.004, 0.016, 0.047],
     SKY_COLOR = [3.2, 9.6, 12.8],
-    SUN_DIRECTION = [-1.0, 1.0, 1.0],
+    SUN_DIRECTION = [1.0, 1.0, 1.0],
     EXPOSURE = 0.35;
 
 var SENSITIVITY = 1.0;

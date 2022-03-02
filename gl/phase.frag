@@ -20,9 +20,10 @@ float omega(float k) {
 void main (void) {
     ivec2 ind = ivec2(gl_FragCoord.xy - 0.5);
     float inPhase = texelFetch(u_phases, ind, 0).r;
-    vec2 waveVector = texelFetch(u_wave, ind, 0).xy / u_size;
 
-    float k = length(waveVector);
+    vec2 wave = texelFetch(u_wave, ind, 0).xy / u_size;
+    float k = length(wave);
+
     float phase = mod(inPhase + omega(k) * u_deltaTime, 2.0 * PI);
     outPhase = vec4(phase, 0.0, 0.0, 0.0);
 }

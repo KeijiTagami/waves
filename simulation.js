@@ -104,7 +104,6 @@ class Simulator {
         this.surfaceProgram.activate().
             uniform1f('u_size', this.size);
         this.surfaceFramebuffer.draw();
-        //this.surfaceFramebuffer.read();
     }
 
     render(projectionMatrix, viewMatrix, cameraPosition) {
