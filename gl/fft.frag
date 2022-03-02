@@ -3,15 +3,13 @@ precision highp float;
 
 const float PI = 3.14159265359;
 
-uniform sampler2D u_input;
+uniform sampler2D u_real;
+uniform sampler2D u_imag;
 uniform int u_direction;
 uniform int u_subtransformSize;
 
-out vec4 dispatch;
-
-vec2 multiplyComplex (vec2 a, vec2 b) {
-    return vec2(a[0] * b[0] - a[1] * b[1], a[1] * b[0] + a[0] * b[1]);
-}
+layout (location = 0) out vec4 real;
+layout (location = 1) out vec4 imag;
 
 int modifyIndex(int ind) {
     int hsize = u_subtransformSize / 2;
@@ -20,8 +18,8 @@ int modifyIndex(int ind) {
     return r + m;
 }
 
-void main (void) {
-    int res = textureSize(u_input, 0).x;
+void main(void) {
+    int res = textureSize(u_real, 0).x;
     ivec2 ind = ivec2(gl_FragCoord.xy - 0.5);
     if (u_direction == 1) {
         ind = ind.yx;
@@ -33,12 +31,15 @@ void main (void) {
         m = m.yx;
         n = n.yx;
     }
-    vec4 even = texelFetch(u_input, m, 0);
-    vec4 odd = texelFetch(u_input, n, 0);
 
-    float twiddleArgument = -2.0 * PI * float(ind.x) / float(u_subtransformSize);
-    vec2 twiddle = vec2(cos(twiddleArgument), sin(twiddleArgument));
-    vec2 out1 = even.xy + multiplyComplex(twiddle, odd.xy);
-    vec2 out2 = even.zw + multiplyComplex(twiddle, odd.zw);
-    dispatch = vec4(out1, out2);
+    vec4 even_real = texelFetch(u_real, m, 0);
+    vec4 even_imag = texelFetch(u_imag, m, 0);
+    vec4 odd_real = texelFetch(u_real, n, 0);
+    vec4 odd_imag = texelFetch(u_imag, n, 0);
+
+    float twiddle = -2.0 * PI * float(ind.x) / float(u_subtransformSize);
+    float a = cos(twiddle);
+    float b = sin(twiddle);
+    real = even_real + a * odd_real - b * odd_imag;
+    imag = even_imag + b * odd_real + a * odd_imag;
 }

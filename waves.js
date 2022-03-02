@@ -26,7 +26,8 @@ class Main {
     }
 
     updateSize(e, o) {
-        this.simulator.setWindSpeed(o.value);
+        this.camera.changeScale(o.value);
+        this.simulator.setSize(o.value);
     }
 
     updateWindSpeed(e, o) {

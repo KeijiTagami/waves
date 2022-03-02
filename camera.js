@@ -1,8 +1,15 @@
 class Camera {
 
     constructor() {
+        this.scale = INITIAL_SIZE;
         this.azimuth = INITIAL_AZIMUTH;
         this.elevation = INITIAL_ELEVATION;
+        this.position = null;
+        this.view = null;
+    }
+
+    changeScale(scale) {
+        this.scale = scale;
         this.position = null;
         this.view = null;
     }
@@ -30,9 +37,12 @@ class Camera {
     getViewMatrix() {
         if (this.view === null) {
             this.view = m4.identity();
-            m4.translate(this.view, -CAMERA_POSITION[0], -CAMERA_POSITION[1], -CAMERA_POSITION[2], this.view);
+            m4.translate(this.view,
+                -this.scale * CAMERA_POSITION[0],
+                -this.scale * CAMERA_POSITION[1],
+                -this.scale * CAMERA_POSITION[2], this.view);
             m4.yRotate(this.view, this.azimuth, this.view);
-            m4.xRotate(this.view, this.elevation, this.view);
+            m4.xRotate(this.view, 0.5 * Math.PI + this.elevation, this.view);
         }
         return this.view;
     }

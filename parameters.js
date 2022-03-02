@@ -1,5 +1,4 @@
-var GEOMETRY_SIZE = 2000.0,
-    RESOLUTION = 256;
+var RESOLUTION = 256;
 
 var INITIAL_SIZE = 250,
     MIN_SIZE = 100,
@@ -17,7 +16,7 @@ var FOV = (60 / 180) * Math.PI,
     FAR = 10000,
     MIN_ASPECT = 16 / 9;
 
-var CAMERA_POSITION = [100.0, 100.0, 2000.0],
+var CAMERA_POSITION = [0.0, 0.0, 1.0],
     INITIAL_AZIMUTH = 0.0,
     MIN_AZIMUTH = -Math.PI,
     MAX_AZIMUTH = Math.PI,
@@ -71,11 +70,11 @@ function oceanData() {
     const a = [];
     for (let z = 0; z < RESOLUTION; z += 1) {
         for (let x = 0; x < RESOLUTION; x += 1) {
-            a.push(x);
-            a.push(z);
+            a.push((x + 0.5) / RESOLUTION);
+            a.push((z + 0.5) / RESOLUTION);
         }
     }
-    return new Int16Array(a);
+    return new Float32Array(a);
 }
 
 function oceanIndices() {

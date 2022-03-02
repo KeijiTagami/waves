@@ -4,12 +4,13 @@ class Simulator {
 
     constructor(canvas) {
         this.gl = canvas.getContext('webgl2');
-        this.init();
 
         this.setWindSpeed(INITIAL_WIND_SPEED);
         this.setWindDirection(INITIAL_WIND_DIRECTION);
         this.setSize(INITIAL_SIZE);
         this.setChoppiness(INITIAL_CHOPPINESS);
+
+        this.init();
 
         this.fullscreenBuffer = this.buffer(fullscreenData()).
             vertexAttribPointer(ATTR_POSITION, 2, this.gl.FLOAT, 0, 0);
@@ -18,27 +19,29 @@ class Simulator {
         this.phaseFramebuffer = this.framebuffer(phaseArray(), 1);
         this.tmpPhaseFramebuffer = this.framebuffer(null, 1);
         this.initialSpectrumFramebuffer = this.framebuffer(null, 1);
-        this.spectrumFramebuffer = this.framebuffer();
-        this.displacementMapFramebuffer = this.framebuffer();
+        this.spectrumFramebuffer = this.framebuffer(null, 4, 2);
+        this.tmpSpectrumFramebuffer = this.framebuffer(null, 4, 2);
+        this.surfaceFramebuffer = this.framebuffer();
 
         this.initialSpectrumProgram = this.program('initial_spectrum').
-            uniform1i('u_wave', this.waveFramebuffer.unit);
+            uniform1i('u_wave', this.waveFramebuffer.unit[0]);
         this.phaseProgram = this.program('phase').
             // phase
-            uniform1i('u_wave', this.waveFramebuffer.unit);
+            uniform1i('u_wave', this.waveFramebuffer.unit[0]);
         this.spectrumProgram = this.program('spectrum').
-            uniform1i('u_initialSpectrum', this.initialSpectrumFramebuffer.unit).
+            uniform1i('u_initialSpectrum', this.initialSpectrumFramebuffer.unit[0]).
             // phase
-            uniform1i('u_wave', this.waveFramebuffer.unit);
+            uniform1i('u_wave', this.waveFramebuffer.unit[0]);
         this.fftProgram = this.program('fft');
             // spectrum
+        this.surfaceProgram = this.program('surface').
+            uniform1i('u_fluctuation', this.spectrumFramebuffer.unit[0]);
 
         this.oceanBuffer = this.buffer(oceanData()).
-            vertexAttribPointer(ATTR_COORDINATES, 2, this.gl.SHORT, 0, 0).
+            vertexAttribPointer(ATTR_COORDINATES, 2, this.gl.FLOAT, 0, 0).
             addIndex(oceanIndices());
         this.oceanProgram = this.program('ocean').
-            // displacementMap
-            uniform1f('u_geometrySize', GEOMETRY_SIZE).
+            uniform1i('u_surface', this.surfaceFramebuffer.unit[0]).
             uniform3f('u_oceanColor', OCEAN_COLOR).
             uniform3f('u_skyColor', SKY_COLOR).
             uniform3f('u_sunDirection', SUN_DIRECTION).
@@ -71,32 +74,37 @@ class Simulator {
         }
 
         this.phaseProgram.activate().
-            uniform1i('u_phases', this.phaseFramebuffer.unit).
+            uniform1i('u_phases', this.phaseFramebuffer.unit[0]).
             uniform1f('u_size', this.size).
             uniform1f('u_deltaTime', deltaTime);
         this.tmpPhaseFramebuffer.draw();
         [this.phaseFramebuffer, this.tmpPhaseFramebuffer] = [this.tmpPhaseFramebuffer, this.phaseFramebuffer];
 
         this.spectrumProgram.activate().
-            uniform1i('u_phases', this.phaseFramebuffer.unit).
+            uniform1i('u_phases', this.phaseFramebuffer.unit[0]).
             uniform1f('u_size', this.size).
             uniform1f('u_choppiness', this.choppiness);
         this.spectrumFramebuffer.draw();
 
         let buffer1 = this.spectrumFramebuffer;
-        let buffer2 = this.displacementMapFramebuffer;
+        let buffer2 = this.tmpSpectrumFramebuffer;
         this.fftProgram.activate();
         for (let mode in [0, 1]) {
             this.fftProgram.uniform1i('u_direction', mode);
             for (let i = 2; i <= RESOLUTION; i *= 2) {
                 this.fftProgram.
-                    uniform1i('u_input', buffer1.unit).
+                    uniform1i('u_real', buffer1.unit[0]).
+                    uniform1i('u_imag', buffer1.unit[1]).
                     uniform1i('u_subtransformSize', i);
                 buffer2.draw();
                 [buffer1, buffer2] = [buffer2, buffer1];
             }
         }
-        [this.spectrumFramebuffer, this.displacementMapFramebuffer] = [buffer2, buffer1];
+
+        this.surfaceProgram.activate().
+            uniform1f('u_size', this.size);
+        this.surfaceFramebuffer.draw();
+        //this.surfaceFramebuffer.read();
     }
 
     render(projectionMatrix, viewMatrix, cameraPosition) {
@@ -106,7 +114,6 @@ class Simulator {
         gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
 
         this.oceanProgram.activate().
-            uniform1i('u_displacementMap', this.displacementMapFramebuffer.unit).
             uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix).
             uniformMatrix4fv('u_viewMatrix', false, viewMatrix).
             uniform3fv('u_cameraPosition', cameraPosition);
@@ -150,22 +157,23 @@ class Simulator {
         return new Program(this.gl, src[0], src[1]);
     }
 
+    static vert_src = {};
     static src = {};
 
     static async load_gl() {
         const vert_names = ['square', 'surface'];
         for (let name of vert_names) {
-            Simulator.src[name] = await fetch('./gl/' + name + '.vert').then(res => res.text());
+            Simulator.vert_src[name] = await fetch('./gl/' + name + '.vert').then(res => res.text());
         }
-        for (let name of ['initial_spectrum', 'phase', 'spectrum', 'fft']) {
+        for (let name of ['initial_spectrum', 'phase', 'spectrum', 'fft', 'surface']) {
             Simulator.src[name] = [
-                Simulator.src['square'],
+                Simulator.vert_src['square'],
                 await fetch('./gl/' + name + '.frag').then(res => res.text()),
             ];
         }
         for (let name of ['ocean']) {
             Simulator.src[name] = [
-                Simulator.src['surface'],
+                Simulator.vert_src['surface'],
                 await fetch('./gl/' + name + '.frag').then(res => res.text()),
             ];
         }

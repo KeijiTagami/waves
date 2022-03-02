@@ -11,7 +11,7 @@ uniform sampler2D u_wave;
 uniform float u_size;
 uniform float u_deltaTime;
 
-out vec4 outPhase;
+layout (location = 0) out vec4 outPhase;
 
 float omega(float k) {
     return sqrt(G * k * (1.0 + k * k / KM * KM));
