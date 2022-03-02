@@ -44,8 +44,7 @@ class Simulator {
             uniform1i('u_surface', this.surfaceFramebuffer.unit[0]).
             uniform3f('u_oceanColor', OCEAN_COLOR).
             uniform3f('u_skyColor', SKY_COLOR).
-            uniform3f('u_sunDirection', SUN_DIRECTION).
-            uniform1f('u_exposure', EXPOSURE);
+            uniform3f('u_sunDirection', SUN_DIRECTION);
     }
 
     init() {

@@ -25,10 +25,9 @@ var CAMERA_POSITION = [0.0, 0.0, 1.0],
     MAX_ELEVATION = 0.5 * Math.PI;
 
 var CLEAR_COLOR = [1.0, 1.0, 1.0, 0.0],
-    OCEAN_COLOR = [0.004, 0.016, 0.047],
-    SKY_COLOR = [3.2, 9.6, 12.8],
-    SUN_DIRECTION = [1.0, 1.0, 1.0],
-    EXPOSURE = 0.35;
+    OCEAN_COLOR = [0.0, 0.0, 1.0],
+    SKY_COLOR = [1.0, 1.0, 1.0],
+    SUN_DIRECTION = [1.0, 1.0, 1.0];
 
 var SENSITIVITY = 1.0;
 

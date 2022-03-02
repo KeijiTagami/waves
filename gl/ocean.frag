@@ -22,7 +22,7 @@ void main(void) {
     vec3 half_vector = normalize(view + sun);
 
     vec3 color = vec3(0.0, 0.0, 1.0);
-    color *= dot(v_normal, sun);
-    color += pow(dot(v_normal, half_vector), 5.0) * vec3(1.0, 1.0, 1.0);
+    color = dot(v_normal, sun) * u_oceanColor;
+    color += pow(dot(v_normal, half_vector), 5.0) * u_skyColor;
     outColor = vec4(color, 1.0);
 }
