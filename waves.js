@@ -3,9 +3,12 @@
 class Main {
 
     constructor() {
-        const canvas = document.getElementById('simulator');
+        const canvas = document.getElementById('canvas3d');
         this.simulator = new Simulator(canvas);
         this.camera = new Camera();
+
+        const canvas2d = document.getElementById('canvas2d');
+        this.canvas2d = canvas2d.getContext('2d');
 
         setupSlider("#size", this.updateSize.bind(this),
             {value: INITIAL_SIZE, min: MIN_SIZE, max: MAX_SIZE, step: 1, precision: 0});
@@ -19,8 +22,8 @@ class Main {
         canvas.addEventListener('mousedown', this.onMouseDown.bind(this), false);
         canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
         canvas.addEventListener('mouseup', this.onMouseUp.bind(this));
-
         window.addEventListener('resize', this.onResize.bind(this));
+
         this.onResize();
         requestAnimationFrame(this.render.bind(this));
     }
@@ -76,6 +79,8 @@ class Main {
         this.lastTime = currentTime;
         this.simulator.update(deltaTime);
         this.simulator.render(this.projectionMatrix, this.camera.getViewMatrix(), this.camera.getPosition());
+        this.canvas2d.clearRect(0, 0, canvas2d.width, canvas2d.height);
+        this.canvas2d.drawImage(this.simulator.gl.canvas, 0, 0);
         requestAnimationFrame(this.render.bind(this));
     }
 

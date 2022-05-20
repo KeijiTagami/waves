@@ -116,6 +116,11 @@ class Simulator {
             uniformMatrix4fv('u_viewMatrix', false, viewMatrix).
             uniform3fv('u_cameraPosition', cameraPosition);
         this.oceanBuffer.draw();
+        /*
+        let pixels = new Uint8Array(w * h * 4); 
+        gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+        console.log(pixels);
+        */
     }
 
     resize(width, height) {

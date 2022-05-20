@@ -2,6 +2,13 @@ body {
     overflow: hidden;
 }
 #simulation {
+    visibility: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
+#canvas2d {
     position: absolute;
     top: 0;
     left: 0;
