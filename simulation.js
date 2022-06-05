@@ -3,8 +3,8 @@
 class Simulator {
 
     constructor(canvas) {
-        this.gl = canvas.getContext('webgl2');
-
+        this.gl = canvas[0].getContext('webgl2');
+        this.canvas2 = canvas[1].getContext('2d');
         this.setWindSpeed(INITIAL_WIND_SPEED);
         this.setWindDirection(INITIAL_WIND_DIRECTION);
         this.setSize(INITIAL_SIZE);
@@ -33,7 +33,7 @@ class Simulator {
             // phase
             uniform1i('u_wave', this.waveFramebuffer.unit[0]);
         this.fftProgram = this.program('fft');
-            // spectrum
+        // spectrum
         this.surfaceProgram = this.program('surface').
             uniform1i('u_fluctuation', this.spectrumFramebuffer.unit[0]);
 
@@ -116,6 +116,12 @@ class Simulator {
             uniformMatrix4fv('u_viewMatrix', false, viewMatrix).
             uniform3fv('u_cameraPosition', cameraPosition);
         this.oceanBuffer.draw();
+        this.draw_2DCanvas();//2Dのキャンバスに画像として描画
+    }
+    //2Dcanvasにコピー
+    draw_2DCanvas() {
+        this.canvas2.clearRect(0, 0, this.canvas2.width, this.canvas2.height);
+        this.canvas2.drawImage(this.gl.canvas, 0, 0);
     }
 
     resize(width, height) {
@@ -129,7 +135,7 @@ class Simulator {
     }
 
     setWindDirection(val) {
-        this.wind_direction= val;
+        this.wind_direction = val;
         this.changed = true;
     }
 

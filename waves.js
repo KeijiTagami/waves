@@ -4,7 +4,12 @@ class Main {
 
     constructor() {
         const canvas = document.getElementById('simulator');
-        this.simulator = new Simulator(canvas);
+        this.width = 700;
+        this.height = window.innerHeight;
+        const canvas2 = document.getElementById('simulator2');
+        canvas2.width = 700;
+        canvas2.height = window.innerHeight;
+        this.simulator = new Simulator([canvas, canvas2]);
         this.camera = new Camera();
         this.frag = 0;//simulationの一時停止フラグ
 
@@ -70,8 +75,6 @@ class Main {
     }
 
     onResize() {
-        this.width = window.innerWidth;
-        this.height = window.innerHeight;
         this.projectionMatrix = m4.perspective(FOV, this.width / this.height, NEAR, FAR);
         this.simulator.resize(this.width, this.height);
     }
