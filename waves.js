@@ -6,21 +6,26 @@ class Main {
         const canvas = document.getElementById('simulator');
         this.simulator = new Simulator(canvas);
         this.camera = new Camera();
+        this.frag = 0;//simulationの一時停止フラグ
 
         setupSlider("#size", this.updateSize.bind(this),
-            {value: INITIAL_SIZE, min: MIN_SIZE, max: MAX_SIZE, step: 1, precision: 0});
+            { value: INITIAL_SIZE, min: MIN_SIZE, max: MAX_SIZE, step: 1, precision: 0 });
         setupSlider("#wind-speed", this.updateWindSpeed.bind(this),
-            {value: INITIAL_WIND_SPEED, min: MIN_WIND_SPEED, max: MAX_WIND_SPEED, step: 0.1, precision: 1});
+            { value: INITIAL_WIND_SPEED, min: MIN_WIND_SPEED, max: MAX_WIND_SPEED, step: 0.1, precision: 1 });
         setupSlider("#wind-direction", this.updateWindDirection.bind(this),
-            {value: INITIAL_WIND_DIRECTION, min: -180.0, max: 180.0, step: 1, precision: 0});
+            { value: INITIAL_WIND_DIRECTION, min: -180.0, max: 180.0, step: 1, precision: 0 });
         setupSlider("#choppiness", this.updateChoppiness.bind(this),
-            {value: INITIAL_CHOPPINESS, min: MIN_CHOPPINESS, max: MAX_CHOPPINESS, step: 0.1, precision: 1});
+            { value: INITIAL_CHOPPINESS, min: MIN_CHOPPINESS, max: MAX_CHOPPINESS, step: 0.1, precision: 1 });
 
         canvas.addEventListener('mousedown', this.onMouseDown.bind(this), false);
         canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
         canvas.addEventListener('mouseup', this.onMouseUp.bind(this));
 
         window.addEventListener('resize', this.onResize.bind(this));
+        let button = document.getElementById('start_stop');
+        button.addEventListener('click', () => {
+            this.frag = (this.frag + 1) % 2;//1,0の切り替え
+        });
         this.onResize();
         requestAnimationFrame(this.render.bind(this));
     }
@@ -74,7 +79,10 @@ class Main {
     render(currentTime) {
         const deltaTime = (currentTime - this.lastTime) / 1000 || 0.0;
         this.lastTime = currentTime;
-        this.simulator.update(deltaTime);
+        //fragはシミュレーションの一時停止フラグ
+        if (!this.frag) {
+            this.simulator.update(deltaTime);
+        }
         this.simulator.render(this.projectionMatrix, this.camera.getViewMatrix(), this.camera.getPosition());
         requestAnimationFrame(this.render.bind(this));
     }
