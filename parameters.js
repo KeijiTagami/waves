@@ -11,7 +11,7 @@ var INITIAL_SIZE = 250,
     MIN_CHOPPINESS = 0,
     MAX_CHOPPINESS = 5.0;
 
-var FOV = (60 / 180) * Math.PI,
+var FOV = (90 / 180) * Math.PI,
     NEAR = 1,
     FAR = 10000,
     MIN_ASPECT = 16 / 9;
@@ -20,7 +20,7 @@ var CAMERA_POSITION = [0.0, 0.0, 1.0],
     INITIAL_AZIMUTH = 0.0,
     MIN_AZIMUTH = -Math.PI,
     MAX_AZIMUTH = Math.PI,
-    INITIAL_ELEVATION = 0.5,
+    INITIAL_ELEVATION = Math.PI / 2,
     MIN_ELEVATION = 0.0,
     MAX_ELEVATION = 0.5 * Math.PI;
 
@@ -82,8 +82,8 @@ function oceanIndices() {
         const zi = (z + 0) * RESOLUTION;
         const zj = (z + 1) * RESOLUTION;
         for (let x = 0; x < RESOLUTION - 1; x += 1) {
-        const xi = (x + 0);
-        const xj = (x + 1);
+            const xi = (x + 0);
+            const xj = (x + 1);
             a.push(zi + xi);
             a.push(zj + xi);
             a.push(zj + xj);
