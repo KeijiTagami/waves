@@ -23,7 +23,7 @@ void main(void) {
     
     //以下2行を有効にすると高さ情報のみ描画
     vec3 color = vec3(1.0,1.0,1.0);
-    color*=v_position[2];
+    color*=(v_position[2])*0.15+0.5;
     
     //以下3行を有効にすると光と色付きの描画
     //vec3 color = vec3(0.0, 0.0, 1.0);
