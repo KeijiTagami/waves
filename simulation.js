@@ -46,6 +46,11 @@ class Simulator {
             uniform3f('u_oceanColor', OCEAN_COLOR).
             uniform3f('u_skyColor', SKY_COLOR).
             uniform3f('u_sunDirection', SUN_DIRECTION);
+        this.oceanProgram2 = this.program('ocean2').
+            uniform1i('u_surface', this.surfaceFramebuffer.unit[0]).
+            uniform3f('u_oceanColor', OCEAN_COLOR).
+            uniform3f('u_skyColor', SKY_COLOR).
+            uniform3f('u_sunDirection', SUN_DIRECTION);
         
     }
 
@@ -113,7 +118,7 @@ class Simulator {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
 
-        this.oceanProgram.activate().
+        this.oceanProgram2.activate().
             uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix).
             uniformMatrix4fv('u_viewMatrix', false, viewMatrix2).
             uniform3fv('u_cameraPosition', cameraPosition2);
@@ -171,10 +176,6 @@ class Simulator {
         const src = Simulator.src[name];
         return new Program(this.gl, src[0], src[1]);
     }
-    program2(name){
-        const src = Simulator.src[name];
-        return new Program(this.gl2,src[0],src[1]);
-    }
 
     static vert_src = {};
     static src = {};
@@ -190,7 +191,7 @@ class Simulator {
                 await fetch('./gl/' + name + '.frag').then(res => res.text()),
             ];
         }
-        for (let name of ['ocean']) {
+        for (let name of ['ocean','ocean2']) {
             Simulator.src[name] = [
                 Simulator.vert_src['surface'],
                 await fetch('./gl/' + name + '.frag').then(res => res.text()),
