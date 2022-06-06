@@ -11,6 +11,7 @@ class Main {
         canvas2.height = window.innerHeight;
         this.simulator = new Simulator([canvas, canvas2]);
         this.camera = new Camera();
+        this.camera2 = new Camera();//2画面目用のカメラ
         this.frag = 0;//simulationの一時停止フラグ
 
         setupSlider("#size", this.updateSize.bind(this),
@@ -86,7 +87,9 @@ class Main {
         if (!this.frag) {
             this.simulator.update(deltaTime);
         }
-        this.simulator.render(this.projectionMatrix, this.camera.getViewMatrix(), this.camera.getPosition());
+        //カメラ2を使った2画面目の描画も行う
+        this.simulator.render(this.projectionMatrix, this.camera.getViewMatrix(), this.camera.getPosition(),this.camera2.getViewMatrix(),this.camera2.getPosition());
+        
         requestAnimationFrame(this.render.bind(this));
     }
 

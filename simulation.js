@@ -40,11 +40,13 @@ class Simulator {
         this.oceanBuffer = this.buffer(oceanData()).
             vertexAttribPointer(ATTR_COORDINATES, 2, this.gl.FLOAT, 0, 0).
             addIndex(oceanIndices());
+
         this.oceanProgram = this.program('ocean').
             uniform1i('u_surface', this.surfaceFramebuffer.unit[0]).
             uniform3f('u_oceanColor', OCEAN_COLOR).
             uniform3f('u_skyColor', SKY_COLOR).
             uniform3f('u_sunDirection', SUN_DIRECTION);
+        
     }
 
     init() {
@@ -105,7 +107,7 @@ class Simulator {
         this.surfaceFramebuffer.draw();
     }
 
-    render(projectionMatrix, viewMatrix, cameraPosition) {
+    render(projectionMatrix, viewMatrix, cameraPosition,viewMatrix2, cameraPosition2) {
         const gl = this.gl;
         gl.enable(gl.DEPTH_TEST);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -113,10 +115,19 @@ class Simulator {
 
         this.oceanProgram.activate().
             uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix).
+            uniformMatrix4fv('u_viewMatrix', false, viewMatrix2).
+            uniform3fv('u_cameraPosition', cameraPosition2);
+        this.oceanBuffer.draw();
+        this.draw_2DCanvas();//2Dのキャンバスに画像として描画
+        gl.enable(gl.DEPTH_TEST);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
+        this.oceanProgram.activate().
+            uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix).
             uniformMatrix4fv('u_viewMatrix', false, viewMatrix).
             uniform3fv('u_cameraPosition', cameraPosition);
         this.oceanBuffer.draw();
-        this.draw_2DCanvas();//2Dのキャンバスに画像として描画
+        
     }
     //2Dcanvasにコピー
     draw_2DCanvas() {
@@ -159,6 +170,10 @@ class Simulator {
     program(name) {
         const src = Simulator.src[name];
         return new Program(this.gl, src[0], src[1]);
+    }
+    program2(name){
+        const src = Simulator.src[name];
+        return new Program(this.gl2,src[0],src[1]);
     }
 
     static vert_src = {};
