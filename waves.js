@@ -38,6 +38,7 @@ class Main {
 
     updateSize(e, o) {
         this.camera.changeScale(o.value);
+        this.camera2.changeScale(o.value);
         this.simulator.setSize(o.value);
     }
 
