@@ -22,6 +22,7 @@ class Simulator {
         this.spectrumFramebuffer = this.framebuffer(null, 4, 2);
         this.tmpSpectrumFramebuffer = this.framebuffer(null, 4, 2);
         this.surfaceFramebuffer = this.framebuffer();
+        this.outputFramebuffer = this.framebuffer(null, 1, 1, OUTPUT_SIZE);
 
         this.initialSpectrumProgram = this.program('initial_spectrum').
             uniform1i('u_wave', this.waveFramebuffer.unit[0]);
@@ -134,10 +135,34 @@ class Simulator {
         this.oceanBuffer.draw();
         
     }
+
     //2Dcanvasにコピー
     draw_2DCanvas() {
         this.canvas2.clearRect(0, 0, this.canvas2.width, this.canvas2.height);
         this.canvas2.drawImage(this.gl.canvas, 0, 0);
+    }
+
+    output(projectionMatrix, viewMatrix2, cameraPosition2) {
+        const gl = this.gl;
+        gl.enable(gl.DEPTH_TEST);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.viewport(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
+        this.oceanProgram2.activate().
+            uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix).
+            uniformMatrix4fv('u_viewMatrix', false, viewMatrix2).
+            uniform3fv('u_cameraPosition', cameraPosition2);
+        this.outputFramebuffer.activate();
+        this.oceanBuffer.draw();
+        var pixels = new Float32Array(OUTPUT_SIZE * OUTPUT_SIZE);
+        gl.readPixels(0, 0, OUTPUT_SIZE, OUTPUT_SIZE, gl.RED, gl.FLOAT, pixels)
+        const blob = new Blob([pixels])
+        const link = document.createElement('a')
+        link.download = 'surface.dat'
+        link.href = URL.createObjectURL(blob)
+        link.click()
+        URL.revokeObjectURL(link.href)
+        console.log(pixels[0]);
+        this.outputFramebuffer.inactivate();
     }
 
     resize(width, height) {

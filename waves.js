@@ -31,6 +31,7 @@ class Main {
         let button = document.getElementById('start_stop');
         button.addEventListener('click', () => {
             this.frag = (this.frag + 1) % 2;//1,0の切り替え
+            this.simulator.output(this.projectionMatrix, this.camera2.getViewMatrix(), this.camera2.getPosition());
         });
         this.onResize();
         requestAnimationFrame(this.render.bind(this));

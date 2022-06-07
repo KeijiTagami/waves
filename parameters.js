@@ -1,4 +1,5 @@
 var RESOLUTION = 256;
+var OUTPUT_SIZE = 512;
 
 var INITIAL_SIZE = 250,
     MIN_SIZE = 100,
