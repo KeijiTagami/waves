@@ -21,11 +21,6 @@ void main(void) {
     vec3 sun = normalize(u_sunDirection);
     vec3 half_vector = normalize(view + sun);
     
-    //以下2行を有効にすると高さ情報のみ描画
-    //vec3 color = vec3(1.0,1.0,1.0);
-    //color*=v_position[2];
-    
-    //以下3行を有効にすると光と色付きの描画
     vec3 color = vec3(0.0, 0.0, 1.0);
     color = dot(v_normal, sun) * u_oceanColor;
     color += pow(dot(v_normal, half_vector), 5.0) * u_skyColor;

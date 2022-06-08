@@ -36,7 +36,6 @@ class Main {
                 link.href = URL.createObjectURL(blob)
                 link.click()
                 URL.revokeObjectURL(link.href)
-                console.log(pixels[0]);
             }
         });
         this.onResize();
@@ -84,9 +83,8 @@ class Main {
 
     onResize() {
         this.simulator.resize(window.innerWidth, window.innerHeight)
-        console.log('view', this.camera.getViewMatrix())
-        this.canvas2.width = OUTPUT_SIZE
-        this.canvas2.height = OUTPUT_SIZE
+        this.canvas2.width = RESOLUTION
+        this.canvas2.height = RESOLUTION
     }
 
     render(currentTime) {
@@ -97,11 +95,12 @@ class Main {
             this.simulator.update(deltaTime);
         }
         //カメラ2を使った2画面目の描画も行う
-        this.simulator.resize(OUTPUT_SIZE, OUTPUT_SIZE);
-        this.simulator.render2();
-        this.canvas2ctx.clearRect(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
-        this.canvas2ctx.drawImage(this.canvas, 0, 0, OUTPUT_SIZE, OUTPUT_SIZE, 0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
+        this.simulator.resize(RESOLUTION, RESOLUTION);
+        this.simulator.render_grayscale();
+        this.canvas2ctx.clearRect(0, 0, RESOLUTION, RESOLUTION);
+        this.canvas2ctx.drawImage(this.canvas, 0, 0, RESOLUTION, RESOLUTION, 0, 0, RESOLUTION, RESOLUTION);
         this.simulator.resize(window.innerWidth, window.innerHeight)
+
         this.simulator.render(this.camera.getViewMatrix(), this.camera.getPosition());
         
         requestAnimationFrame(this.render.bind(this));

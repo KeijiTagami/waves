@@ -20,21 +20,18 @@ class Simulator {
         this.initialSpectrumFramebuffer = this.framebuffer(null, 1);
         this.spectrumFramebuffer = this.framebuffer(null, 4, 2);
         this.tmpSpectrumFramebuffer = this.framebuffer(null, 4, 2);
-        this.surfaceFramebuffer = this.framebuffer();
-        this.outputFramebuffer = this.framebuffer(null, 1, 1, OUTPUT_SIZE);
+        this.elevationFramebuffer = this.framebuffer();
+        this.outputFramebuffer = this.framebuffer(null, 4, 1, OUTPUT_SIZE);
 
         this.initialSpectrumProgram = this.program('initial_spectrum').
             uniform1i('u_wave', this.waveFramebuffer.unit[0]);
         this.phaseProgram = this.program('phase').
-            // phase
             uniform1i('u_wave', this.waveFramebuffer.unit[0]);
         this.spectrumProgram = this.program('spectrum').
             uniform1i('u_initialSpectrum', this.initialSpectrumFramebuffer.unit[0]).
-            // phase
             uniform1i('u_wave', this.waveFramebuffer.unit[0]);
         this.fftProgram = this.program('fft');
-        // spectrum
-        this.surfaceProgram = this.program('surface').
+        this.elevationProgram = this.program('elevation').
             uniform1i('u_fluctuation', this.spectrumFramebuffer.unit[0]);
 
         this.oceanBuffer = this.buffer(oceanData()).
@@ -42,15 +39,14 @@ class Simulator {
             addIndex(oceanIndices());
 
         this.oceanProgram = this.program('ocean').
-            uniform1i('u_surface', this.surfaceFramebuffer.unit[0]).
+            uniform1i('u_elevation', this.elevationFramebuffer.unit[0]).
             uniform3f('u_oceanColor', OCEAN_COLOR).
             uniform3f('u_skyColor', SKY_COLOR).
             uniform3f('u_sunDirection', SUN_DIRECTION);
-        this.oceanProgram2 = this.program('ocean2').
-            uniform1i('u_surface', this.surfaceFramebuffer.unit[0])
-            //.uniform3f('u_oceanColor', OCEAN_COLOR).
-            //.uniform3f('u_skyColor', SKY_COLOR).
-            //.uniform3f('u_sunDirection', SUN_DIRECTION);
+        this.grayscaleProgram = this.program('grayscale').
+            uniform1i('u_elevation', this.elevationFramebuffer.unit[0])
+        this.outputProgram = this.program('output').
+            uniform1i('u_elevation', this.elevationFramebuffer.unit[0])
     }
 
     init() {
@@ -105,14 +101,15 @@ class Simulator {
             }
         }
 
-        this.surfaceProgram.activate().
+        this.elevationProgram.activate().
             uniform1f('u_size', this.size);
-        this.surfaceFramebuffer.draw();
+        this.elevationFramebuffer.draw();
     }
 
     render(viewMatrix, cameraPosition) {
         const projectionMatrix = m4.perspective(FOV, this.gl.canvas.width / this.gl.canvas.height, NEAR, FAR);
         const gl = this.gl;
+        this.resize(window.innerWidth, window.innerHeight)
         gl.enable(gl.DEPTH_TEST);
         gl.clearColor.apply(gl, CLEAR_COLOR)
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -122,32 +119,38 @@ class Simulator {
             uniformMatrix4fv('u_viewMatrix', false, viewMatrix).
             uniform3fv('u_cameraPosition', cameraPosition);
         this.oceanBuffer.draw();
-        
     }
 
-    render2() {
+    render_grayscale() {
         const projectionMatrix = m4.perspective(FOV, 1, NEAR, FAR);
         const gl = this.gl;
+        gl.enable(gl.DEPTH_TEST);
+        gl.clearColor.apply(gl, GRAYSCALE_CLEAR_COLOR)
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.viewport(0, 0, RESOLUTION, RESOLUTION);
+        this.grayscaleProgram.activate()
+            .uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix)
+            .uniformMatrix4fv('u_viewMatrix', false, m4.translation(0, 0, OUTPUT_POS))
+        this.oceanBuffer.draw();
+    }
+
+    output() {
+        this.resize(OUTPUT_SIZE, OUTPUT_SIZE);
+        const projectionMatrix = m4.perspective(FOV, 1, NEAR, FAR);
+        const gl = this.gl;
+        this.outputFramebuffer.activate();
         gl.enable(gl.DEPTH_TEST);
         gl.clearColor.apply(gl, OUTPUT_CLEAR_COLOR)
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.viewport(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
-        this.oceanProgram2.activate()
+        this.outputProgram.activate()
             .uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix)
             .uniformMatrix4fv('u_viewMatrix', false, m4.translation(0, 0, OUTPUT_POS))
-            //.uniform3fv('u_cameraPosition', cameraPosition);
         this.oceanBuffer.draw();
-        
-    }
-
-    output() {
-        const gl = this.gl;
-        this.outputFramebuffer.activate();
-        this.render2()
-        this.oceanBuffer.draw();
-        var pixels = new Float32Array(OUTPUT_SIZE * OUTPUT_SIZE);
-        gl.readPixels(0, 0, OUTPUT_SIZE, OUTPUT_SIZE, gl.RED, gl.FLOAT, pixels)
+        var pixels = new Float32Array(OUTPUT_SIZE * OUTPUT_SIZE * 4);
+        gl.readPixels(0, 0, OUTPUT_SIZE, OUTPUT_SIZE, gl.RGBA, gl.FLOAT, pixels)
         this.outputFramebuffer.inactivate();
+        this.resize(window.innerWidth, window.innerHeight)
         return pixels
     }
 
@@ -196,13 +199,13 @@ class Simulator {
         for (let name of vert_names) {
             Simulator.vert_src[name] = await fetch('./gl/' + name + '.vert').then(res => res.text());
         }
-        for (let name of ['initial_spectrum', 'phase', 'spectrum', 'fft', 'surface']) {
+        for (let name of ['initial_spectrum', 'phase', 'spectrum', 'fft', 'elevation']) {
             Simulator.src[name] = [
                 Simulator.vert_src['square'],
                 await fetch('./gl/' + name + '.frag').then(res => res.text()),
             ];
         }
-        for (let name of ['ocean','ocean2']) {
+        for (let name of ['ocean', 'grayscale', 'output']) {
             Simulator.src[name] = [
                 Simulator.vert_src['surface'],
                 await fetch('./gl/' + name + '.frag').then(res => res.text()),
