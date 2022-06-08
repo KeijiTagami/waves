@@ -1,4 +1,5 @@
 var RESOLUTION = 256;
+var OUTPUT_SIZE = 256;
 
 var INITIAL_SIZE = 250,
     MIN_SIZE = 100,
@@ -16,7 +17,7 @@ var FOV = (90 / 180) * Math.PI,
     FAR = 10000,
     MIN_ASPECT = 16 / 9;
 
-var CAMERA_POSITION = [0.0, 0.0, 1.0],
+var CAMERA_POSITION = [0.0, 0.0, 0.8],
     INITIAL_AZIMUTH = 0.0,
     MIN_AZIMUTH = -Math.PI,
     MAX_AZIMUTH = Math.PI,
@@ -24,10 +25,13 @@ var CAMERA_POSITION = [0.0, 0.0, 1.0],
     MIN_ELEVATION = 0.0,
     MAX_ELEVATION = 0.5 * Math.PI;
 
-var CLEAR_COLOR = [1.0, 1.0, 1.0, 0.0],
+var CLEAR_COLOR = [1.0, 1.0, 1.0, 1.0],
     OCEAN_COLOR = [0.0, 0.0, 1.0],
     SKY_COLOR = [1.0, 1.0, 1.0],
     SUN_DIRECTION = [1.0, 1.0, 1.0];
+
+var OUTPUT_POS = -130,
+    OUTPUT_CLEAR_COLOR = [0.5, 0.5, 0.5, 1.0];
 
 var SENSITIVITY = 1.0;
 
