@@ -25,6 +25,7 @@ class Main {
         this.canvas.addEventListener('mouseup', this.onMouseUp.bind(this));
 
         window.addEventListener('resize', this.onResize.bind(this));
+        let checkbox=document.getElementById('makeImageCheckbox');
         let button = document.getElementById('start_stop');
         button.addEventListener('click', () => {
             this.frag = (this.frag + 1) % 2;//1,0の切り替え
@@ -32,13 +33,16 @@ class Main {
                 const pixels = this.simulator.output();
                 const blob = new Blob([pixels])
                 const link = document.createElement('a')
+                if(!checkbox.checked)return;
                 link.download = 'surface.dat'
                 link.href = URL.createObjectURL(blob)
                 link.click()
                 URL.revokeObjectURL(link.href)
+                
                 console.log(pixels[0]);
             }
         });
+        
         this.onResize();
         requestAnimationFrame(this.render.bind(this));
     }
