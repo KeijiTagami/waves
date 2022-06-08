@@ -7,8 +7,8 @@ class Main {
         this.canvas2 = document.getElementById('simulator2');
         this.canvas2ctx = this.canvas2.getContext('2d');
         this.simulator = new Simulator(this.canvas);
+        this.camera_fix = new Camera();
         this.camera = new Camera();
-        this.camera2 = new Camera();
         this.frag = 0;//simulationの一時停止フラグ
 
         setupSlider("#size", this.updateSize.bind(this),
@@ -30,7 +30,7 @@ class Main {
         button.addEventListener('click', () => {
             this.frag = (this.frag + 1) % 2;//1,0の切り替え
             if (this.frag) {
-                const pixels = this.simulator.output();
+                const pixels = this.simulator.output(this.camera_fix.getViewMatrix());
                 const blob = new Blob([pixels])
                 const link = document.createElement('a')
                 if(!checkbox.checked)return;
@@ -38,8 +38,11 @@ class Main {
                 link.href = URL.createObjectURL(blob)
                 link.click()
                 URL.revokeObjectURL(link.href)
+<<<<<<< HEAD
                 
                 console.log(pixels[0]);
+=======
+>>>>>>> c436ffd448e49c6d6a8653ecf60dbcfaca2b11a6
             }
         });
 
@@ -49,6 +52,7 @@ class Main {
 
     updateSize(e, o) {
         this.camera.changeScale(o.value);
+        this.camera_fix.changeScale(o.value);
         this.simulator.setSize(o.value);
     }
 
@@ -101,7 +105,11 @@ class Main {
         }
         //カメラ2を使った2画面目の描画も行う
         this.simulator.resize(RESOLUTION, RESOLUTION);
+<<<<<<< HEAD
         this.simulator.render_grayscale();
+=======
+        this.simulator.render_grayscale(this.camera_fix.getViewMatrix());
+>>>>>>> c436ffd448e49c6d6a8653ecf60dbcfaca2b11a6
         this.canvas2ctx.clearRect(0, 0, RESOLUTION, RESOLUTION);
         this.canvas2ctx.drawImage(this.canvas, 0, 0, RESOLUTION, RESOLUTION, 0, 0, RESOLUTION, RESOLUTION);
         this.simulator.resize(window.innerWidth, window.innerHeight)
