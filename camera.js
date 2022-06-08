@@ -1,10 +1,10 @@
 class Camera {
 
     constructor() {
-        this.camera_pos = CAMERA_POS;
+        this.camera_pos = CAMERA_POSITION;
         this.scale = INITIAL_SIZE;
         this.azimuth = INITIAL_AZIMUTH;
-        this.elevation = INITIAL_ELEVAATION;
+        this.elevation = INITIAL_ELEVATION;
         this.position = null;
         this.view = null;
     }

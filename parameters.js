@@ -11,15 +11,9 @@ var INITIAL_SIZE = 250,
     MIN_CHOPPINESS = 0,
     MAX_CHOPPINESS = 5.0;
 
-<<<<<<< HEAD
-var FOV = (50 / 180) * Math.PI,
-    NEAR = 10,
-    FAR = 1000,
-=======
 var FOV = 50 * (Math.PI / 180),
     NEAR = 100,
     FAR = 2000,
->>>>>>> c436ffd448e49c6d6a8653ecf60dbcfaca2b11a6
     MIN_ASPECT = 16 / 9;
 
 var CAMERA_POSITION = [0.0, 0.0, 1.2],
@@ -36,11 +30,7 @@ var CLEAR_COLOR = [1.0, 1.0, 1.0, 1.0],
     SUN_DIRECTION = [1.0, 1.0, 1.0];
 
 var OUTPUT_SIZE = 1024,
-<<<<<<< HEAD
-    OUTPUT_POS = -260,
-=======
     OUTPUT_FOV = 44 * (Math.PI / 180),
->>>>>>> c436ffd448e49c6d6a8653ecf60dbcfaca2b11a6
     GRAYSCALE_CLEAR_COLOR = [0., 0., 0., 1.0];
     OUTPUT_CLEAR_COLOR = [0.0, 0.0, 0.0, 0.0];
 

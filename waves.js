@@ -38,11 +38,7 @@ class Main {
                 link.href = URL.createObjectURL(blob)
                 link.click()
                 URL.revokeObjectURL(link.href)
-<<<<<<< HEAD
-                
-                console.log(pixels[0]);
-=======
->>>>>>> c436ffd448e49c6d6a8653ecf60dbcfaca2b11a6
+                console.log(pixels)
             }
         });
 
@@ -105,11 +101,7 @@ class Main {
         }
         //カメラ2を使った2画面目の描画も行う
         this.simulator.resize(RESOLUTION, RESOLUTION);
-<<<<<<< HEAD
-        this.simulator.render_grayscale();
-=======
         this.simulator.render_grayscale(this.camera_fix.getViewMatrix());
->>>>>>> c436ffd448e49c6d6a8653ecf60dbcfaca2b11a6
         this.canvas2ctx.clearRect(0, 0, RESOLUTION, RESOLUTION);
         this.canvas2ctx.drawImage(this.canvas, 0, 0, RESOLUTION, RESOLUTION, 0, 0, RESOLUTION, RESOLUTION);
         this.simulator.resize(window.innerWidth, window.innerHeight)
