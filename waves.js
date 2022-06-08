@@ -3,15 +3,12 @@
 class Main {
 
     constructor() {
-        const canvas = document.getElementById('simulator');
-        this.width = 700;
-        this.height = window.innerHeight;
-        const canvas2 = document.getElementById('simulator2');
-        canvas2.width = 700;
-        canvas2.height = window.innerHeight;
-        this.simulator = new Simulator([canvas, canvas2]);
+        this.canvas = document.getElementById('simulator');
+        this.canvas2 = document.getElementById('simulator2');
+        this.canvas2ctx = this.canvas2.getContext('2d');
+        this.simulator = new Simulator(this.canvas);
         this.camera = new Camera();
-        this.camera2 = new Camera();//2画面目用のカメラ
+        this.camera2 = new Camera();
         this.frag = 0;//simulationの一時停止フラグ
 
         setupSlider("#size", this.updateSize.bind(this),
@@ -23,15 +20,24 @@ class Main {
         setupSlider("#choppiness", this.updateChoppiness.bind(this),
             { value: INITIAL_CHOPPINESS, min: MIN_CHOPPINESS, max: MAX_CHOPPINESS, step: 0.1, precision: 1 });
 
-        canvas.addEventListener('mousedown', this.onMouseDown.bind(this), false);
-        canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
-        canvas.addEventListener('mouseup', this.onMouseUp.bind(this));
+        this.canvas.addEventListener('mousedown', this.onMouseDown.bind(this), false);
+        this.canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
+        this.canvas.addEventListener('mouseup', this.onMouseUp.bind(this));
 
         window.addEventListener('resize', this.onResize.bind(this));
         let button = document.getElementById('start_stop');
         button.addEventListener('click', () => {
             this.frag = (this.frag + 1) % 2;//1,0の切り替え
-            this.simulator.output(this.projectionMatrix, this.camera2.getViewMatrix(), this.camera2.getPosition());
+            if (this.frag) {
+                const pixels = this.simulator.output();
+                const blob = new Blob([pixels])
+                const link = document.createElement('a')
+                link.download = 'surface.dat'
+                link.href = URL.createObjectURL(blob)
+                link.click()
+                URL.revokeObjectURL(link.href)
+                console.log(pixels[0]);
+            }
         });
         this.onResize();
         requestAnimationFrame(this.render.bind(this));
@@ -39,7 +45,6 @@ class Main {
 
     updateSize(e, o) {
         this.camera.changeScale(o.value);
-        this.camera2.changeScale(o.value);
         this.simulator.setSize(o.value);
     }
 
@@ -70,16 +75,18 @@ class Main {
     onMouseMove(event) {
         event.preventDefault();
         if (this.orbiting) {
-            this.camera.changeAzimuth((event.clientX - this.lastMouseX) / this.width * SENSITIVITY);
-            this.camera.changeElevation((event.clientY - this.lastMouseY) / this.height * SENSITIVITY);
+            this.camera.changeAzimuth((event.clientX - this.lastMouseX) / this.canvas.width * SENSITIVITY);
+            this.camera.changeElevation((event.clientY - this.lastMouseY) / this.canvas.height * SENSITIVITY);
             this.lastMouseX = event.clientX;
             this.lastMouseY = event.clientY;
         }
     }
 
     onResize() {
-        this.projectionMatrix = m4.perspective(FOV, this.width / this.height, NEAR, FAR);
-        this.simulator.resize(this.width, this.height);
+        this.simulator.resize(window.innerWidth, window.innerHeight)
+        console.log('view', this.camera.getViewMatrix())
+        this.canvas2.width = OUTPUT_SIZE
+        this.canvas2.height = OUTPUT_SIZE
     }
 
     render(currentTime) {
@@ -90,7 +97,12 @@ class Main {
             this.simulator.update(deltaTime);
         }
         //カメラ2を使った2画面目の描画も行う
-        this.simulator.render(this.projectionMatrix, this.camera.getViewMatrix(), this.camera.getPosition(),this.camera2.getViewMatrix(),this.camera2.getPosition());
+        this.simulator.resize(OUTPUT_SIZE, OUTPUT_SIZE);
+        this.simulator.render2();
+        this.canvas2ctx.clearRect(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
+        this.canvas2ctx.drawImage(this.canvas, 0, 0, OUTPUT_SIZE, OUTPUT_SIZE, 0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
+        this.simulator.resize(window.innerWidth, window.innerHeight)
+        this.simulator.render(this.camera.getViewMatrix(), this.camera.getPosition());
         
         requestAnimationFrame(this.render.bind(this));
     }

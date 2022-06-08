@@ -3,8 +3,7 @@
 class Simulator {
 
     constructor(canvas) {
-        this.gl = canvas[0].getContext('webgl2');
-        this.canvas2 = canvas[1].getContext('2d');
+        this.gl = canvas.getContext('webgl2');
         this.setWindSpeed(INITIAL_WIND_SPEED);
         this.setWindDirection(INITIAL_WIND_DIRECTION);
         this.setSize(INITIAL_SIZE);
@@ -48,18 +47,16 @@ class Simulator {
             uniform3f('u_skyColor', SKY_COLOR).
             uniform3f('u_sunDirection', SUN_DIRECTION);
         this.oceanProgram2 = this.program('ocean2').
-            uniform1i('u_surface', this.surfaceFramebuffer.unit[0]).
-            uniform3f('u_oceanColor', OCEAN_COLOR).
-            uniform3f('u_skyColor', SKY_COLOR).
-            uniform3f('u_sunDirection', SUN_DIRECTION);
-        
+            uniform1i('u_surface', this.surfaceFramebuffer.unit[0])
+            //.uniform3f('u_oceanColor', OCEAN_COLOR).
+            //.uniform3f('u_skyColor', SKY_COLOR).
+            //.uniform3f('u_sunDirection', SUN_DIRECTION);
     }
 
     init() {
         const gl = this.gl;
         gl.getExtension('EXT_color_buffer_float');
         gl.getExtension('OES_texture_float_linear');
-        gl.clearColor.apply(gl, CLEAR_COLOR);
     }
 
     update(deltaTime) {
@@ -113,19 +110,11 @@ class Simulator {
         this.surfaceFramebuffer.draw();
     }
 
-    render(projectionMatrix, viewMatrix, cameraPosition,viewMatrix2, cameraPosition2) {
+    render(viewMatrix, cameraPosition) {
+        const projectionMatrix = m4.perspective(FOV, this.gl.canvas.width / this.gl.canvas.height, NEAR, FAR);
         const gl = this.gl;
         gl.enable(gl.DEPTH_TEST);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
-
-        this.oceanProgram2.activate().
-            uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix).
-            uniformMatrix4fv('u_viewMatrix', false, viewMatrix2).
-            uniform3fv('u_cameraPosition', cameraPosition2);
-        this.oceanBuffer.draw();
-        this.draw_2DCanvas();//2Dのキャンバスに画像として描画
-        gl.enable(gl.DEPTH_TEST);
+        gl.clearColor.apply(gl, CLEAR_COLOR)
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
         this.oceanProgram.activate().
@@ -136,33 +125,30 @@ class Simulator {
         
     }
 
-    //2Dcanvasにコピー
-    draw_2DCanvas() {
-        this.canvas2.clearRect(0, 0, this.canvas2.width, this.canvas2.height);
-        this.canvas2.drawImage(this.gl.canvas, 0, 0);
-    }
-
-    output(projectionMatrix, viewMatrix2, cameraPosition2) {
+    render2() {
+        const projectionMatrix = m4.perspective(FOV, 1, NEAR, FAR);
         const gl = this.gl;
         gl.enable(gl.DEPTH_TEST);
+        gl.clearColor.apply(gl, OUTPUT_CLEAR_COLOR)
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.viewport(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
-        this.oceanProgram2.activate().
-            uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix).
-            uniformMatrix4fv('u_viewMatrix', false, viewMatrix2).
-            uniform3fv('u_cameraPosition', cameraPosition2);
+        this.oceanProgram2.activate()
+            .uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix)
+            .uniformMatrix4fv('u_viewMatrix', false, m4.translation(0, 0, OUTPUT_POS))
+            //.uniform3fv('u_cameraPosition', cameraPosition);
+        this.oceanBuffer.draw();
+        
+    }
+
+    output() {
+        const gl = this.gl;
         this.outputFramebuffer.activate();
+        this.render2()
         this.oceanBuffer.draw();
         var pixels = new Float32Array(OUTPUT_SIZE * OUTPUT_SIZE);
         gl.readPixels(0, 0, OUTPUT_SIZE, OUTPUT_SIZE, gl.RED, gl.FLOAT, pixels)
-        const blob = new Blob([pixels])
-        const link = document.createElement('a')
-        link.download = 'surface.dat'
-        link.href = URL.createObjectURL(blob)
-        link.click()
-        URL.revokeObjectURL(link.href)
-        console.log(pixels[0]);
         this.outputFramebuffer.inactivate();
+        return pixels
     }
 
     resize(width, height) {

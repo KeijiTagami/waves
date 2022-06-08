@@ -1,21 +1,29 @@
 body {
     overflow: hidden;
+    background: gray;
 }
 
-#simulation {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 0;
+html {
+    overflow-y: scroll;
 }
 
 #ui {
     position: absolute;
     top: 0;
     left: 0;
+    z-index: 3;
+}
+
+#simulator {
+    position: absolute;
+    top: 0;
+    left: 0;
     z-index: 1;
 }
 
-html {
-    overflow-y: scroll;
+#simulator2 {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 2;
 }
