@@ -121,8 +121,8 @@ class Simulator {
         this.oceanBuffer.draw();
     }
 
-    render_grayscale() {
-        const projectionMatrix = m4.perspective(FOV, 1, NEAR, FAR);
+    render_grayscale(viewMatrix) {
+        const projectionMatrix = m4.perspective(OUTPUT_FOV, 1, NEAR, FAR);
         const gl = this.gl;
         gl.enable(gl.DEPTH_TEST);
         gl.clearColor.apply(gl, GRAYSCALE_CLEAR_COLOR)
@@ -130,13 +130,13 @@ class Simulator {
         gl.viewport(0, 0, RESOLUTION, RESOLUTION);
         this.grayscaleProgram.activate()
             .uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix)
-            .uniformMatrix4fv('u_viewMatrix', false, m4.translation(0, 0, OUTPUT_POS))
+            .uniformMatrix4fv('u_viewMatrix', false, viewMatrix)
         this.oceanBuffer.draw();
     }
 
-    output() {
+    output(viewMatrix) {
         this.resize(OUTPUT_SIZE, OUTPUT_SIZE);
-        const projectionMatrix = m4.perspective(FOV, 1, NEAR, FAR);
+        const projectionMatrix = m4.perspective(OUTPUT_FOV, 1, NEAR, FAR);
         const gl = this.gl;
         this.outputFramebuffer.activate();
         gl.enable(gl.DEPTH_TEST);
@@ -145,7 +145,7 @@ class Simulator {
         gl.viewport(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
         this.outputProgram.activate()
             .uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix)
-            .uniformMatrix4fv('u_viewMatrix', false, m4.translation(0, 0, OUTPUT_POS))
+            .uniformMatrix4fv('u_viewMatrix', false, viewMatrix)
         this.oceanBuffer.draw();
         var pixels = new Float32Array(OUTPUT_SIZE * OUTPUT_SIZE * 4);
         gl.readPixels(0, 0, OUTPUT_SIZE, OUTPUT_SIZE, gl.RGBA, gl.FLOAT, pixels)
