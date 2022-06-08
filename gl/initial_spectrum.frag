@@ -1,70 +1,63 @@
+#version 300 es
 precision highp float;
 
 const float PI = 3.14159265359;
 const float G = 9.81;
 const float KM = 370.0;
 const float CM = 0.23;
+const float OMEGA = 0.84;
+const float GAMMA = 1.7;
+
+uniform sampler2D u_wave;
 
 uniform vec2 u_wind;
-uniform float u_resolution;
 uniform float u_size;
 
-float square (float x) {
+layout (location = 0) out vec4 spectrum;
+
+float square(float x) {
     return x * x;
 }
 
-float omega (float k) {
-    return sqrt(G * k * (1.0 + square(k / KM)));
+float omegax(float k) {
+    return sqrt(G * (1.0 + square(k / KM)) / k);
 }
 
-float tanh (float x) {
-    return (1.0 - exp(-2.0 * x)) / (1.0 + exp(-2.0 * x));
-}
+void main(void) {
+    float ALPHA = pow(OMEGA, -2.9) * pow(G, -0.45) / 0.0000037;
+    float BETA = CM / (0.41 * OMEGA * sqrt(G));
+    float SIGMA1 = OMEGA / sqrt(10.0);
+    float SIGMA2 = 0.0016 * square(1.0 + 4.0 * pow(OMEGA, -3.0));
+    float SIGMA3 = 0.25;
+    float FP = 0.006 * sqrt(OMEGA);
+    float FM = 0.01;
 
-void main (void) {
-    vec2 coordinates = gl_FragCoord.xy - 0.5;
-    float n = (coordinates.x < u_resolution * 0.5) ? coordinates.x : coordinates.x - u_resolution;
-    float m = (coordinates.y < u_resolution * 0.5) ? coordinates.y : coordinates.y - u_resolution;
-    vec2 waveVector = (2.0 * PI * vec2(n, m)) / u_size;
+    ivec2 ind = ivec2(gl_FragCoord.xy - 0.5);
+    vec2 waveVector = texelFetch(u_wave, ind, 0).xy / u_size;
     float k = length(waveVector);
+    float ok = omegax(k);
 
-    float U10 = length(u_wind);
+    float l = square(OMEGA) * G / square(length(u_wind));
+    float ol = omegax(l);
+    float uStar = BETA * sqrt(l) * log(ALPHA * pow(l, 1.45) * pow(ol, 0.9));
 
-    float Omega = 0.84;
-    float kp = G * square(Omega / U10);
+    float alphap = pow(GAMMA, exp(-SIGMA2 * square(sqrt(k / l) - 1.0)));
+    float fp = FP * exp(-SIGMA1 * (sqrt(k / l) - 1.0));
+    float bl = alphap * fp * ol / ok;
 
-    float c = omega(k) / k;
-    float cp = omega(kp) / kp;
+    float alpham = (uStar < 1.0) ? 1.0 - log(uStar) : 1.0 - 3.0 * log(uStar);
+    float fm = FM * exp(-SIGMA3 * square(k / KM - 1.0));
+    float bh = alpham * fm * CM / ok;
 
-    float Lpm = exp(-1.25 * square(kp / k));
-    float gamma = 1.7;
-    float sigma = 0.08 * (1.0 + 4.0 * pow(Omega, -3.0));
-    float Gamma = exp(-square(sqrt(k / kp) - 1.0) / 2.0 * square(sigma));
-    float Jp = pow(gamma, Gamma);
-    float Fp = Lpm * Jp * exp(-Omega / sqrt(10.0) * (sqrt(k / kp) - 1.0));
-    float alphap = 0.006 * sqrt(Omega);
-    float Bl = 0.5 * alphap * cp / c * Fp;
-
-    float z0 = 0.000037 * square(U10) / G * pow(U10 / cp, 0.9);
-    float uStar = 0.41 * U10 / log(10.0 / z0);
-    float alpham = 0.01 * ((uStar < CM) ? (1.0 + log(uStar / CM)) : (1.0 + 3.0 * log(uStar / CM)));
-    float Fm = exp(-0.25 * square(k / KM - 1.0));
-    float Bh = 0.5 * alpham * CM / c * Fm * Lpm;
+    float b = (bl + bh) / 2.0;
 
     float a0 = log(2.0) / 4.0;
-    float am = 0.13 * uStar / CM;
-    float Delta = tanh(a0 + 4.0 * pow(c / cp, 2.5) + am * pow(CM / c, 2.5));
-
+    float am = 0.13 / uStar;
+    float delta = tanh(a0 + 4.0 * pow(ok / ol, 2.5) + am * pow(CM / ok, 2.5));
     float cosPhi = dot(normalize(u_wind), normalize(waveVector));
+    float s = 1.0 + delta * (2.0 * cosPhi * cosPhi - 1.0);
 
-    float S = (1.0 / (2.0 * PI)) * pow(k, -4.0) * (Bl + Bh) * (1.0 + Delta * (2.0 * cosPhi * cosPhi - 1.0));
-
-    float dk = 2.0 * PI / u_size;
-    float h = sqrt(S / 2.0) * dk;
-
-    if (waveVector.x == 0.0 && waveVector.y == 0.0) {
-        h = 0.0;
-    }
-
-    gl_FragColor = vec4(h, 0.0, 0.0, 0.0);
+    float lpm = exp(-1.25 / square(k / l));
+    float h = (k > 0.0) ? sqrt(PI * b * s * lpm) / square(k) : 0.0;
+    spectrum = vec4(h, 0.0, 0.0, 0.0) / u_size;
 }

@@ -1,55 +1,50 @@
-var Camera = function () {
-    var azimuth = INITIAL_AZIMUTH,
-        elevation = INITIAL_ELEVATION,
+class Camera {
 
-        viewMatrix = makeIdentityMatrix(new Float32Array(16)),
-        position = new Float32Array(3),
-        changed = true;
+    constructor() {
+        this.scale = INITIAL_SIZE;
+        this.azimuth = INITIAL_AZIMUTH;
+        this.elevation = INITIAL_ELEVATION;
+        this.position = null;
+        this.view = null;
+    }
 
-    this.changeAzimuth = function (deltaAzimuth) {
-        azimuth += deltaAzimuth;
-        azimuth = clamp(azimuth, MIN_AZIMUTH, MAX_AZIMUTH);
-        changed = true;
-    };
+    changeScale(scale) {
+        this.scale = scale;
+        this.position = null;
+        this.view = null;
+    }
 
-    this.changeElevation = function (deltaElevation) {
-        elevation += deltaElevation;
-        elevation = clamp(elevation, MIN_ELEVATION, MAX_ELEVATION);
-        changed = true;
-    };
+    changeAzimuth(deltaAzimuth) {
+        this.azimuth = clamp(this.azimuth + deltaAzimuth, MIN_AZIMUTH, MAX_AZIMUTH);
+        this.position = null;
+        this.view = null;
+    }
 
-    this.getPosition = function () {
-        return position;
-    };
+    changeElevation(deltaElevation) {
+        this.elevation = clamp(this.elevation + deltaElevation, MIN_ELEVATION, MAX_ELEVATION);
+        this.position = null;
+        this.view = null;
+    }
 
-    var orbitTranslationMatrix = makeIdentityMatrix(new Float32Array(16)),
-        xRotationMatrix = new Float32Array(16),
-        yRotationMatrix = new Float32Array(16),
-        distanceTranslationMatrix = makeIdentityMatrix(new Float32Array(16));
-
-    this.getViewMatrix = function () {
-        if (changed) {
-            makeIdentityMatrix(viewMatrix);
-
-            makeXRotationMatrix(xRotationMatrix, elevation);
-            makeYRotationMatrix(yRotationMatrix, azimuth);
-            distanceTranslationMatrix[14] = -CAMERA_DISTANCE;
-            orbitTranslationMatrix[12] = -ORBIT_POINT[0];
-            orbitTranslationMatrix[13] = -ORBIT_POINT[1];
-            orbitTranslationMatrix[14] = -ORBIT_POINT[2];
-
-            premultiplyMatrix(viewMatrix, viewMatrix, orbitTranslationMatrix);
-            premultiplyMatrix(viewMatrix, viewMatrix, yRotationMatrix);
-            premultiplyMatrix(viewMatrix, viewMatrix, xRotationMatrix);
-            premultiplyMatrix(viewMatrix, viewMatrix, distanceTranslationMatrix);
-
-            position[0] = CAMERA_DISTANCE * Math.sin(Math.PI / 2 - elevation) * Math.sin(-azimuth) + ORBIT_POINT[0];
-            position[1] = CAMERA_DISTANCE * Math.cos(Math.PI / 2 - elevation) + ORBIT_POINT[1];
-            position[2] = CAMERA_DISTANCE * Math.sin(Math.PI / 2 - elevation) * Math.cos(-azimuth) + ORBIT_POINT[2];
-
-            changed = false;
+    getPosition() {
+        if (this.position === null) {
+            const camera = m4.inverse(this.getViewMatrix());
+            this.position = [camera[12], camera[13], camera[14]];
         }
+        return this.position;
+    }
 
-        return viewMatrix;
-    };
-};
+    getViewMatrix() {
+        if (this.view === null) {
+            this.view = m4.identity();
+            m4.translate(this.view,
+                -this.scale * CAMERA_POSITION[0],
+                -this.scale * CAMERA_POSITION[1],
+                -this.scale * CAMERA_POSITION[2], this.view);
+            m4.yRotate(this.view, this.azimuth, this.view);
+            m4.xRotate(this.view, this.elevation - 0.5 * Math.PI, this.view);
+        }
+        return this.view;
+    }
+
+}
