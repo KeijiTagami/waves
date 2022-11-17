@@ -1,6 +1,7 @@
 "use strict";
 
 class Simulator {
+    
 
     constructor(canvas) {
         this.gl = canvas.getContext('webgl2');
@@ -8,6 +9,7 @@ class Simulator {
         this.setWindDirection(INITIAL_WIND_DIRECTION);
         this.setSize(INITIAL_SIZE);
         this.setChoppiness(INITIAL_CHOPPINESS);
+        
 
         this.init();
 
@@ -47,6 +49,8 @@ class Simulator {
             uniform1i('u_elevation', this.elevationFramebuffer.unit[0])
         this.outputProgram = this.program('output').
             uniform1i('u_elevation', this.elevationFramebuffer.unit[0])
+
+
     }
 
     init() {
@@ -148,7 +152,16 @@ class Simulator {
             .uniformMatrix4fv('u_viewMatrix', false, viewMatrix)
         this.oceanBuffer.draw();
         var pixels = new Float32Array(OUTPUT_SIZE * OUTPUT_SIZE * 4);
-        gl.readPixels(0, 0, OUTPUT_SIZE, OUTPUT_SIZE, gl.RGBA, gl.FLOAT, pixels)
+        gl.readPixels(0, 0, OUTPUT_SIZE, OUTPUT_SIZE, gl.RGBA, gl.FLOAT, pixels);
+        const x = tf.tensor1d(pixels).reshape([1, OUTPUT_SIZE, OUTPUT_SIZE, 4]).gather([0,1,2],3);
+        //console.log(x)
+        x.print()
+        async function run(){
+            const model=await tf.loadLayersModel('./simple2_3/model.json')//Pythonの学習済みモデル
+            console.log(model)
+            const y = model.predict(x); 
+        }
+        run()
         this.outputFramebuffer.inactivate();
         this.resize(window.innerWidth, window.innerHeight)
         return pixels
