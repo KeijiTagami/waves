@@ -4,8 +4,10 @@ class Main {
 
     constructor() {
         this.canvas = document.getElementById('simulator');
-        this.canvas2 = document.getElementById('simulator2');
+        this.canvas2 = document.getElementById('wallformat');
         this.canvas2ctx = this.canvas2.getContext('2d');
+        this.canvas2ctx.fillStyle='rgb(100,100,100)'//灰色
+        this.canvas2ctx.fillRect(0, 0, this.canvas2.width, this.canvas2.height);//ベースラインの色
         this.simulator = new Simulator(this.canvas);
         this.camera_fix = new Camera();
         this.camera = new Camera();
@@ -24,25 +26,25 @@ class Main {
         this.canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
         this.canvas.addEventListener('mouseup', this.onMouseUp.bind(this));
 
-        window.addEventListener('resize', this.onResize.bind(this));
-        let checkbox=document.getElementById('makeImageCheckbox');
-        let button = document.getElementById('start_stop');
-        button.addEventListener('click', () => {
-            this.frag = (this.frag + 1) % 2;//1,0の切り替え
-            if (this.frag) {
-                const pixels = this.simulator.output(this.camera_fix.getViewMatrix());
-                const blob = new Blob([pixels])
-                const link = document.createElement('a')
-                if(!checkbox.checked)return;
-                link.download = 'surface.dat'
-                link.href = URL.createObjectURL(blob)
-                link.click()
-                URL.revokeObjectURL(link.href)
-                console.log(pixels)
-            }
-        });
+        // window.addEventListener('resize', this.onResize.bind(this));
+        // let checkbox=document.getElementById('makeImageCheckbox');
+        // let button = document.getElementById('start_stop');
+        // button.addEventListener('click', () => {
+        //     this.frag = (this.frag + 1) % 2;//1,0の切り替え
+        //     if (this.frag) {
+        //         const pixels = this.simulator.output(this.camera_fix.getViewMatrix());
+        //         const blob = new Blob([pixels])
+        //         const link = document.createElement('a')
+        //         if(!checkbox.checked)return;
+        //         link.download = 'surface.dat'
+        //         link.href = URL.createObjectURL(blob)
+        //         link.click()
+        //         URL.revokeObjectURL(link.href)
+        //         console.log(pixels)
+        //     }
+        // });
 
-        this.onResize();
+        //this.onResize();
         requestAnimationFrame(this.render.bind(this));
     }
 
@@ -95,19 +97,35 @@ class Main {
     render(currentTime) {
         const deltaTime = (currentTime - this.lastTime) / 1000 || 0.0;
         this.lastTime = currentTime;
-        //fragはシミュレーションの一時停止フラグ
-        if (!this.frag) {
-            this.simulator.update(deltaTime);
-        }
+        // //fragはシミュレーションの一時停止フラグ
+        // if (!this.frag) {
+            
+        // }
+        this.simulator.update(deltaTime);
         //カメラ2を使った2画面目の描画も行う
-        this.simulator.resize(RESOLUTION, RESOLUTION);
-        this.simulator.render_grayscale(this.camera_fix.getViewMatrix());
-        this.canvas2ctx.clearRect(0, 0, RESOLUTION, RESOLUTION);
-        this.canvas2ctx.drawImage(this.canvas, 0, 0, RESOLUTION, RESOLUTION, 0, 0, RESOLUTION, RESOLUTION);
-        this.simulator.resize(window.innerWidth, window.innerHeight)
+        //this.simulator.resize(RESOLUTION, RESOLUTION);
+        //this.simulator.render_grayscale(this.camera_fix.getViewMatrix());
+        // this.canvas2ctx.clearRect(0, 0, RESOLUTION, RESOLUTION);
+        // this.canvas2ctx.drawImage(this.canvas, 0, 0, RESOLUTION, RESOLUTION, 0, 0, RESOLUTION, RESOLUTION);
+        // this.simulator.resize(window.innerWidth, window.innerHeight)
 
         this.simulator.render(this.camera.getViewMatrix(), this.camera.getPosition());
+        const pixels = this.simulator.output_height(this.camera_fix.getViewMatrix());
+        //console.log(pixels);
+        //壁フォーマットのレンダリング
+        const wf_wid=1080*this.canvas2.width/1920//フォーマット全体の幅(2k基準で1080)
+        const wf_hei=450*this.canvas2.height/1080//フォーマット全体の高さ(2k基準で450)
+        const wf_wid_3=wf_wid/3//一つのフォーマット幅(2k基準で360)
+        this.canvas2ctx.fillStyle='rgb(0,0,0)'//黒
+        this.canvas2ctx.clearRect(0,0,wf_wid,wf_hei)//壁部分のみ消去
+        this.canvas2ctx.fillStyle='rgb(0,0,0)'//黒：LEDを使わない
+        this.canvas2ctx.fillRect(0,0,wf_wid_3,wf_hei)//LED
+        this.canvas2ctx.fillStyle='rgb(0,255,0)'//緑
+        this.canvas2ctx.fillRect(wf_wid_3,0,wf_wid_3,wf_hei)//キネ位置
+        this.canvas2ctx.fillStyle='rgb(255,255,255)'//(白：最大速度)
+        this.canvas2ctx.fillRect(wf_wid_3*2,0,wf_wid_3,wf_hei)//キネ速度
         
+
         requestAnimationFrame(this.render.bind(this));
     }
 

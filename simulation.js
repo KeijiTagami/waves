@@ -15,13 +15,13 @@ class Simulator {
             vertexAttribPointer(ATTR_POSITION, 2, this.gl.FLOAT, 0, 0);
 
         this.waveFramebuffer = this.framebuffer(waveArray(), 2);
+        this.initialSpectrumFramebuffer = this.framebuffer(null, 1);
         this.phaseFramebuffer = this.framebuffer(phaseArray(), 1);
         this.tmpPhaseFramebuffer = this.framebuffer(null, 1);
-        this.initialSpectrumFramebuffer = this.framebuffer(null, 1);
         this.spectrumFramebuffer = this.framebuffer(null, 4, 2);
         this.tmpSpectrumFramebuffer = this.framebuffer(null, 4, 2);
         this.elevationFramebuffer = this.framebuffer();
-        this.outputFramebuffer = this.framebuffer(null, 4, 1, OUTPUT_SIZE);
+        this.outputFramebuffer = this.framebuffer(null, 1, 1, OUTPUT_SIZE_X,);
 
         this.initialSpectrumProgram = this.program('initial_spectrum').
             uniform1i('u_wave', this.waveFramebuffer.unit[0]);
@@ -43,8 +43,8 @@ class Simulator {
             uniform3f('u_oceanColor', OCEAN_COLOR).
             uniform3f('u_skyColor', SKY_COLOR).
             uniform3f('u_sunDirection', SUN_DIRECTION);
-        this.grayscaleProgram = this.program('grayscale').
-            uniform1i('u_elevation', this.elevationFramebuffer.unit[0])
+        // this.grayscaleProgram = this.program('grayscale').
+        //     uniform1i('u_elevation', this.elevationFramebuffer.unit[0])
         this.outputProgram = this.program('output').
             uniform1i('u_elevation', this.elevationFramebuffer.unit[0])
     }
@@ -109,7 +109,7 @@ class Simulator {
     render(viewMatrix, cameraPosition) {
         const projectionMatrix = m4.perspective(FOV, this.gl.canvas.width / this.gl.canvas.height, NEAR, FAR);
         const gl = this.gl;
-        this.resize(window.innerWidth, window.innerHeight)
+        //___this.resize(window.innerWidth, window.innerHeight)
         gl.enable(gl.DEPTH_TEST);
         gl.clearColor.apply(gl, CLEAR_COLOR)
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -121,22 +121,21 @@ class Simulator {
         this.oceanBuffer.draw();
     }
 
-    render_grayscale(viewMatrix) {
-        const projectionMatrix = m4.perspective(OUTPUT_FOV, 1, NEAR, FAR);
-        const gl = this.gl;
-        gl.enable(gl.DEPTH_TEST);
-        gl.clearColor.apply(gl, GRAYSCALE_CLEAR_COLOR)
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.viewport(0, 0, RESOLUTION, RESOLUTION);
-        this.grayscaleProgram.activate()
-            .uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix)
-            .uniformMatrix4fv('u_viewMatrix', false, viewMatrix)
-        this.oceanBuffer.draw();
-    }
+    // render_grayscale(viewMatrix) {
+    //     const projectionMatrix = m4.perspective(OUTPUT_FOV, 1, NEAR, FAR);
+    //     const gl = this.gl;
+    //     gl.enable(gl.DEPTH_TEST);
+    //     gl.clearColor.apply(gl, GRAYSCALE_CLEAR_COLOR)
+    //     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    //     gl.viewport(0, 0, RESOLUTION, RESOLUTION);
+    //     this.grayscaleProgram.activate()
+    //         .uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix)
+    //         .uniformMatrix4fv('u_viewMatrix', false, viewMatrix)
+    //     this.oceanBuffer.draw();
+    // }
 
-    output(viewMatrix) {
-        this.resize(OUTPUT_SIZE, OUTPUT_SIZE);
-        const projectionMatrix = m4.perspective(OUTPUT_FOV, 1, NEAR, FAR);
+    output_height(viewMatrix) {
+        const projectionMatrix = m4.perspective(FOV, 1, NEAR, FAR);
         const gl = this.gl;
         this.outputFramebuffer.activate();
         gl.enable(gl.DEPTH_TEST);
@@ -147,10 +146,9 @@ class Simulator {
             .uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix)
             .uniformMatrix4fv('u_viewMatrix', false, viewMatrix)
         this.oceanBuffer.draw();
-        var pixels = new Float32Array(OUTPUT_SIZE * OUTPUT_SIZE * 4);
-        gl.readPixels(0, 0, OUTPUT_SIZE, OUTPUT_SIZE, gl.RGBA, gl.FLOAT, pixels)
+        var pixels = new Float32Array(OUTPUT_SIZE * OUTPUT_SIZE);
+        gl.readPixels(0, 0, OUTPUT_SIZE, OUTPUT_SIZE, gl.RED, gl.FLOAT, pixels)
         this.outputFramebuffer.inactivate();
-        this.resize(window.innerWidth, window.innerHeight)
         return pixels
     }
 

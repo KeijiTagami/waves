@@ -1,3 +1,4 @@
+//変更しなくて良い？
 class Buffer {
 
     constructor(gl, data) {

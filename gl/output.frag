@@ -2,10 +2,10 @@
 precision highp float;
 
 in vec3 v_position;
-in vec3 v_normal;
+//in vec3 v_normal;
 
-out vec4 outColor;
+out float outColor;
 
 void main(void) {
-    outColor = vec4(v_position[2], v_normal);
+    outColor = v_position[2];
 }

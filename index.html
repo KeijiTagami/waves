@@ -22,22 +22,9 @@
         <div id="wind-speed"></div>
         <div id="wind-direction"></div>
         <div id="choppiness"></div>
-        <input type="button" value="start/stop" id="start_stop" /></br>
-        <input type="checkbox" id="makeImageCheckbox" checked >
-        <label for="makeImageCheckbox">停止時にイメージファイルを作成する</label>
     </div>
-    <canvas id="simulator">
-        <div id="error">
-            Your browser does not appear to support the required technologies. You can still view this on <a
-                href="http://youtu.be/IrUehq6vJss">YouTube</a>.
-        </div>
-    </canvas>
-    <canvas id="simulator2">
-        <div id="error2">
-            Your browser does not appear to support the required technologies. You can still view this on <a
-                href="http://youtu.be/IrUehq6vJss">YouTube</a>.
-        </div>
-    </canvas>
+    <canvas id="simulator" width="1024" height="540"></canvas><!--本番：4096, 2160-->
+    <canvas id="wallformat" width="480" height="270"></canvas><!--本番：1920, 1080-->
 </body>
 
 </html>

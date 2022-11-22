@@ -30,9 +30,11 @@ var CLEAR_COLOR = [1.0, 1.0, 1.0, 1.0],
     SUN_DIRECTION = [1.0, 1.0, 1.0];
 
 var OUTPUT_SIZE = 1024,
-    OUTPUT_FOV = 44 * (Math.PI / 180),
-    GRAYSCALE_CLEAR_COLOR = [0., 0., 0., 1.0];
-    OUTPUT_CLEAR_COLOR = [0.0, 0.0, 0.0, 0.0];
+    OUTPUT_SIZE_X = parseInt(1229/4),//壁の幅
+    OUTPUT_SIZE_Y = parseInt(1543/4),//壁の高さ
+    OUTPUT_SIZE_OFFSET_X = parseInt(1433/4),//壁の位置xのオフセット
+    OUTPUT_SIZE_OFFSET_Y = parseInt(514/4),//壁の位置yのオフセット
+    OUTPUT_CLEAR_COLOR = [0.0, 0.0, 0.0, 1.0];
 
 var SENSITIVITY = 1.0;
 

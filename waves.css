@@ -1,6 +1,6 @@
 body {
     overflow: hidden;
-    background: gray;
+    background: #f0f0f0;
 }
 
 html {
@@ -21,9 +21,9 @@ html {
     z-index: 1;
 }
 
-#simulator2 {
+#wallformat {
     position: absolute;
-    top: 0;
-    right: 0;
-    z-index: 2;
+    top: 540px;
+    left: 0;
+    z-index: 1;
 }
