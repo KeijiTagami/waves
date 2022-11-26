@@ -21,7 +21,7 @@ class Simulator {
         this.spectrumFramebuffer = this.framebuffer(null, 4, 2);
         this.tmpSpectrumFramebuffer = this.framebuffer(null, 4, 2);
         this.elevationFramebuffer = this.framebuffer();
-        this.outputFramebuffer = this.framebuffer(null, 1, 1, OUTPUT_SIZE_X,);
+        this.outputFramebuffer = this.framebuffer(null, 1, 1, OUTPUT_SIZE);
 
         this.initialSpectrumProgram = this.program('initial_spectrum').
             uniform1i('u_wave', this.waveFramebuffer.unit[0]);
@@ -109,7 +109,7 @@ class Simulator {
     render(viewMatrix, cameraPosition) {
         const projectionMatrix = m4.perspective(FOV, this.gl.canvas.width / this.gl.canvas.height, NEAR, FAR);
         const gl = this.gl;
-        //___this.resize(window.innerWidth, window.innerHeight)
+        //this.resize(window.innerWidth, window.innerHeight)
         gl.enable(gl.DEPTH_TEST);
         gl.clearColor.apply(gl, CLEAR_COLOR)
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -141,13 +141,17 @@ class Simulator {
         gl.enable(gl.DEPTH_TEST);
         gl.clearColor.apply(gl, OUTPUT_CLEAR_COLOR)
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        this.h_m=(gl.canvas.height-OUTPUT_SIZE)/2//中心を0とした[-OUTPUT_SIZE/2,OUTPUT_SIZE/2]の余白
+        this.w_m=(gl.canvas.width-OUTPUT_SIZE)/2//中心を0とした[-OUTPUT_SIZE/2,OUTPUT_SIZE/2]の余白
         gl.viewport(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
+        //gl.viewport(this.w_m, this.h_m, this.w_m+OUTPUT_SIZE, this.h_m+OUTPUT_SIZE);
         this.outputProgram.activate()
             .uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix)
             .uniformMatrix4fv('u_viewMatrix', false, viewMatrix)
         this.oceanBuffer.draw();
         var pixels = new Float32Array(OUTPUT_SIZE * OUTPUT_SIZE);
-        gl.readPixels(0, 0, OUTPUT_SIZE, OUTPUT_SIZE, gl.RED, gl.FLOAT, pixels)
+        gl.readPixels(0, 0, OUTPUT_SIZE, OUTPUT_SIZE, gl.RED, gl.FLOAT, pixels);
+        //gl.readPixels(this.w_m, this.h_m, this.w_m+OUTPUT_SIZE, this.h_m+OUTPUT_SIZE, gl.RED, gl.FLOAT, pixels)
         this.outputFramebuffer.inactivate();
         return pixels
     }
