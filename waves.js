@@ -130,8 +130,8 @@ class Main {
         canvasInvisible.width=resolution;
         canvasInvisible.height=resolution;
         let ctxInv = canvasInvisible.getContext('2d');
-        const imageData=ctxInv.createImageData(resolution,resolution);
-        for(let i=0; i <imageData.data.length;i+=4){
+        const imageData=ctxInv.createImageData(resolution,resolution);//canvasに配置する高さデータ
+        for(let i=0; i <imageData.data.length;i+=4){//高さデータを設定する
             const ind=i/4;
             const row=resolution-(ind/resolution)|0;
             const col=ind % resolution;          
@@ -141,11 +141,11 @@ class Main {
             imageData.data[i+2]=height;
             imageData.data[i+3]=255;
         }
-        ctxInv.putImageData(imageData,0,0);
+        ctxInv.putImageData(imageData,0,0);//不可視キャンバス
         
         this.canvas2ctx.fillStyle='rgb(0,0,0)'//黒
         this.canvas2ctx.clearRect(0,0,wf_wid,wf_hei)//壁部分のみ消去
-        const scale=30/51;
+        const scale=30/51;//プロジェクターの系から壁の系へのスケーリング
         this.canvas2ctx.scale(scale,scale);
         this.canvas2ctx.drawImage(canvasInvisible,1/scale*240,1/scale*(-120));
         this.canvas2ctx.scale(1/scale,1/scale);
@@ -155,8 +155,6 @@ class Main {
         this.canvas2ctx.fillStyle='rgb(255,255,255)'//(白：最大速度)
         this.canvas2ctx.fillRect(wf_wid_3*2,0,wf_wid_3,wf_hei)//キネ速度
         
-        //this.canvas2ctx.fillStyle='rgb(0,255,0)'//緑
-        //this.canvas2ctx.fillRect(wf_wid_3,0,wf_wid_3,wf_hei)//キネ位置
         this.counter+=1;
         requestAnimationFrame(this.render.bind(this));
     }
