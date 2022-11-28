@@ -156,12 +156,10 @@ class Simulator {
         const x = tf.tensor1d(pixels).reshape([1, OUTPUT_SIZE, OUTPUT_SIZE, 4]).gather([0,1,2],3);
         //console.log(x)
         x.print()
-        async function run(){
-            const model=await tf.loadLayersModel('./simple2_3/model.json')//Pythonの学習済みモデル
-            console.log(model)
-            const y = model.predict(x); 
-        }
-        run()
+        // async function run(){
+        //     const y = model.predict(x); 
+        // }
+        // run(x)
         this.outputFramebuffer.inactivate();
         this.resize(window.innerWidth, window.innerHeight)
         return pixels
