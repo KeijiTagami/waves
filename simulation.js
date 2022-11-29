@@ -153,15 +153,6 @@ class Simulator {
         this.oceanBuffer.draw();
         var pixels = new Float32Array(OUTPUT_SIZE * OUTPUT_SIZE * 4);
         gl.readPixels(0, 0, OUTPUT_SIZE, OUTPUT_SIZE, gl.RGBA, gl.FLOAT, pixels);
-        const x = tf.tensor1d(pixels).reshape([1, OUTPUT_SIZE, OUTPUT_SIZE, 4]).gather([0,1,2],3);
-        //console.log(x)
-        //x.print()
-        // async function run(){
-        //     const y = this.model.predict(x); 
-        //     return y
-        // }
-        // const y=run(x)
-        //y.print()
         this.outputFramebuffer.inactivate();
         this.resize(window.innerWidth, window.innerHeight)
         return pixels

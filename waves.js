@@ -4,20 +4,17 @@ class Main {
 
     constructor() {
         this.canvas = document.getElementById('simulator');
-        this.canvas2 = document.getElementById('simulator2');
-        this.canvas2ctx = this.canvas2.getContext('2d');
+        this.canvas3 = document.getElementById('white_wave');
+        this.canvas3ctx =this.canvas3.getContext('2d');
         this.simulator = new Simulator(this.canvas);
         this.camera_fix = new Camera();
         this.camera = new Camera();
         this.frag = 0;//simulationの一時停止フラグ
-        async function load_model(){
-            const model=await tf.loadLayersModel('./lightModel3/model.json')//Pythonの学習済みモデル
-            return model
-        }
-        load_model().then( function(model) {
-            console.log(model)
-          })//モデルをロードする
-
+        this.counter=0;
+        tf.loadLayersModel('./lightModel3/model.json').then((m)=>{
+            this.model=m
+        })//Pythonの学習済みモデル
+        
         setupSlider("#size", this.updateSize.bind(this),
             { value: INITIAL_SIZE, min: MIN_SIZE, max: MAX_SIZE, step: 1, precision: 0 });
         setupSlider("#wind-speed", this.updateWindSpeed.bind(this),
@@ -38,14 +35,29 @@ class Main {
             this.frag = (this.frag + 1) % 2;//1,0の切り替え
             if (this.frag) {
                 const pixels = this.simulator.output(this.camera_fix.getViewMatrix());
-                const blob = new Blob([pixels])
-                const link = document.createElement('a')
-                if(!checkbox.checked)return;
-                link.download = 'surface.dat'
-                link.href = URL.createObjectURL(blob)
-                link.click()
-                URL.revokeObjectURL(link.href)
-                console.log(pixels)
+                const x = tf.tensor1d(pixels).reshape([1, OUTPUT_SIZE, OUTPUT_SIZE, 4]).gather([0,1,2],3);
+                const y = this.model.predict(x).reshape([912,912]).arraySync();
+                //console.log(y)
+                let canvasInvisible=document.createElement('canvas');
+                canvasInvisible.width=912;
+                canvasInvisible.height=912;
+                let ctxInv = canvasInvisible.getContext('2d');
+                const imageData=ctxInv.createImageData(912,912 );//canvasに配置する高さデータ
+                for(let i=0; i <imageData.data.length;i+=4){//高さデータを設定する
+                    const ind=i/4;
+                    const row=(ind/912)|0;
+                    const col=ind % 912;          
+                    const alpha=y[row][col]*255;
+                    imageData.data[i+0]=255;
+                    imageData.data[i+1]=255;
+                    imageData.data[i+2]=255;
+                    imageData.data[i+3]=alpha;
+                }
+                ctxInv.putImageData(imageData,0,0);//不可視キャンバス
+                const scale=860/912;//プロジェクターの系から壁の系へのスケーリング
+                this.canvas3ctx.scale(scale,scale);
+                this.canvas3ctx.putImageData(imageData,0,0);
+                //this.canvas3ctx.drawImage(canvasInvisible,0,0);
             }
         });
 
@@ -95,27 +107,51 @@ class Main {
 
     onResize() {
         this.simulator.resize(window.innerWidth, window.innerHeight)
-        this.canvas2.width = RESOLUTION
-        this.canvas2.height = RESOLUTION
+
     }
 
     render(currentTime) {
         const deltaTime = (currentTime - this.lastTime) / 1000 || 0.0;
         this.lastTime = currentTime;
+        if(this.counter<100){
+            requestAnimationFrame(this.render.bind(this));
+            this.counter+=1
+            return;
+        }
         //fragはシミュレーションの一時停止フラグ
         if (!this.frag) {
             this.simulator.update(deltaTime);
         }
-        //カメラ2を使った2画面目の描画も行う
-        this.simulator.resize(RESOLUTION, RESOLUTION);
-        this.simulator.render_grayscale(this.camera_fix.getViewMatrix());
-        this.canvas2ctx.clearRect(0, 0, RESOLUTION, RESOLUTION);
-        this.canvas2ctx.drawImage(this.canvas, 0, 0, RESOLUTION, RESOLUTION, 0, 0, RESOLUTION, RESOLUTION);
-        this.simulator.resize(window.innerWidth, window.innerHeight)
-
-        this.simulator.render(this.camera.getViewMatrix(), this.camera.getPosition());
         
+        this.simulator.render(this.camera.getViewMatrix(), this.camera.getPosition());
+        if(this.counter%5==0){
+        const pixels = this.simulator.output(this.camera_fix.getViewMatrix());
+        const x = tf.tensor1d(pixels).reshape([1, OUTPUT_SIZE, OUTPUT_SIZE, 4]).gather([0,1,2],3);
+        const y = this.model.predict(x).reshape([912,912]).arraySync();
+        let canvasInvisible=document.createElement('canvas');
+        canvasInvisible.width=912;
+        canvasInvisible.height=912;
+        let ctxInv = canvasInvisible.getContext('2d');
+        const imageData=ctxInv.createImageData(912,912 );//canvasに配置する高さデータ
+        for(let i=0; i <imageData.data.length;i+=4){//高さデータを設定する
+                    const ind=i/4;
+                    const row=(ind/912)|0;
+                    const col=ind % 912;          
+                    const alpha=y[row][col]*255;
+                    imageData.data[i+0]=255;
+                    imageData.data[i+1]=255;
+                    imageData.data[i+2]=255;
+                    imageData.data[i+3]=alpha;
+        }
+        ctxInv.putImageData(imageData,0,0);//不可視キャンバス
+        const scale=860/912;//プロジェクターの系から壁の系へのスケーリング
+        this.canvas3ctx.scale(scale,scale);
+        this.canvas3ctx.putImageData(imageData,0,0);
+        this.canvas3ctx.drawImage(canvasInvisible,0,0);
+        this.canvas3ctx.scale(1/scale,1/scale);
+        }
         requestAnimationFrame(this.render.bind(this));
+        this.counter+=1;
     }
 
 }
