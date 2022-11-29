@@ -11,10 +11,12 @@ class Main {
         this.camera = new Camera();
         this.frag = 0;//simulationの一時停止フラグ
         async function load_model(){
-            this.model=await tf.loadLayersModel('./lightModel3/model.json')//Pythonの学習済みモデル
-            //console.log(this.model) 
+            const model=await tf.loadLayersModel('./lightModel3/model.json')//Pythonの学習済みモデル
+            return model
         }
-        load_model()//モデルをロードする
+        load_model().then( function(model) {
+            console.log(model)
+          })//モデルをロードする
 
         setupSlider("#size", this.updateSize.bind(this),
             { value: INITIAL_SIZE, min: MIN_SIZE, max: MAX_SIZE, step: 1, precision: 0 });
