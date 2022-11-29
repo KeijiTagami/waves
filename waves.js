@@ -11,7 +11,7 @@ class Main {
         this.camera = new Camera();
         this.frag = 0;//simulationの一時停止フラグ
         async function load_model(){
-            this.model=await tf.loadLayersModel('./lightModel2/model.json')//Pythonの学習済みモデル
+            this.model=await tf.loadLayersModel('./lightModel3/model.json')//Pythonの学習済みモデル
             //console.log(this.model) 
         }
         load_model()//モデルをロードする
