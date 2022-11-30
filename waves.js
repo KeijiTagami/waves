@@ -5,14 +5,15 @@ class Main {
     constructor() {
         this.canvas = document.getElementById('simulator');
         this.canvas2 = document.getElementById('wallformat');
+        this.canvas3 = document.getElementById('white_wave');
         this.canvas2ctx = this.canvas2.getContext('2d');
         this.canvas2ctx.fillStyle='rgb(100,100,100)'//灰色
-        this.canvas2ctx.fillRect(0, 0, this.canvas2.width, this.canvas2.height);//ベースラインの色
+        this.canvas2ctx.fillRect(0, 0, this.canvas2.width, this.canvas2.height);//ベースラインの色を設定
+        this.canvas3ctx =this.canvas3.getContext('2d');
         this.simulator = new Simulator(this.canvas);
         this.camera_fix = new Camera();
         this.camera = new Camera();
         this.frag = 0;//simulationの一時停止フラグ
-        this.counter=0;//カウンター
 
         setupSlider("#size", this.updateSize.bind(this),
             { value: INITIAL_SIZE, min: MIN_SIZE, max: MAX_SIZE, step: 1, precision: 0 });
@@ -105,8 +106,12 @@ class Main {
         this.simulator.update(deltaTime);
 
         this.simulator.render(this.camera.getViewMatrix(), this.camera.getPosition());
-        const pixels = this.simulator.output_height(this.camera_fix.getViewMatrix());
-        console.log(pixels)
+        const pixels = this.simulator.output(this.camera_fix.getViewMatrix());
+        this.wall_set(pixels);//壁のセット
+        requestAnimationFrame(this.render.bind(this));
+    }
+    
+    wall_set(pixels){
         //壁フォーマットのレンダリング
         const wf_wid=1080//フォーマット全体の幅(2k基準で1080)
         const wf_hei=450//フォーマット全体の高さ(2k基準で450)
@@ -141,9 +146,7 @@ class Main {
         
         this.canvas2ctx.fillStyle='rgb(255,255,255)'//(白：最大速度)
         this.canvas2ctx.fillRect(wf_wid_3*2,0,wf_wid_3,wf_hei)//キネ速度
-        
-        this.counter+=1;
-        requestAnimationFrame(this.render.bind(this));
+
     }
 
 }

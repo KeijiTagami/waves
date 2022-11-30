@@ -121,7 +121,7 @@ class Simulator {
         this.oceanBuffer.draw();
     }
 
-    output_height(viewMatrix) {
+    output(viewMatrix) {
         const projectionMatrix = m4.perspective(FOV, 1, NEAR, FAR);
         const gl = this.gl;
         this.outputFramebuffer.activate();
@@ -140,7 +140,6 @@ class Simulator {
         this.outputFramebuffer.inactivate();
         return pixels
     }
-
     resize(width, height) {
         this.gl.canvas.width = width;
         this.gl.canvas.height = height;
