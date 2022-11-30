@@ -103,26 +103,13 @@ class Main {
             
         // }
         this.simulator.update(deltaTime);
-        //カメラ2を使った2画面目の描画も行う
-        //this.simulator.resize(RESOLUTION, RESOLUTION);
-        //this.simulator.render_grayscale(this.camera_fix.getViewMatrix());
-        // this.canvas2ctx.clearRect(0, 0, RESOLUTION, RESOLUTION);
-        // this.canvas2ctx.drawImage(this.canvas, 0, 0, RESOLUTION, RESOLUTION, 0, 0, RESOLUTION, RESOLUTION);
-        // this.simulator.resize(window.innerWidth, window.innerHeight)
 
         this.simulator.render(this.camera.getViewMatrix(), this.camera.getPosition());
         const pixels = this.simulator.output_height(this.camera_fix.getViewMatrix());
-        // if (this.counter==300) {
-        //     const blob = new Blob([pixels])
-        //     const link = document.createElement('a')
-        //     link.download = 'surface.dat'
-        //     link.href = URL.createObjectURL(blob)
-        //     link.click()
-        //     URL.revokeObjectURL(link.href)
-        // }
+        console.log(pixels)
         //壁フォーマットのレンダリング
-        const wf_wid=1080*this.canvas2.width/1920//フォーマット全体の幅(2k基準で1080)
-        const wf_hei=450*this.canvas2.height/1080//フォーマット全体の高さ(2k基準で450)
+        const wf_wid=1080//フォーマット全体の幅(2k基準で1080)
+        const wf_hei=450//フォーマット全体の高さ(2k基準で450)
         const wf_wid_3=wf_wid/3//一つのフォーマット幅(2k基準で360)
         const resolution=1024;
         // canvasInvisibleに描画
@@ -135,7 +122,7 @@ class Main {
             const ind=i/4;
             const row=resolution-(ind/resolution)|0;
             const col=ind % resolution;          
-            const height=(pixels[(row*resolution+col)]*0.15+0.5)*255;
+            const height=(pixels[(row*resolution+col)*4]*0.15+0.5)*255;//法線の分は飛ばすので*4
             imageData.data[i+0]=height;
             imageData.data[i+1]=height;
             imageData.data[i+2]=height;
