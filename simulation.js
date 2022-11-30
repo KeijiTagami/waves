@@ -2,7 +2,11 @@
 
 class Simulator {
 
-    constructor(canvas) {
+    constructor() {
+        const canvas = document.createElement("canvas")
+        canvas.width = OUTPUT_WIDTH + 2 * WHITE_MARGIN
+        canvas.height = OUTPUT_HEIGHT + 2 * WHITE_MARGIN
+        canvas.visiblity = "hidden"
         this.gl = canvas.getContext('webgl2');
         this.setWindSpeed(INITIAL_WIND_SPEED);
         this.setWindDirection(INITIAL_WIND_DIRECTION);
@@ -21,7 +25,7 @@ class Simulator {
         this.spectrumFramebuffer = this.framebuffer(null, 4, 2);
         this.tmpSpectrumFramebuffer = this.framebuffer(null, 4, 2);
         this.elevationFramebuffer = this.framebuffer();
-        this.outputFramebuffer = this.framebuffer(null, 4, 1, OUTPUT_SIZE);
+        this.outputFramebuffer = this.framebuffer(null, 4, 1, OUTPUT_WIDTH + 2 * WHITE_MARGIN, OUTPUT_HEIGHT + 2 * WHITE_MARGIN);
 
         this.initialSpectrumProgram = this.program('initial_spectrum').
             uniform1i('u_wave', this.waveFramebuffer.unit[0]);
@@ -107,42 +111,40 @@ class Simulator {
     }
 
     render(viewMatrix, cameraPosition) {
-        const projectionMatrix = m4.perspective(FOV, this.gl.canvas.width / this.gl.canvas.height, NEAR, FAR);
+        const projectionMatrix = m4.perspective(FOV, (OUTPUT_WIDTH + 2 * WHITE_MARGIN) / (OUTPUT_HEIGHT + 2 * WHITE_MARGIN), NEAR, FAR);
         const gl = this.gl;
-        //this.resize(window.innerWidth, window.innerHeight)
         gl.enable(gl.DEPTH_TEST);
         gl.clearColor.apply(gl, CLEAR_COLOR)
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
+        gl.viewport(0, 0, OUTPUT_WIDTH + 2 * WHITE_MARGIN, OUTPUT_HEIGHT + 2 * WHITE_MARGIN);
         this.oceanProgram.activate().
             uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix).
             uniformMatrix4fv('u_viewMatrix', false, viewMatrix).
             uniform3fv('u_cameraPosition', cameraPosition);
+        //this.outputFramebuffer.activate();
         this.oceanBuffer.draw();
+        var pixels = new Uint8Array(OUTPUT_WIDTH * OUTPUT_HEIGHT * 4);
+        gl.readPixels(WHITE_MARGIN, WHITE_MARGIN, OUTPUT_WIDTH, OUTPUT_HEIGHT, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+        //this.outputFramebuffer.inactivate();
+        return pixels
     }
 
     output(viewMatrix) {
-        const projectionMatrix = m4.perspective(FOV, 1, NEAR, FAR);
+        const projectionMatrix = m4.perspective(FOV, (OUTPUT_WIDTH + 2 * WHITE_MARGIN) / (OUTPUT_HEIGHT + 2 * WHITE_MARGIN), NEAR, FAR);
         const gl = this.gl;
         this.outputFramebuffer.activate();
         gl.enable(gl.DEPTH_TEST);
         gl.clearColor.apply(gl, OUTPUT_CLEAR_COLOR)
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        this.h_m=(gl.canvas.height-OUTPUT_SIZE)/2//中心を0とした[-OUTPUT_SIZE/2,OUTPUT_SIZE/2]の余白
-        this.w_m=(gl.canvas.width-OUTPUT_SIZE)/2//中心を0とした[-OUTPUT_SIZE/2,OUTPUT_SIZE/2]の余白
-        gl.viewport(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
+        gl.viewport(0, 0, OUTPUT_WIDTH + 2 * WHITE_MARGIN, OUTPUT_HEIGHT + 2 * WHITE_MARGIN);
         this.outputProgram.activate()
             .uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix)
             .uniformMatrix4fv('u_viewMatrix', false, viewMatrix)
         this.oceanBuffer.draw();
-        var pixels = new Float32Array(OUTPUT_SIZE * OUTPUT_SIZE*4);
-        gl.readPixels(0, 0, OUTPUT_SIZE, OUTPUT_SIZE, gl.RGBA, gl.FLOAT, pixels);
+        var pixels = new Float32Array((OUTPUT_WIDTH + 2 * WHITE_MARGIN) * (OUTPUT_HEIGHT + 2 * WHITE_MARGIN) * 4);
+        gl.readPixels(0, 0, OUTPUT_WIDTH + 2 * WHITE_MARGIN, OUTPUT_HEIGHT + 2 * WHITE_MARGIN, gl.RGBA, gl.FLOAT, pixels);
         this.outputFramebuffer.inactivate();
         return pixels
-    }
-    resize(width, height) {
-        this.gl.canvas.width = width;
-        this.gl.canvas.height = height;
     }
 
     setWindSpeed(val) {

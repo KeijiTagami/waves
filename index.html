@@ -4,9 +4,9 @@
 <head>
     <meta charset="utf-8">
     <title>Ocean Wave Simulation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link href="waves.css" rel="stylesheet" type="text/css">
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
     <script src="m4.js"></script>
     <script src="gl.js"></script>
     <script src="ui.js"></script>
@@ -22,10 +22,14 @@
         <div id="wind-speed"></div>
         <div id="wind-direction"></div>
         <div id="choppiness"></div>
+        <div id="choppiness"></div>
+        <button id="run"></button>
     </div>
-    <canvas id="simulator" width="1920" height="1080"></canvas><!--波のシミュレータ.本番：1920, 1080-->
-    <canvas id="wallformat" width="1920" height="1080"></canvas><!--壁動作フォーマット.本番：1920, 1080-->
-    <canvas id="white_wave" width="1920" height="1080"></canvas><!--白波描画用-->>
+    <canvas id="simulator"></canvas><!--波のシミュレータ.本番：1920, 1080-->
+
+    <canvas id="blue_wave"></canvas><!--青波描画用-->
+    <canvas id="white_wave"></canvas><!--白波描画用-->
+    <canvas id="wallformat"></canvas><!--壁動作フォーマット.本番：1920, 1080-->
 </body>
 
 </html>

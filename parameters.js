@@ -1,18 +1,18 @@
 var RESOLUTION = 256;
 
 
-var INITIAL_SIZE = 250,
+var INITIAL_SIZE = 200,
     MIN_SIZE = 100,
     MAX_SIZE = 1000,
-    INITIAL_WIND_SPEED = 10.0,
-    INITIAL_WIND_DIRECTION = 0.0,
+    INITIAL_WIND_SPEED = 18.0,
+    INITIAL_WIND_DIRECTION = -117.0,
     MIN_WIND_SPEED = 5.0,
     MAX_WIND_SPEED = 25.0,
-    INITIAL_CHOPPINESS = 1.5,
+    INITIAL_CHOPPINESS = 3.5,
     MIN_CHOPPINESS = 0,
     MAX_CHOPPINESS = 5.0;
 
-var FOV = 50 * (Math.PI / 180),
+var FOV = 40 * (Math.PI / 180),
     NEAR = 100,
     FAR = 2000,
     MIN_ASPECT = 16 / 9;
@@ -28,15 +28,17 @@ var CAMERA_POSITION = [0.0, 0.0, 1.2],
 var CLEAR_COLOR = [1.0, 1.0, 1.0, 1.0],
     OCEAN_COLOR = [0.0, 0.0, 1.0],
     SKY_COLOR = [1.0, 1.0, 1.0],
-    SUN_DIRECTION = [1.0, 1.0, 1.0];
+    SUN_DIRECTION = [1.0, 1.0, 1.0],
+    OUTPUT_CLEAR_COLOR = [0.0, 0.0, 0.0, 1.0];
 
-var OUTPUT_SIZE = 1024,
+var WHITE_MARGIN=56;//モデルによって上下左右56pxクリップされる
+var OUTPUT_WIDTH = 1024 - 2 * 56,
+    OUTPUT_HEIGHT = 1024 - 2 * 56,
     OUTPUT_SIZE_X = parseInt(1229/4),//壁の幅
     OUTPUT_SIZE_Y = parseInt(1543/4),//壁の高さ
     OUTPUT_SIZE_OFFSET_X = parseInt(1433/4),//壁の位置xのオフセット
-    OUTPUT_SIZE_OFFSET_Y = parseInt(514/4),//壁の位置yのオフセット
-    OUTPUT_CLEAR_COLOR = [0.0, 0.0, 0.0, 1.0];
-var OUTPUT_SIZE_WHITE=912;//モデルによって入力から112pxクリップされる
+    OUTPUT_SIZE_OFFSET_Y = parseInt(514/4);//壁の位置yのオフセット
+
 var SENSITIVITY = 1.0;
 
 var ATTR_POSITION = 0;
