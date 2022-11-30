@@ -139,24 +139,26 @@ class Main {
     setWhitewave(pixels){
         const x = tf.tensor1d(pixels).reshape([1, OUTPUT_SIZE, OUTPUT_SIZE, 4]).gather([0,1,2],3);
         const y = this.model.predict(x).reshape([912,912]).arraySync();
-        let canvasInvisible=document.createElement('canvas');
-        canvasInvisible.width=OUTPUT_SIZE_WHITE;
-        canvasInvisible.height=OUTPUT_SIZE_WHITE;
-        let ctxInv = canvasInvisible.getContext('2d');
-        const imageData=ctxInv.createImageData(OUTPUT_SIZE_WHITE,OUTPUT_SIZE_WHITE);//canvasに配置するデータ
+        //let canvasInvisible=document.createElement('canvas');
+        //canvasInvisible.width=OUTPUT_SIZE_WHITE;
+        //canvasInvisible.height=OUTPUT_SIZE_WHITE;
+        //let ctxInv = canvasInvisible.getContext('2d');
+        const imageData=this.canvas3ctx.createImageData(OUTPUT_SIZE_WHITE,OUTPUT_SIZE_WHITE);//canvasに配置するデータ
         for(let i=0; i <imageData.data.length;i+=4){//高さデータを設定する
-                    const ind=i/4;
-                    const row=(ind/912)|0;
-                    const col=ind % 912;          
-                    const alpha=y[row][col]*255;
-                    imageData.data[i+0]=255;
-                    imageData.data[i+1]=255;
-                    imageData.data[i+2]=255;
-                    imageData.data[i+3]=alpha;
-                }
-                ctxInv.putImageData(imageData,0,0);//不可視キャンバス
-                this.canvas3ctx.putImageData(imageData,0,0);
-                //this.canvas3ctx.drawImage(canvasInvisible,0,0);
+            const ind=i/4;
+            const row=(ind/912)|0;
+            const col=ind % 912;          
+            const alpha=y[row][col]*255;
+            imageData.data[i+0]=255;
+            imageData.data[i+1]=255;
+            imageData.data[i+2]=255;
+            imageData.data[i+3]=alpha;
+        }
+        const offset_x=(1920-OUTPUT_SIZE_WHITE)/2
+        const offset_y=(1080-OUTPUT_SIZE_WHITE)/2
+        //ctxInv.putImageData(imageData,0,0);//不可視キャンバス
+        this.canvas3ctx.putImageData(imageData,offset_x,offset_y);
+        //this.canvas3ctx.drawImage(canvasInvisible,0,0);
     }
 }
 
