@@ -1,5 +1,6 @@
 var RESOLUTION = 256;
 
+
 var INITIAL_SIZE = 250,
     MIN_SIZE = 100,
     MAX_SIZE = 1000,
@@ -35,7 +36,7 @@ var OUTPUT_SIZE = 1024,
     OUTPUT_SIZE_OFFSET_X = parseInt(1433/4),//壁の位置xのオフセット
     OUTPUT_SIZE_OFFSET_Y = parseInt(514/4),//壁の位置yのオフセット
     OUTPUT_CLEAR_COLOR = [0.0, 0.0, 0.0, 1.0];
-
+var OUTPUT_SIZE_WHITE=912;//モデルによって入力から112pxクリップされる
 var SENSITIVITY = 1.0;
 
 var ATTR_POSITION = 0;

@@ -14,6 +14,10 @@ class Main {
         this.camera_fix = new Camera();
         this.camera = new Camera();
         this.frag = 0;//simulationの一時停止フラグ
+        this.Counter=0;
+        tf.loadLayersModel('./lightModel3/model.json').then((m)=>{
+            this.model=m
+        })//Pythonの学習済みモデルをロード
 
         setupSlider("#size", this.updateSize.bind(this),
             { value: INITIAL_SIZE, min: MIN_SIZE, max: MAX_SIZE, step: 1, precision: 0 });
@@ -28,25 +32,6 @@ class Main {
         this.canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
         this.canvas.addEventListener('mouseup', this.onMouseUp.bind(this));
 
-        // window.addEventListener('resize', this.onResize.bind(this));
-        // let checkbox=document.getElementById('makeImageCheckbox');
-        // let button = document.getElementById('start_stop');
-        // button.addEventListener('click', () => {
-        //     this.frag = (this.frag + 1) % 2;//1,0の切り替え
-        //     if (this.frag) {
-        //         const pixels = this.simulator.output(this.camera_fix.getViewMatrix());
-        //         const blob = new Blob([pixels])
-        //         const link = document.createElement('a')
-        //         if(!checkbox.checked)return;
-        //         link.download = 'surface.dat'
-        //         link.href = URL.createObjectURL(blob)
-        //         link.click()
-        //         URL.revokeObjectURL(link.href)
-        //         console.log(pixels)
-        //     }
-        // });
-
-        //this.onResize();
         requestAnimationFrame(this.render.bind(this));
     }
 
@@ -107,11 +92,14 @@ class Main {
 
         this.simulator.render(this.camera.getViewMatrix(), this.camera.getPosition());
         const pixels = this.simulator.output(this.camera_fix.getViewMatrix());
-        this.wall_set(pixels);//壁のセット
+        this.setWall(pixels);//壁のセット
+        if (this.Counter>100)
+            this.setWhitewave(pixels);
         requestAnimationFrame(this.render.bind(this));
+        this.Counter+=1;
     }
     
-    wall_set(pixels){
+    setWall(pixels){
         //壁フォーマットのレンダリング
         const wf_wid=1080//フォーマット全体の幅(2k基準で1080)
         const wf_hei=450//フォーマット全体の高さ(2k基準で450)
@@ -148,7 +136,28 @@ class Main {
         this.canvas2ctx.fillRect(wf_wid_3*2,0,wf_wid_3,wf_hei)//キネ速度
 
     }
-
+    setWhitewave(pixels){
+        const x = tf.tensor1d(pixels).reshape([1, OUTPUT_SIZE, OUTPUT_SIZE, 4]).gather([0,1,2],3);
+        const y = this.model.predict(x).reshape([912,912]).arraySync();
+        let canvasInvisible=document.createElement('canvas');
+        canvasInvisible.width=OUTPUT_SIZE_WHITE;
+        canvasInvisible.height=OUTPUT_SIZE_WHITE;
+        let ctxInv = canvasInvisible.getContext('2d');
+        const imageData=ctxInv.createImageData(OUTPUT_SIZE_WHITE,OUTPUT_SIZE_WHITE);//canvasに配置するデータ
+        for(let i=0; i <imageData.data.length;i+=4){//高さデータを設定する
+                    const ind=i/4;
+                    const row=(ind/912)|0;
+                    const col=ind % 912;          
+                    const alpha=y[row][col]*255;
+                    imageData.data[i+0]=255;
+                    imageData.data[i+1]=255;
+                    imageData.data[i+2]=255;
+                    imageData.data[i+3]=alpha;
+                }
+                ctxInv.putImageData(imageData,0,0);//不可視キャンバス
+                this.canvas3ctx.putImageData(imageData,0,0);
+                //this.canvas3ctx.drawImage(canvasInvisible,0,0);
+    }
 }
 
 window.onload = () => {
