@@ -1,9 +1,9 @@
-"use strict";
+importScripts("./m4.js")
+importScripts("./gl.js")
 
 class Simulator {
 
-    constructor() {
-        const canvas = document.createElement("canvas")
+    constructor(canvas) {
         canvas.width = OUTPUT_WIDTH + 2 * WHITE_MARGIN
         canvas.height = OUTPUT_HEIGHT + 2 * WHITE_MARGIN
         canvas.visiblity = "hidden"
@@ -111,40 +111,59 @@ class Simulator {
     }
 
     render(viewMatrix, cameraPosition) {
-        const projectionMatrix = m4.perspective(FOV, (OUTPUT_WIDTH + 2 * WHITE_MARGIN) / (OUTPUT_HEIGHT + 2 * WHITE_MARGIN), NEAR, FAR);
+        const projectionMatrix = m4.perspective(FOV, W / H, NEAR, FAR);
         const gl = this.gl;
         gl.enable(gl.DEPTH_TEST);
         gl.clearColor.apply(gl, CLEAR_COLOR)
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.viewport(0, 0, OUTPUT_WIDTH + 2 * WHITE_MARGIN, OUTPUT_HEIGHT + 2 * WHITE_MARGIN);
+        gl.viewport(0, 0, W,  H);
         this.oceanProgram.activate().
             uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix).
             uniformMatrix4fv('u_viewMatrix', false, viewMatrix).
             uniform3fv('u_cameraPosition', cameraPosition);
-        //this.outputFramebuffer.activate();
         this.oceanBuffer.draw();
-        var pixels = new Uint8Array(OUTPUT_WIDTH * OUTPUT_HEIGHT * 4);
-        gl.readPixels(WHITE_MARGIN, WHITE_MARGIN, OUTPUT_WIDTH, OUTPUT_HEIGHT, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-        //this.outputFramebuffer.inactivate();
-        return pixels
+        var pixels = new Uint8Array(w * h * 4);
+        gl.readPixels(WHITE_MARGIN, WHITE_MARGIN, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+        
+        const imageData = new ImageData(w, h)
+        for (var y = 0; y < h; y += 1) {
+            for (var x = 0; x < w; x += 1) {
+                for (var z = 0; z < 4; z += 1) {
+                    imageData.data[4 * (w * (h - y - 1) + x) + z] = pixels[4 * (w * y + x) + z]
+                }
+            }
+        }
+        return imageData
     }
 
     output(viewMatrix) {
-        const projectionMatrix = m4.perspective(FOV, (OUTPUT_WIDTH + 2 * WHITE_MARGIN) / (OUTPUT_HEIGHT + 2 * WHITE_MARGIN), NEAR, FAR);
+        const projectionMatrix = m4.perspective(FOV, W / H, NEAR, FAR);
         const gl = this.gl;
         this.outputFramebuffer.activate();
         gl.enable(gl.DEPTH_TEST);
         gl.clearColor.apply(gl, OUTPUT_CLEAR_COLOR)
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.viewport(0, 0, OUTPUT_WIDTH + 2 * WHITE_MARGIN, OUTPUT_HEIGHT + 2 * WHITE_MARGIN);
+        gl.viewport(0, 0, W, H);
         this.outputProgram.activate()
             .uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix)
             .uniformMatrix4fv('u_viewMatrix', false, viewMatrix)
         this.oceanBuffer.draw();
-        var pixels = new Float32Array((OUTPUT_WIDTH + 2 * WHITE_MARGIN) * (OUTPUT_HEIGHT + 2 * WHITE_MARGIN) * 4);
-        gl.readPixels(0, 0, OUTPUT_WIDTH + 2 * WHITE_MARGIN, OUTPUT_HEIGHT + 2 * WHITE_MARGIN, gl.RGBA, gl.FLOAT, pixels);
+        var pixels = new Float32Array(W * H * 4);
+        gl.readPixels(0, 0, W, H, gl.RGBA, gl.FLOAT, pixels);
         this.outputFramebuffer.inactivate();
-        return pixels
+
+        const imageData = new ImageData(w, h)
+        for (var y = 0; y < H; y += 1) {
+            for (var x = 0; x < W; x += 1) {
+                const pd = W * (H - y - 1) + x
+                const z = 255 * (0.15 * pixels[(W * y + x) * 4] + 0.5)
+                imageData.data[4 * pd + 0] = z
+                imageData.data[4 * pd + 1] = z
+                imageData.data[4 * pd + 2] = z
+                imageData.data[4 * pd + 3] = 255
+            }
+        }
+        return [imageData, pixels]
     }
 
     setWindSpeed(val) {

@@ -1,15 +1,14 @@
-var TF_TYPE = "webgl"
+var TF_TYPE = "wasm"
 
-var DELTA_TIME = 0.1, // シミュレーション内でのフレーム時間
+var DELTA_TIME = 0.2, // シミュレーション内でのフレーム時間
     SLOW = 1,         // 実時間との比、大きいとゆっくり再生
-    DELTA_WHITE = 10, // 青何枚につき白を表示するか
-    MAX_BLUE = 10     // 青を何枚までためるか
+    DELTA_WHITE =  5, // 青何枚につき白を表示するか
+    MIN_STOCK = 100,  // これだけためてからスタートする
+    MAX_STOCK = 1000, // 何枚までためるか
+    BATCH = 10        // worker が1回で計算するフレーム数
 
-var MIN_BATCH = 1, // 白をまとめる最小
-    MAX_BATCH = 2  // 白をまとめる最大
 
 var RESOLUTION = 256;
-
 
 var INITIAL_SIZE = 200,
     MIN_SIZE = 100,

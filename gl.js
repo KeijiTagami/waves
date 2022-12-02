@@ -1,4 +1,5 @@
-//変更しなくて良い？
+importScripts("./m4.js")
+
 class Buffer {
 
     constructor(gl, data) {
