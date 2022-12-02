@@ -12,7 +12,6 @@ const w = OUTPUT_WIDTH
 const h = OUTPUT_HEIGHT
 
 importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.1.0/dist/tf.min.js")
-//importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-cpu@4.1.0/dist/tf-backend-cpu.min.js")
 if (TF_TYPE == "wasm") {
     importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@4.1.0/dist/tf-backend-wasm.min.js")
     tf.wasm.setWasmPaths("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@4.1.0/wasm-out/")
@@ -66,10 +65,15 @@ tf.setBackend(TF_TYPE).then(() => {
                     }
                 }
 
+                console.log(tf.memory())
                 const start = Date.now()
                 const n = data.length
-                const input = tf.tensor2d(data).reshape([n, H, W, 4]).gather([0, 1, 2], 3)
-                model.predict(input).data().then(whitePixels => {
+                const output_t = tf.tidy(() => {
+                    const input = tf.tensor2d(data).reshape([n, H, W, 4]).gather([0, 1, 2], 3)
+                    return model.predict(input)
+                })
+                output_t.data().then(whitePixels => {
+                    output_t.dispose()
                     console.log("predict", n, Date.now() - start, "ms")
                     const white = []
                     for (let i = 0; i < n; i += 1) {
