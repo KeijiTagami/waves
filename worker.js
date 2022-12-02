@@ -24,14 +24,6 @@ tf.setBackend(TF_TYPE).then(() => {
         console.log(tf.wasm.getThreadsCount())
     }
     tf.loadLayersModel('./lightModel3/model.json').then((model) => {
-        /*
-        for (var i = 0; i < 10; i += 1) {
-            const n = 2
-            var start = Date.now()
-            model.predict(tf.zeros([n, 1024, 1024, 3])).dataSync()
-            console.log("test", n, Date.now() - start, "ms")
-        }
-        */
         addEventListener("message", m => {
             if (m.data.type == "canvas") {
                 Simulator.load_gl().then(() => {
@@ -65,7 +57,6 @@ tf.setBackend(TF_TYPE).then(() => {
                     }
                 }
 
-                console.log(tf.memory())
                 const start = Date.now()
                 const n = data.length
                 const output_t = tf.tidy(() => {
