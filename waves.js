@@ -77,6 +77,7 @@ class Main {
     requestSimulation() {
         if (this.running) {
             if (this.images.length < MAX_STOCK) { 
+                console.log("request")
                 this.worker.postMessage({type: "create", value: BATCH})
             } else {
                 setTimeout(this.requestSimulation.bind(this), 10)
@@ -96,17 +97,19 @@ class Main {
     }
 
     render() {
-        if (this.images.length == 0) {
-            clearInterval(this.render_interval)
-            this.render_interval = null
-        } else {
-            const now = Date.now()
-            console.log("render", this.images.length, now - this.timer, "sec")
-            this.timer = now
-            const [blue, white, wall] = this.images.shift()
-            this.canvas_blue_ctx.putImageData(blue, 0, 0)
-            this.canvas_white_ctx.putImageData(white, 0, 0);
-            this.canvas_wall_ctx.putImageData(wall, 0, 0);
+        if (this.running) {
+            if (this.images.length == 0) {
+                clearInterval(this.render_interval)
+                this.render_interval = null
+            } else {
+                const now = Date.now()
+                console.log("render", this.images.length, now - this.timer, "sec")
+                this.timer = now
+                const [blue, white, wall] = this.images.shift()
+                this.canvas_blue_ctx.putImageData(blue, 0, 0)
+                this.canvas_white_ctx.putImageData(white, 0, 0);
+                this.canvas_wall_ctx.putImageData(wall, 0, 0);
+            }
         }
     }
 }
