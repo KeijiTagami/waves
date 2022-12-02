@@ -24,12 +24,13 @@ class Main {
         this.camera_fix = new Camera();
         this.camera = new Camera();
 
-        this.delta_time = 0.1
-        this.slow = 1
-        this.delta_white = 10
-        this.min_batch = 1
-        this.max_batch = 2
-        this.max_blue = 10
+        this.delta_time = DELTA_TIME
+        this.slow = SLOW
+        this.delta_white = DELTA_WHITE
+        this.max_blue =  MAX_BLUE
+
+        this.min_batch = MIN_BATCH
+        this.max_batch = MAX_BATCH
 
         this.running = false
 

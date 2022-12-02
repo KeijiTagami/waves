@@ -1,5 +1,13 @@
 var TF_TYPE = "webgl"
 
+var DELTA_TIME = 0.1, // シミュレーション内でのフレーム時間
+    SLOW = 1,         // 実時間との比、大きいとゆっくり再生
+    DELTA_WHITE = 10, // 青何枚につき白を表示するか
+    MAX_BLUE = 10     // 青を何枚までためるか
+
+var MIN_BATCH = 1, // 白をまとめる最小
+    MAX_BATCH = 2  // 白をまとめる最大
+
 var RESOLUTION = 256;
 
 
