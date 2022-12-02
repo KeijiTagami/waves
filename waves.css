@@ -46,6 +46,8 @@ html {
 #wallformat {
     position: absolute;
     top: 1080px;
-    left: 0px;
+    left: 100px;
+    width: 1024x;
+    height: 1024x;
     z-index: 1;
 }

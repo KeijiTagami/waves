@@ -1,3 +1,5 @@
+var TF_TYPE = "webgl"
+
 var RESOLUTION = 256;
 
 

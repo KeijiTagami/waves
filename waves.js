@@ -23,12 +23,14 @@ class Main {
         this.simulator = new Simulator()
         this.camera_fix = new Camera();
         this.camera = new Camera();
-        this.delta_time = 0.10
-        this.slow = 10
-        this.delta_white = 5
-        this.min_batch = 3
-        this.max_batch = 3
-        this.max_blue = 1
+
+        this.delta_time = 0.1
+        this.slow = 1
+        this.delta_white = 10
+        this.min_batch = 1
+        this.max_batch = 2
+        this.max_blue = 10
+
         this.running = false
 
         setupSlider("#size", this.updateSize.bind(this),
@@ -85,24 +87,44 @@ class Main {
         if (this.running) {
             if (this.blue.length < this.max_blue) {
                 this.simulator.update(this.delta_time)
-                const pixels = this.simulator.render(this.camera.getViewMatrix(), this.camera.getPosition())
-                const imageData = new ImageData(Uint8ClampedArray.from(pixels), OUTPUT_WIDTH, OUTPUT_HEIGHT)
-                const w = OUTPUT_WIDTH
-                const h = OUTPUT_HEIGHT
-                for (var y = 0; y < h; y += 1) {
-                    for (var x = 0; x < w; x += 1) {
-                        for (var z = 0; z < 4; z += 1) {
-                            imageData.data[4 * ((h - y - 1) * w + x) + z] = pixels[4 * (h * y + x) + z]
+
+                const blue = this.simulator.render(this.camera.getViewMatrix(), this.camera.getPosition())
+                {
+                    const w = OUTPUT_WIDTH
+                    const h = OUTPUT_HEIGHT
+                    const imageData = this.canvas_blue_ctx.createImageData(w, h)
+                    for (var y = 0; y < h; y += 1) {
+                        for (var x = 0; x < w; x += 1) {
+                            for (var z = 0; z < 4; z += 1) {
+                                imageData.data[4 * (w * (h - y - 1) + x) + z] = blue[4 * (w * y + x) + z]
+                            }
                         }
                     }
+                    this.blue.push(imageData)
                 }
-                this.blue.push(imageData)
 
-                const wall = this.simulator.output(this.camera_fix.getViewMatrix())
-                this.wall.push(wall)
-                if (this.blue_counter % this.delta_white == 0) {
-                    this.data.push(wall)
+                const data = this.simulator.output(this.camera_fix.getViewMatrix())
+                {
+                    const w = OUTPUT_WIDTH + 2 * WHITE_MARGIN
+                    const h = OUTPUT_HEIGHT + 2 * WHITE_MARGIN
+                    const imageData = this.canvas_wall_ctx.createImageData(w, h)
+                    for (var y = 0; y < h; y += 1) {
+                        for (var x = 0; x < w; x += 1) {
+                            const pd = w * (h - y - 1) + x
+                            const z = 255 * (0.15 * data[(w * y + x) * 4] + 0.5)
+                            imageData.data[4 * pd + 0] = z
+                            imageData.data[4 * pd + 1] = z
+                            imageData.data[4 * pd + 2] = z
+                            imageData.data[4 * pd + 3] = 255
+                        }
+                    }
+                    this.wall.push(imageData)
                 }
+
+                if (this.blue_counter % this.delta_white == 0) {
+                    this.data.push(data)
+                }
+
                 this.blue_counter += 1
                 console.log("blue", this.blue.length)
             }
@@ -165,50 +187,12 @@ class Main {
                 const wall = this.wall.shift()
                 this.canvas_blue_ctx.putImageData(blue, 0, 0)
                 this.canvas_white_ctx.putImageData(white, 0, 0);
-                //this.setWall(wall)
+                this.canvas_wall_ctx.putImageData(wall, 0, 0);
                 setTimeout(this.render.bind(this), 1000 * this.slow * this.delta_time)
             } else {
                 setTimeout(this.render.bind(this), 10)
             }
         }
-    }
-    
-    setWall(pixels) {
-        //壁フォーマットのレンダリング
-        const wf_wid=1080//フォーマット全体の幅(2k基準で1080)
-        const wf_hei=450//フォーマット全体の高さ(2k基準で450)
-        const wf_wid_3=wf_wid/3//一つのフォーマット幅(2k基準で360)
-        const resolution=1024;
-
-        // canvasInvisibleに描画
-        let canvasInvisible=document.createElement('canvas');
-        canvasInvisible.width=resolution;
-        canvasInvisible.height=resolution;
-        let ctxInv = canvasInvisible.getContext('2d');
-        const imageData=ctxInv.createImageData(resolution,resolution);//canvasに配置する高さデータ
-        for(let i=0; i <imageData.data.length;i+=4){//高さデータを設定する
-            const ind=i/4;
-            const row=resolution-(ind/resolution)|0;
-            const col=ind % resolution;          
-            const height=(pixels[(row*resolution+col)*4]*0.15+0.5)*255;//法線の分は飛ばすので*4
-            imageData.data[i+0]=height;
-            imageData.data[i+1]=height;
-            imageData.data[i+2]=height;
-            imageData.data[i+3]=255;
-        }
-        ctxInv.putImageData(imageData,0,0);//不可視キャンバス
-        
-        this.canvas2ctx.fillStyle='rgb(0,0,0)'//黒
-        this.canvas2ctx.clearRect(0,0,wf_wid,wf_hei)//壁部分のみ消去
-        const scale=30/51;//プロジェクターの系から壁の系へのスケーリング
-        this.canvas2ctx.scale(scale,scale);
-        this.canvas2ctx.drawImage(canvasInvisible,1/scale*240,1/scale*(-120));
-        this.canvas2ctx.scale(1/scale,1/scale);
-        this.canvas2ctx.fillStyle='rgb(0,0,0)'//黒：LEDを使わない
-        this.canvas2ctx.fillRect(0,0,wf_wid_3,wf_hei)//LED
-        
-        this.canvas2ctx.fillStyle='rgb(255,255,255)'//(白：最大速度)
-        this.canvas2ctx.fillRect(wf_wid_3*2,0,wf_wid_3,wf_hei)//キネ速度
     }
 
     updateSize(e, o) {
