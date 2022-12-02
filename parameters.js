@@ -5,7 +5,7 @@ var DELTA_TIME = 0.2, // シミュレーション内でのフレーム時間
     DELTA_WHITE =  5, // 青何枚につき白を表示するか
     MIN_STOCK = 100,  // これだけためてからスタートする
     MAX_STOCK = 1000, // 何枚までためるか
-    BATCH = 10        // worker が1回で計算するフレーム数
+    BATCH = 5         // worker が1回で計算するフレーム数
 
 
 var RESOLUTION = 256;
