@@ -25,7 +25,7 @@ class Simulator {
         this.spectrumFramebuffer = this.framebuffer(null, 4, 2);
         this.tmpSpectrumFramebuffer = this.framebuffer(null, 4, 2);
         this.elevationFramebuffer = this.framebuffer();
-        this.outputFramebuffer = this.framebuffer(null, 4, 1, OUTPUT_WIDTH + 2 * WHITE_MARGIN, OUTPUT_HEIGHT + 2 * WHITE_MARGIN);
+        this.outputFramebuffer = this.framebuffer(null, 4, 1, W, H);
 
         this.initialSpectrumProgram = this.program('initial_spectrum').
             uniform1i('u_wave', this.waveFramebuffer.unit[0]);
@@ -152,7 +152,7 @@ class Simulator {
         gl.readPixels(0, 0, W, H, gl.RGBA, gl.FLOAT, pixels);
         this.outputFramebuffer.inactivate();
 
-        const imageData = new ImageData(w, h)
+        const imageData = new ImageData(W, H)
         for (var y = 0; y < H; y += 1) {
             for (var x = 0; x < W; x += 1) {
                 const pd = W * (H - y - 1) + x
