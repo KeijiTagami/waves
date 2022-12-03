@@ -93,8 +93,8 @@ class Main {
         this.simulator.render(this.camera.getViewMatrix(), this.camera.getPosition());
         const pixels = this.simulator.output(this.camera_fix.getViewMatrix());
         this.setWall(pixels);//壁のセット
-        if (this.Counter>100)
-            this.setWhitewave(pixels);
+        // if (this.Counter>100)
+        //     this.setWhitewave(pixels);
         requestAnimationFrame(this.render.bind(this));
         this.Counter+=1;
     }
