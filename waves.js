@@ -32,9 +32,21 @@ class Main {
                 this.getSimulation(m.data.value)
             }
         })
+        canvas_white.addEventListener('click',(e)=>{
+            this.hBgm=document.querySelector("#high_sound");
+            this.lBgm=document.querySelector("#low_sound");
+            this.hBgm.play();
+            this.hBgm.volume=0;
+            this.lBgm.play();
+            this.hBgm.volume=1;
+
+        },false);
+
     }
 
     setup() {
+        
+        
         navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
             const audio = new AudioContext()
             this.audio_analyzer = audio.createAnalyser()
@@ -52,6 +64,7 @@ class Main {
             })
             this.run()
         })
+                
     }
 
     run() {
