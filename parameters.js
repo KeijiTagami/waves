@@ -21,6 +21,12 @@ var INITIAL_SIZE = 200,
     MIN_CHOPPINESS = 0,
     MAX_CHOPPINESS = 5.0;
 
+var WF_WID=1080,//フォーマット全体の幅(2k基準で1080)
+    WF_HEI=450,//フォーマット全体の高さ(2k基準で450)
+    WF_WID_3=WF_WID/3,//一つのフォーマット幅(2k基準で360)
+    WALL_SCALE=30/51;//プロジェクタから壁の高さデータのスケール
+
+
 var FOV = 40 * (Math.PI / 180),
     NEAR = 100,
     FAR = 2000,
