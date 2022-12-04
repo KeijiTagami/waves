@@ -5,7 +5,6 @@
     <meta charset="utf-8">
     <title>Ocean Wave Simulation</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <link href="waves.css" rel="stylesheet" type="text/css">
     <script src="ui.js"></script>
     <script src="parameters.js"></script>
@@ -13,6 +12,12 @@
 </head>
 
 <body>
+    <audio id="low_sound" preload loop>
+        <source src="sound/ryoten海-揺らぎ&低音ver.wav" type ="audio/wav">
+    </audio>
+    <audio id="high_sound" preload loop>
+        <source src="sound/ryoten海-揺らぎ&高音ver.wav" type ="audio/wav">
+    </audio>
     <div id="ui">
         <button id="run"></button>
     </div>

@@ -1,11 +1,11 @@
 var TF_TYPE = "wasm"
 
 var DELTA_TIME = 0.1, // シミュレーション内でのフレーム時間
-    SLOW = 10,        // 実時間との比、大きいとゆっくり再生
-    DELTA_WHITE = 2,  // 青何枚につき白を表示するか
+    SLOW = 1,        // 実時間との比、大きいとゆっくり再生
+    DELTA_WHITE = 100,  // 青何枚につき白を表示するか
     MIN_STOCK = 10,   // これだけためてからスタートする
-    MAX_STOCK = 100,  // 何枚までためるか
-    BATCH = 4         // worker が1回で計算するフレーム数
+    MAX_STOCK = 200,  // 何枚までためるか
+    BATCH = 100         // worker が1回で計算するフレーム数
 
 
 var RESOLUTION = 256;

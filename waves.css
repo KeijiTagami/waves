@@ -27,8 +27,8 @@ html {
 
 #blue_wave {
     position: absolute;
-    top: 56px;
-    left: 156px;
+    top: 84px;
+    left: 504px;
     width: 912px;
     height: 912px;
     z-index: 3;
@@ -36,8 +36,8 @@ html {
 
 #white_wave {
     position: absolute;
-    top: 56px;
-    left: 156px;
+    top: 84px;
+    left: 504px;
     width: 912px;
     height: 912px;
     z-index: 4;
