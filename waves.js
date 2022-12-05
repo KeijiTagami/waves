@@ -112,9 +112,11 @@ class Main {
 
     changeParameter() {
         this.audio_analyzer.getFloatFrequencyData(this.freqData)
-        const min_val = -70
-        const max_val = -20
+        const min_val =-160 //-70
+        const max_val =-100 //-20
         var val = this.freqData[100]
+
+        console.log(val);
         val = (val - min_val) / (max_val - min_val)
         if (val < 0) { val = 0 }
         if (val > 1) { val = 1 }
