@@ -14,8 +14,8 @@ class Main {
         this.canvas_white_ctx = canvas_white.getContext('2d');
 
         const canvas_wall = document.getElementById('wallformat');//壁のキャンバス
-        canvas_wall.width= 1920;
-        canvas_wall.height=1080;
+        canvas_wall.width= WF_WID;
+        canvas_wall.height=WF_HEI;
         this.setWallInit(canvas_wall);
         //オフスクリーンキャンバスのセッティング（こいつに高さデータを描画し、スケーリングしたものをcanvas_wallに貼り付ける）
         this.canvasInvisible=document.createElement('canvas');
@@ -74,8 +74,8 @@ class Main {
     }
     setWallInit(canvas_wall){
         this.canvas_wall_ctx = canvas_wall.getContext('2d');
-        this.canvas_wall_ctx.fillStyle='rgb(100,100,100)'//灰色
-        this.canvas_wall_ctx.fillRect(0, 0, canvas_wall.width, canvas_wall.height);//ベースラインの色を設定
+        // this.canvas_wall_ctx.fillStyle='rgb(100,100,100)'//灰色
+        // this.canvas_wall_ctx.fillRect(0, 0, canvas_wall.width, canvas_wall.height);//ベースラインの色を設定
         this.canvas_wall_ctx.fillStyle='rgb(0,0,0)'//黒：LEDを使わない
         this.canvas_wall_ctx.fillRect(0,0,WF_WID_3,WF_HEI)//LED
         this.canvas_wall_ctx.fillStyle='rgb(127,127,127)'//(グレー:中間位置)
