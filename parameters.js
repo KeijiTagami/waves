@@ -1,3 +1,7 @@
+var OUTPUT_WIDTH = 640
+    OUTPUT_HEIGHT = 400
+var WHITE_MARGIN = 40 //モデルによって上下左右クリップされる
+
 var TF_TYPE = "wasm"
 //var TF_TYPE = "custom-webgl"
 
@@ -40,10 +44,6 @@ var CLEAR_COLOR = [1.0, 1.0, 1.0, 1.0],
     SKY_COLOR = [1.0, 1.0, 1.0],
     SUN_DIRECTION = [1.0, 1.0, 1.0],
     OUTPUT_CLEAR_COLOR = [0.0, 0.0, 0.0, 1.0];
-
-var WHITE_MARGIN = 18;//モデルによって上下左右クリップされる
-var OUTPUT_WIDTH = 640
-    OUTPUT_HEIGHT = 400
 
 const M = WHITE_MARGIN
 const w = OUTPUT_WIDTH

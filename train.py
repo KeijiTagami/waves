@@ -11,7 +11,7 @@ import requests
 import random
 from PIL import Image
 import cv2
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 
 
 #0,1のgpuのうち片方を使う
@@ -64,11 +64,20 @@ class ProgressBar(tf.keras.callbacks.Callback):
         self.progress = tqdm(total=self.params["epochs"], unit="epochs")
     
     def on_epoch_end(self, epoch, logs):
-        self.progress.postfix = f"loss: {logs['loss']:.5f}, val_loss: {logs['val_loss']:.5f}"
+        self.progress.postfix = f"loss: {logs['loss']:.5f}"
         self.progress.update(1)
 
     def on_train_end(self, logs):
         self.progress.close()
+
+
+def gauss2D(sigma=1.0):
+    size = int(np.ceil(2 * sigma))
+    gsize = 1 + 2 * size
+    mesh = np.linspace(-2.0, 2.0, gsize)
+    x, y = np.meshgrid(mesh, mesh)
+    h = np.exp( -(x*x + y*y) / 2)
+    return size, h / h.sum()
 
 
 #2つのパスで畳み込みを繰り返すモデル(B:プーリングあり, A:プーリングなし)
@@ -89,7 +98,7 @@ def gen_model(layers, scale, lr, gauss=1.0):
         size=(scale, scale)
     )(B) #Blast：畳み込み後の拡大
 
-    gsize, gkernel = gauss2D(1.0)
+    gsize, gkernel = gauss2D(gauss)
     glayer = tf.keras.layers.DepthwiseConv2D(2 * gsize + 1, use_bias=False, name="gauss")
     B = glayer(B)
     glayer.set_weights([np.tile(gkernel[..., None, None], [1, 1, num, 1])])
@@ -130,16 +139,25 @@ def gen_model(layers, scale, lr, gauss=1.0):
     return model, shrinksize * scale + gsize #分岐Bのサイズだけ減る
 
 
-def get_model(layer, s, lr=0.001, gauss=1.0, epochs=10000, note_title="layer_adjustment"):
-    model, margin = gen_model(layers=layer, scale=s, lr=lr, gauss=1.0)
+def get_model(layer, s, lr=0.001, gauss=1.0, min_delta=1e-6, patience=10, epochs=10000, note_title="layer_adjustment"):
+    model, margin = gen_model(layers=layer, scale=s, lr=lr, gauss=gauss)
+    print('margin', margin)
     true_images=genTrueImages(images,margin)
-    dataX = tf.data.Dataset.from_tensor_slices([surfaces[0][None, :, :, :3], surfaces[1][None, :, :, :3]])#入力側のデータ
-    dataY = tf.data.Dataset.from_tensor_slices([true_images[0], true_images[1]])#出力側のデータ
+    dataX = tf.data.Dataset.from_tensor_slices([
+        surfaces[0][None, :, :, :3],
+        surfaces[1][None, :, :, :3],
+        surfaces[2][None, :, :, :3],
+    ])#入力側のデータ
+    dataY = tf.data.Dataset.from_tensor_slices([
+        true_images[0],
+        true_images[1],
+        true_images[2],
+    ])#出力側のデータ
     datasets= tf.data.Dataset.zip((dataX,dataY))
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=f"logs/{note_title}/l{layer[0][1]}_s{s}_lr{lr}")
-    es_callback = tf.keras.callbacks.EarlyStopping(monitor='loss', min_delta=1e-5, patience=10)
+    es_callback = tf.keras.callbacks.EarlyStopping(monitor='loss', min_delta=min_delta, patience=patience)
     result = model.fit(datasets, epochs=epochs,
-               validation_data=[surfaces[2][None, :, :, :3], true_images[2]],
+               #validation_data=[surfaces[2][None, :, :, :3], true_images[2]],
                callbacks=[ProgressBar(), es_callback, tensorboard_callback],verbose=0)
     model.save_weights(f'l{layer[0][1]}_s{s}_lr{lr}_last.h5')#最後の重み
     tfjs.converters.save_keras_model(model,f"./lightModel")#重みの保存
@@ -160,4 +178,4 @@ for s_path  in surfaces_path:
 for i_path,size in zip(image_path,image_sizes):
     images.append(image_load(i_path,size,cutting_rate))
 
-result, true_images = get_model([(20, 3), (20, 1)], 4, 0.0001)
+result, true_images = get_model([(20, 3), (20, 1)], 8, lr=0.0001, gauss=4, min_delta=1e-5, patience=10)
