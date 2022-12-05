@@ -1,11 +1,12 @@
 var TF_TYPE = "wasm"
+//var TF_TYPE = "custom-webgl"
 
-var DELTA_TIME = 0.1, // シミュレーション内でのフレーム時間
-    SLOW = 10,        // 実時間との比、大きいとゆっくり再生
-    DELTA_WHITE = 2,  // 青何枚につき白を表示するか
-    MIN_STOCK = 10,   // これだけためてからスタートする
-    MAX_STOCK = 100,  // 何枚までためるか
-    BATCH = 4         // worker が1回で計算するフレーム数
+var DELTA_TIME = 0.1,  // シミュレーション内でのフレーム時間
+    SLOW = 1,          // 実時間との比、大きいとゆっくり再生
+    DELTA_WHITE = 6,   // 青何枚につき白を表示するか
+    MIN_STOCK = 100,   // これだけためてからスタートする
+    MAX_STOCK = 1000,  // 何枚までためるか
+    BATCH = 1          // worker が1回で計算するフレーム数
 
 
 var RESOLUTION = 256;
@@ -21,7 +22,7 @@ var INITIAL_SIZE = 200,
     MIN_CHOPPINESS = 0,
     MAX_CHOPPINESS = 5.0;
 
-var FOV = 40 * (Math.PI / 180),
+var FOV = 30 * (Math.PI / 180),
     NEAR = 100,
     FAR = 2000,
     MIN_ASPECT = 16 / 9;
@@ -40,13 +41,15 @@ var CLEAR_COLOR = [1.0, 1.0, 1.0, 1.0],
     SUN_DIRECTION = [1.0, 1.0, 1.0],
     OUTPUT_CLEAR_COLOR = [0.0, 0.0, 0.0, 1.0];
 
-var WHITE_MARGIN=56;//モデルによって上下左右56pxクリップされる
-var OUTPUT_WIDTH = 1024 - 2 * 56,
-    OUTPUT_HEIGHT = 1024 - 2 * 56,
-    OUTPUT_SIZE_X = parseInt(1229/4),//壁の幅
-    OUTPUT_SIZE_Y = parseInt(1543/4),//壁の高さ
-    OUTPUT_SIZE_OFFSET_X = parseInt(1433/4),//壁の位置xのオフセット
-    OUTPUT_SIZE_OFFSET_Y = parseInt(514/4);//壁の位置yのオフセット
+var WHITE_MARGIN = 18;//モデルによって上下左右クリップされる
+var OUTPUT_WIDTH = 640
+    OUTPUT_HEIGHT = 400
+
+const M = WHITE_MARGIN
+const w = OUTPUT_WIDTH
+const h = OUTPUT_HEIGHT
+const W = w + 2 * M
+const H = h + 2 * M
 
 var SENSITIVITY = 1.0;
 

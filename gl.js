@@ -63,17 +63,25 @@ class Framebuffer {
     static curr_unit = 0;
 
     constructor(gl, data=null, size=4, count=1, width=RESOLUTION, height=RESOLUTION) {
-        let internalformat;
-        let format;
+        let internalformat
+        let format
+        let type
         if (size == 4) {
-            internalformat = gl.RGBA32F;
+            internalformat = gl.RGBA32F
             format = gl.RGBA;
+            type = gl.FLOAT
         } else if (size == 2) {
-            internalformat = gl.RG32F;
-            format = gl.RG;
+            internalformat = gl.RG32F
+            format = gl.RG
+            type = gl.FLOAT
         } else if (size == 1) {
-            internalformat = gl.R32F;
-            format = gl.RED;
+            internalformat = gl.R32F
+            format = gl.RED
+            type = gl.FLOAT
+        } else if (size == -4) {
+            internalformat = gl.RGBA
+            format = gl.RGBA
+            type = gl.UNSIGNED_BYTE
         }
         const unit = [];
         const textures = [];
@@ -83,7 +91,7 @@ class Framebuffer {
             Framebuffer.curr_unit += 1;
             const texture = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.texImage2D(gl.TEXTURE_2D, 0, internalformat, width, height, 0, format, gl.FLOAT, data);
+            gl.texImage2D(gl.TEXTURE_2D, 0, internalformat, width, height, 0, format, type, data);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);

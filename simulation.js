@@ -3,11 +3,12 @@ importScripts("./gl.js")
 
 class Simulator {
 
-    constructor(canvas) {
-        canvas.width = OUTPUT_WIDTH + 2 * WHITE_MARGIN
-        canvas.height = OUTPUT_HEIGHT + 2 * WHITE_MARGIN
-        canvas.visiblity = "hidden"
-        this.gl = canvas.getContext('webgl2');
+    constructor(gl, canvas2) {
+        gl.canvas.width = OUTPUT_WIDTH + 2 * WHITE_MARGIN
+        gl.canvas.height = OUTPUT_HEIGHT + 2 * WHITE_MARGIN
+        gl.canvas.visiblity = "hidden"
+        this.canvas2d = canvas2.getContext("2d", {willReadFrequently: true})
+        this.gl = gl
         this.setWindSpeed(INITIAL_WIND_SPEED);
         this.setWindDirection(INITIAL_WIND_DIRECTION);
         this.setSize(INITIAL_SIZE);
@@ -122,24 +123,13 @@ class Simulator {
             uniformMatrix4fv('u_viewMatrix', false, viewMatrix).
             uniform3fv('u_cameraPosition', cameraPosition);
         this.oceanBuffer.draw();
-        var pixels = new Uint8Array(w * h * 4);
-        gl.readPixels(WHITE_MARGIN, WHITE_MARGIN, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-        
-        const imageData = new ImageData(w, h)
-        for (var y = 0; y < h; y += 1) {
-            for (var x = 0; x < w; x += 1) {
-                for (var z = 0; z < 4; z += 1) {
-                    imageData.data[4 * (w * (h - y - 1) + x) + z] = pixels[4 * (w * y + x) + z]
-                }
-            }
-        }
-        return imageData
+        this.canvas2d.drawImage(this.gl.canvas, WHITE_MARGIN, WHITE_MARGIN, w, h, 0, 0, w, h)
+        return this.canvas2d.getImageData(0, 0, w, h)
     }
 
     output(viewMatrix) {
         const projectionMatrix = m4.perspective(FOV, W / H, NEAR, FAR);
         const gl = this.gl;
-        this.outputFramebuffer.activate();
         gl.enable(gl.DEPTH_TEST);
         gl.clearColor.apply(gl, OUTPUT_CLEAR_COLOR)
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -147,23 +137,12 @@ class Simulator {
         this.outputProgram.activate()
             .uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix)
             .uniformMatrix4fv('u_viewMatrix', false, viewMatrix)
+        this.outputFramebuffer.activate();
         this.oceanBuffer.draw();
         var pixels = new Float32Array(W * H * 4);
         gl.readPixels(0, 0, W, H, gl.RGBA, gl.FLOAT, pixels);
         this.outputFramebuffer.inactivate();
-
-        const imageData = new ImageData(W, H)
-        for (var y = 0; y < H; y += 1) {
-            for (var x = 0; x < W; x += 1) {
-                const pd = W * (H - y - 1) + x
-                const z = 255 * (0.15 * pixels[(W * y + x) * 4] + 0.5)
-                imageData.data[4 * pd + 0] = z
-                imageData.data[4 * pd + 1] = z
-                imageData.data[4 * pd + 2] = z
-                imageData.data[4 * pd + 3] = 255
-            }
-        }
-        return [imageData, pixels]
+        return pixels
     }
 
     setWindSpeed(val) {

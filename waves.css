@@ -27,27 +27,15 @@ html {
 
 #blue_wave {
     position: absolute;
-    top: 56px;
-    left: 156px;
-    width: 912px;
-    height: 912px;
     z-index: 3;
 }
 
 #white_wave {
     position: absolute;
-    top: 56px;
-    left: 156px;
-    width: 912px;
-    height: 912px;
     z-index: 4;
 }
 
 #wallformat {
     position: absolute;
-    top: 1080px;
-    left: 100px;
-    width: 1024x;
-    height: 1024x;
     z-index: 1;
 }

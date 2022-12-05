@@ -6,16 +6,29 @@ class Main {
         const canvas_blue = document.getElementById('blue_wave');
         canvas_blue.width = OUTPUT_WIDTH
         canvas_blue.height = OUTPUT_HEIGHT
+        canvas_blue.top = OUTPUT_WIDTH
+        canvas_blue.style.top = 10 + "pt"
+        canvas_blue.style.left = 50 + "pt"
+        canvas_blue.style.width = OUTPUT_WIDTH + "pt"
+        canvas_blue.style.height = OUTPUT_HEIGHT + "pt"
         this.canvas_blue_ctx = canvas_blue.getContext('2d');
 
         const canvas_white = document.getElementById('white_wave');
         canvas_white.width = OUTPUT_WIDTH
         canvas_white.height = OUTPUT_HEIGHT
+        canvas_white.style.top = 10 + "pt"
+        canvas_white.style.left = 50 + "pt"
+        canvas_white.style.width = OUTPUT_WIDTH + "pt"
+        canvas_white.style.height = OUTPUT_HEIGHT + "pt"
         this.canvas_white_ctx = canvas_white.getContext('2d');
 
         const canvas_wall = document.getElementById('wallformat');
-        canvas_wall.width = OUTPUT_WIDTH + 2 * WHITE_MARGIN
-        canvas_wall.height = OUTPUT_HEIGHT + 2 * WHITE_MARGIN
+        canvas_wall.width = OUTPUT_WIDTH
+        canvas_wall.height = OUTPUT_HEIGHT
+        canvas_wall.style.top = (10 + OUTPUT_HEIGHT) + "pt"
+        canvas_wall.style.left = 50 + "pt"
+        canvas_wall.style.width = OUTPUT_WIDTH + "pt"
+        canvas_wall.style.height = OUTPUT_HEIGHT + "pt"
         this.canvas_wall_ctx = canvas_wall.getContext('2d');
 
         this.running = false
@@ -23,15 +36,19 @@ class Main {
 
         this.worker = new Worker("worker.js")
         this.worker.addEventListener("message", m => {
-            if (m.data.type == "init") {
-                const canvas = document.createElement("canvas").transferControlToOffscreen()
-                this.worker.postMessage({type: "canvas", value: canvas}, [canvas])
-            } else if (m.data.type == "ready") {
+            if (m.data.type == "ready") {
                 this.setup()
             } else if (m.data.type == "output") {
                 this.getSimulation(m.data.value)
             }
         })
+        const canvas1 = document.createElement("canvas").transferControlToOffscreen()
+        canvas1.width = OUTPUT_WIDTH
+        canvas1.height = OUTPUT_HEIGHT
+        const canvas2 = document.createElement("canvas").transferControlToOffscreen()
+        canvas2.width = OUTPUT_WIDTH
+        canvas2.height = OUTPUT_HEIGHT
+        this.worker.postMessage({type: "canvas", canvas1: canvas1, canvas2: canvas2}, [canvas1, canvas2])
     }
 
     setup() {
@@ -98,6 +115,7 @@ class Main {
     getSimulation(data) {
         console.log("get")
         this.images = this.images.concat(data)
+        console.log(this.images.length)
         setTimeout(this.requestSimulation.bind(this), 10)
         if (this.render_interval == null) {
             if (this.images.length >= MIN_STOCK) {
