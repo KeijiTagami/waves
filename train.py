@@ -178,4 +178,4 @@ for s_path  in surfaces_path:
 for i_path,size in zip(image_path,image_sizes):
     images.append(image_load(i_path,size,cutting_rate))
 
-result, true_images = get_model([(20, 3), (20, 1)], 8, lr=0.0001, gauss=4, min_delta=1e-5, patience=10)
+result, true_images = get_model([(20, 3), (20, 1)], 4, lr=0.0001, gauss=3, min_delta=1e-5, patience=10)

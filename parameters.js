@@ -1,6 +1,6 @@
 var OUTPUT_WIDTH = 640
     OUTPUT_HEIGHT = 400
-var WHITE_MARGIN = 40 //モデルによって上下左右クリップされる
+var WHITE_MARGIN = 22 //モデルによって上下左右クリップされる
 
 var TF_TYPE = "wasm"
 //var TF_TYPE = "custom-webgl"
