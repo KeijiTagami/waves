@@ -27,19 +27,19 @@ html {
 
 #blue_wave {
     position: absolute;
-    top: 84px;
-    left: 504px;
-    width: 912px;
-    height: 912px;
+    top: 0px;
+    left: 420px;
+    width: 1080px;
+    height: 1080px;
     z-index: 3;
 }
 
 #white_wave {
     position: absolute;
-    top: 84px;
-    left: 504px;
-    width: 912px;
-    height: 912px;
+    top: 0px;
+    left: 420px;
+    width: 1080px;
+    height: 1080px;
     z-index: 4;
 }
 
@@ -50,5 +50,25 @@ html {
     left: 0px;
     width: 1920px;
     height: 1080px;
-    z-index: 1;  
+    z-index: 6;  
+}
+
+#frame1{
+    position:absolute;
+    background: #0000f0;
+    top:0px;
+    left:0px;
+    width:1920px;
+    height:1080px;
+    z-index: 2;
+}
+#frame2{
+    position:absolute;
+    background: #00f0f0;
+    top:1080px;
+    left:0px;
+    width:1920px;
+    height:1080px;
+    z-index: 1;
+
 }
