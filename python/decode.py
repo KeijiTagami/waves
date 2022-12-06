@@ -1,5 +1,6 @@
 #画像データ前処理, 描画用
 import numpy as np
+import matplotlib.pyplot as plt
 #機械学習
 import tensorflow as tf
 import tensorflowjs as tfjs
@@ -13,6 +14,7 @@ from PIL import Image
 import cv2
 from tqdm import tqdm
 import os
+
 
 
 #0,1のgpuのうち片方を使う
@@ -46,6 +48,22 @@ def image_load(path,size,cutting_rate=0.05):
     img_clip=img_clip/255
     img_resize=cv2.resize(img_clip,dsize=[1024]*2)
     return img_resize
+def load_testsurface():
+    #シミュレーションデータを5つロード
+    OUTPUT_SIZE=1024
+    n=5
+    surface_other=[]
+    for i in  range(1,n+1):
+        surface_other.append(surface_load(f"surfacedata/oceandata_{i}.dat"))
+    #シミュレーションの光学データ, 空撮のトーン変換画像を5つロード
+    optics_other=[]
+    optics_other_adjusted=[]
+    for i in  range(1,n+1):
+        optics_other.append(image_load(f"surfacedata/oceandata_{i}.png",1024,0))
+        optics_other_adjusted.append(image_load(f"surfacedata/oceandata_{i}_adjust.png",1024,0))
+    return surface_other, optics_other_adjusted
+
+
 
 
 def genTrueImages(images,margin):
@@ -58,19 +76,81 @@ def genTrueImages(images,margin):
     return true_images
     #print("before:",images[0].shape,"after:",true_images[0].shape)
 
+def mergeRGBA(alpha_img):
+    color_img=np.full((alpha_img.shape[0],alpha_img.shape[1],3),1.0)#White
+    merge_img=np.concatenate([color_img,alpha_img],axis=2)
+    return merge_img
+def plotOceanHeight(data,axis,title,ticks_invisible=1):
+    h=data
+    h=(h-h.min())/(h.max()-h.min())
+    axis.imshow(1-h, cmap='Blues', vmin=0, vmax=1)
+    if (title != ""):
+        axis.set_title(title)
+    if ticks_invisible==1:
+        axis.xaxis.set_ticks([])#軸の値を消去
+        axis.yaxis.set_ticks([])
+        
+def plot_whiteimg(white_img,axis, title):
+    axis.set_facecolor("black")#背景色を黒に
+    axis.imshow(white_img)
+    axis.set_title(title)
+    axis.xaxis.set_ticks([])#軸の値を消去
+    axis.yaxis.set_ticks([])
 
-class ProgressBar(tf.keras.callbacks.Callback):
     
-    def on_train_begin(self, logs):
-        self.progress = tqdm(total=self.params["epochs"], unit="epochs")
+def reconstruct(model,text=["train1","train2","train3"]):
+    out_imgs=[]
+    m=0.2
+    a=0.2
+    f=lambda x:(1+a)*x/m-a
+    for surface in surfaces:
+        out = model.predict(surface[None, ..., :3])[0]#モデルからデコード
+        #out=f(out)#ヒストグラム調整
+        #out=np.clip(out,0,1)#0~1内に収める
+        out_imgs.append(mergeRGBA(out))#白画像と透明度をマージした画像を格納
     
-    def on_epoch_end(self, epoch, logs):
-        self.progress.postfix = f"loss: {logs['loss']:.5f}"
-        self.progress.update(1)
-
-    def on_train_end(self, logs):
-        self.progress.close()
-
+    print(out_imgs[0].shape,true_images[0][0].shape)#true_imagesがtensor形式であることに注意
+    
+    fig, axis = plt.subplots(3, 3, figsize=(3*3, 3*2))
+    
+    for i,surface, out_img in zip(range(3),surfaces,out_imgs):
+        if i==0:#最初の行
+            plotOceanHeight(surface[...,0],axis[i][0],"input_data(height)")
+            plot_whiteimg(out_img,axis[i][1],"out_image")
+            plot_whiteimg(mergeRGBA(true_images[i][0][...,None]),axis[i][2],"true_image")
+        else:
+            plotOceanHeight(surface[...,0],axis[i][0],"")
+            plot_whiteimg(out_img,axis[i][1],"")
+            plot_whiteimg(mergeRGBA(true_images[i][0][...,None]),axis[i][2],"")
+        axis[0][0].set_ylabel(text[0])#行ごとにラベルを付与
+        axis[1][0].set_ylabel(text[1])
+        axis[2][0].set_ylabel(text[2])
+    fig.show()
+    #return out_imgs
+def predict_otherdata(model,surface_other,optics_other_adjusted):
+    test_n=5
+    fig, axis = plt.subplots(3, test_n, figsize=(3*test_n, 3*3))
+    target_size=margin
+    #m=0.35
+    #a=0.4
+    #f=lambda x:(1+a)*x/m-a
+    for i in range(test_n):    
+        if i==0:
+            axis[0][0].set_ylabel("input_data(height)")
+            axis[1][0].set_ylabel("out_image")
+            axis[2][0].set_ylabel("merge_image")
+        out = model.predict(surface_other[i][None, ..., :3])[0]
+        #out=f(out)#ヒストグラム調整
+        out=np.clip(out,0,1)#0~1内に収める
+        out_image=mergeRGBA(out)
+        #optics_image=cv2.resize(optics_other_adjusted[i],dsize=[target_size]*2)#出力の大きさにリサイズ
+        optics_image=optics_other_adjusted[i][margin:-margin,margin:-margin]#出力の大きさにリサイズ
+        plotOceanHeight(surface_other[i][...,0],axis[0][i], f"test_{i+1}")
+        plot_whiteimg(out_image,axis[1][i],"")
+        axis[2][i].imshow(optics_image)
+        plot_whiteimg(out_image,axis[2][i],"")#上の画像に重ねていることに注意
+    #fig.savefig(f"./outputs/{note_title}/{identify}_test_all.png")
+    fig.show()
 
 def gauss2D(sigma=1.0):
     size = int(np.ceil(2 * sigma))
@@ -147,7 +227,7 @@ def get_model(layer, s, lr=0.001, gauss=1.0):
     model.load_weights(f'{new_dir_path}/{model_name}_last.h5')#重みをロード  
     print('model_name',model_name)
     true_images=genTrueImages(images,margin)
-    return model, true_images
+    return model, true_images,margin
 
 
 allocate_gpu_memory(0)
@@ -164,4 +244,8 @@ for s_path  in surfaces_path:
 for i_path,size in zip(image_path,image_sizes):
     images.append(image_load(i_path,size,cutting_rate))
 
-model, true_images = get_model([(20, 3), (20, 1)], 8, lr=0.0001, gauss=1)
+model, true_images,margin = get_model([(20, 3), (20, 1)], 8, lr=0.0001, gauss=1)
+reconstruct(model)
+
+testsurface,testimg=load_testsurface()
+predict_otherdata(model,testsurface,testimg)
