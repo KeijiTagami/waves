@@ -3,33 +3,48 @@
 class Main {
 
     constructor() {
+        const wave_offsetx=(1920-WAVE_WIDTH)/2;//波を1920*1080スクリーンの中心に配置
+        const wave_offsety=(1080-WAVE_HEIGHT)/2;
         const canvas_blue = document.getElementById('blue_wave');
         canvas_blue.width = OUTPUT_WIDTH
         canvas_blue.height = OUTPUT_HEIGHT
-        canvas_blue.top = OUTPUT_WIDTH
-        canvas_blue.style.top = 10 + "pt"
-        canvas_blue.style.left = 50 + "pt"
-        canvas_blue.style.width = OUTPUT_WIDTH + "pt"
-        canvas_blue.style.height = OUTPUT_HEIGHT + "pt"
+        canvas_blue.style.top = wave_offsety + "px"
+        canvas_blue.style.left = wave_offsetx + "px"
+        canvas_blue.style.width = WAVE_WIDTH + "px"
+        canvas_blue.style.height = WAVE_HEIGHT + "px"
         this.canvas_blue_ctx = canvas_blue.getContext('2d');
 
         const canvas_white = document.getElementById('white_wave');
         canvas_white.width = OUTPUT_WIDTH
         canvas_white.height = OUTPUT_HEIGHT
-        canvas_white.style.top = 10 + "pt"
-        canvas_white.style.left = 50 + "pt"
-        canvas_white.style.width = OUTPUT_WIDTH + "pt"
-        canvas_white.style.height = OUTPUT_HEIGHT + "pt"
+        canvas_white.style.top = wave_offsety + "px"
+        canvas_white.style.left = wave_offsetx + "px"
+        canvas_white.style.width = WAVE_WIDTH + "px"
+        canvas_white.style.height = WAVE_HEIGHT + "px"
         this.canvas_white_ctx = canvas_white.getContext('2d');
 
-        const canvas_wall = document.getElementById('wallformat');
-        canvas_wall.width = OUTPUT_WIDTH
-        canvas_wall.height = OUTPUT_HEIGHT
-        canvas_wall.style.top = (10 + OUTPUT_HEIGHT) + "pt"
-        canvas_wall.style.left = 50 + "pt"
-        canvas_wall.style.width = OUTPUT_WIDTH + "pt"
-        canvas_wall.style.height = OUTPUT_HEIGHT + "pt"
-        this.canvas_wall_ctx = canvas_wall.getContext('2d');
+        
+        const canvas_wallheight = document.getElementById('wall_height');
+        canvas_wallheight.width = OUTPUT_WIDTH
+        canvas_wallheight.height = OUTPUT_HEIGHT
+        const whs_width=parseInt(WALLHEIGHT_WIDTH*SCALE_WALLHEIGHT);//スケーリングした高さ画像の幅
+        canvas_wallheight.style.width = whs_width + "px"
+        canvas_wallheight.style.height = parseInt(WALLHEIGHT_HEIGHT*SCALE_WALLHEIGHT) + "px"
+        const wallheight_offsetx=(WF_WIDTH_3-whs_width)/2//高さの位置調整(幅は半々, 縦は上部が5, 下部が1の比)
+        const wallheight_offsety=-150
+        canvas_wallheight.style.top = 1080+wallheight_offsety + "px"//!後で位置を計算
+        canvas_wallheight.style.left = (WF_WIDTH_3+wallheight_offsetx) + "px"
+        this.canvas_wallheight_ctx = canvas_wallheight.getContext('2d');
+
+        const canvas_wallformat = document.getElementById('wallformat');
+        canvas_wallformat.width = WF_WIDTH;
+        canvas_wallformat.height = WF_HEIGHT;
+        canvas_wallformat.style.top = 1080 + "px"
+        canvas_wallformat.style.left = 0 + "px"
+        canvas_wallformat.style.width = WF_WIDTH + "px"
+        canvas_wallformat.style.height = WF_HEIGHT + "px"
+        this.canvas_wallformat_ctx = canvas_wallformat.getContext('2d');
+
 
         this.running = false
         this.images = []
@@ -69,6 +84,7 @@ class Main {
             })
             this.run()
         })
+        this.setWallInit();
     }
 
     run() {
@@ -136,9 +152,18 @@ class Main {
                 const [blue, white, wall] = this.images.shift()
                 this.canvas_blue_ctx.putImageData(blue, 0, 0)
                 this.canvas_white_ctx.putImageData(white, 0, 0);
-                this.canvas_wall_ctx.putImageData(wall, 0, 0);
+                this.canvas_wallheight_ctx.putImageData(wall, 0, 0);
             }
         }
+    }
+    setWallInit(){
+        this.canvas_wallformat_ctx.fillStyle='rgb(0,0,0)'//黒：LEDを使わない
+        this.canvas_wallformat_ctx.fillRect(0,0,WF_WIDTH_3,WF_HEIGHT)//LED
+        //位置(高さ)の部分には何もしない
+        // this.canvas_wallformat_ctx.fillStyle='rgb(127,127,127)'//(グレー:中間位置)
+        // this.canvas_wallformat_ctx.fillRect(WF_WIDTH_3,0,WF_WIDTH_3*2,WF_HEIGHT)//キネ位置
+        this.canvas_wallformat_ctx.fillStyle='rgb(255,255,255)'//(白：最大速度)
+        this.canvas_wallformat_ctx.fillRect(WF_WIDTH_3*2,0,WF_WIDTH_3*3,WF_HEIGHT)//キネ速度
     }
 }
 
