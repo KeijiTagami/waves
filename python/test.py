@@ -12,6 +12,7 @@ import random
 from PIL import Image
 import cv2
 from tqdm import tqdm
+import os
 
 
 #0,1のgpuのうち片方を使う
@@ -139,29 +140,14 @@ def gen_model(layers, scale, lr, gauss=1.0):
     return model, shrinksize * scale + gsize #分岐Bのサイズだけ減る
 
 
-def get_model(layer, s, lr=0.001, gauss=1.0, min_delta=1e-6, patience=10, epochs=10000, note_title="layer_adjustment"):
+def get_model(layer, s, lr=0.001, gauss=1.0):
     model, margin = gen_model(layers=layer, scale=s, lr=lr, gauss=gauss)
-    print('margin', margin)
+    model_name=f"n{len(layer)}_l{layer[0][1]}_s{s}_lr{lr}_m{margin}"#モデルの識別名(層の数_フィルタの最大のサイズ_スケール_学習率_マージン)
+    new_dir_path=f"savedWeights/{model_name}"#重みを保存しているディレクトリ
+    model.load_weights(f'{new_dir_path}/{model_name}_last.h5')#重みをロード  
+    print('model_name',model_name)
     true_images=genTrueImages(images,margin)
-    dataX = tf.data.Dataset.from_tensor_slices([
-        surfaces[0][None, :, :, :3],
-        surfaces[1][None, :, :, :3],
-        surfaces[2][None, :, :, :3],
-    ])#入力側のデータ
-    dataY = tf.data.Dataset.from_tensor_slices([
-        true_images[0],
-        true_images[1],
-        true_images[2],
-    ])#出力側のデータ
-    datasets= tf.data.Dataset.zip((dataX,dataY))
-    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=f"logs/{note_title}/l{layer[0][1]}_s{s}_lr{lr}")
-    es_callback = tf.keras.callbacks.EarlyStopping(monitor='loss', min_delta=min_delta, patience=patience)
-    result = model.fit(datasets, epochs=epochs,
-               #validation_data=[surfaces[2][None, :, :, :3], true_images[2]],
-               callbacks=[ProgressBar(), es_callback, tensorboard_callback],verbose=0)
-    model.save_weights(f'l{layer[0][1]}_s{s}_lr{lr}_last.h5')#最後の重み
-    tfjs.converters.save_keras_model(model,f"./lightModel")#重みの保存
-    return result, true_images
+    return model, true_images
 
 
 allocate_gpu_memory(0)
@@ -178,4 +164,4 @@ for s_path  in surfaces_path:
 for i_path,size in zip(image_path,image_sizes):
     images.append(image_load(i_path,size,cutting_rate))
 
-result, true_images = get_model([(20, 3), (20, 1)], 4, lr=0.0001, gauss=3, min_delta=1e-5, patience=10)
+model, true_images = get_model([(20, 3), (20, 1)], 8, lr=0.0001, gauss=1)
