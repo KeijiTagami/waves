@@ -57,7 +57,7 @@ async function on_canvas(canvas1, canvas2) {
     } else {
         gl = canvas1.getContext("webgl2")
     }
-    model = await tf.loadLayersModel('./lightModel/model.json')
+    model = await tf.loadLayersModel('./tfjsModel/lightModel/model.json')//ここで使うモデルを指定
     console.log(model)
     await Simulator.load_gl()
     simulator = new Simulator(gl, canvas2)
