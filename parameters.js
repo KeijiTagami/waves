@@ -14,7 +14,8 @@ var OUTPUT_WIDTH = 192,
 
 var WHITE_MARGIN = 22 //モデルによって上下左右クリップされる
 
-var TF_TYPE = "wasm"
+//var TF_TYPE = "wasm"
+var TF_TYPE = "webgl"
 //var TF_TYPE = "custom-webgl"
 
 var DELTA_TIME = 0.1,  // シミュレーション内でのフレーム時間

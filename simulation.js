@@ -4,11 +4,8 @@ importScripts("./gl.js")
 class Simulator {
 
     constructor(gl, canvas2) {
-        gl.canvas.width = OUTPUT_WIDTH + 2 * WHITE_MARGIN
-        gl.canvas.height = OUTPUT_HEIGHT + 2 * WHITE_MARGIN
-        gl.canvas.visiblity = "hidden"
-        this.canvas2d = canvas2.getContext("2d", {willReadFrequently: true})
         this.gl = gl
+        this.canvas2d = canvas2.getContext("2d", {willReadFrequently: true})
         this.setWindSpeed(INITIAL_WIND_SPEED);
         this.setWindDirection(INITIAL_WIND_DIRECTION);
         this.setSize(INITIAL_SIZE);

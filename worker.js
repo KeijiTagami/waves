@@ -20,7 +20,9 @@ const camera = new Camera()
 
 addEventListener("message", m => {
     if (m.data.type == "canvas") {
-        on_canvas(m.data.canvas1, m.data.canvas2)
+        const canvas1 = new OffscreenCanvas(W, H)
+        const canvas2 = new OffscreenCanvas(w, h)
+        on_canvas(canvas1, canvas2)
     } else if (m.data.type == "create") {
         create(m.data.value)
     } else if (m.data.type == "updateSize") {
@@ -37,12 +39,14 @@ addEventListener("message", m => {
 })
 
 async function on_canvas(canvas1, canvas2) {
+    const gl = canvas1.getContext("webgl2")
     if (TF_TYPE.endsWith("-webgl")) {
         const kernels = tf.getKernelsForBackend("webgl")
         kernels.forEach(kernelConfig => {
             tf.registerKernel({...kernelConfig, backendName: TF_TYPE})
         })
-        const customBackend = new tf.MathBackendWebGL(canvas1)
+        const context = tf.GPGPUContext(gl)
+        const customBackend = new tf.MathBackendWebGL(context)
         tf.registerBackend(TF_TYPE, () => customBackend)
     }
     await tf.setBackend(TF_TYPE)
@@ -50,12 +54,6 @@ async function on_canvas(canvas1, canvas2) {
     if (TF_TYPE == "wasm") {
         //tf.wasm.setThreadsCount(2)
         console.log(tf.wasm.getThreadsCount())
-    }
-    let gl
-    if (TF_TYPE.endsWith("-webgl")) {
-        gl = tf.backend().gpgpu.gl
-    } else {
-        gl = canvas1.getContext("webgl2")
     }
     model = await tf.loadLayersModel('./tfjsModel/lightModel/model.json')//ここで使うモデルを指定
     console.log(model)

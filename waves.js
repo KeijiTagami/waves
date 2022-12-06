@@ -57,13 +57,7 @@ class Main {
                 this.getSimulation(m.data.value)
             }
         })
-        const canvas1 = document.createElement("canvas").transferControlToOffscreen()
-        canvas1.width = OUTPUT_WIDTH
-        canvas1.height = OUTPUT_HEIGHT
-        const canvas2 = document.createElement("canvas").transferControlToOffscreen()
-        canvas2.width = OUTPUT_WIDTH
-        canvas2.height = OUTPUT_HEIGHT
-        this.worker.postMessage({type: "canvas", canvas1: canvas1, canvas2: canvas2}, [canvas1, canvas2])
+        this.worker.postMessage({type: "canvas"})
     }
 
     setup() {
