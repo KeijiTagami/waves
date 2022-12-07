@@ -55,7 +55,7 @@ async function on_canvas(canvas1, canvas2) {
         //tf.wasm.setThreadsCount(2)
         console.log(tf.wasm.getThreadsCount())
     }
-    model = await tf.loadLayersModel('./tfjsModel/lightModel3/model.json')//ここで使うモデルを指定
+    model = await tf.loadLayersModel('./tfjsModel/n2_l2_s4_lr0.0001_m20/model.json')//ここで使うモデルを指定
     console.log(model)
     await Simulator.load_gl()
     simulator = new Simulator(gl, canvas2)

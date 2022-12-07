@@ -9,21 +9,21 @@ var WALLHEIGHT_WIDTH=WAVE_WIDTH,//プロジェクターにおける波の高さ�
     SCALE_WALLHEIGHT=30/51;//プロジェクターから壁へのスケーリング
 
 
-var OUTPUT_WIDTH = 400,
-    OUTPUT_HEIGHT = 400
+var OUTPUT_WIDTH = 300,
+    OUTPUT_HEIGHT = 300;
 
-var WHITE_MARGIN = 22 //モデルによって上下左右クリップされる
+var WHITE_MARGIN = 20 //モデルによって上下左右クリップされる
 
-var TF_TYPE = "wasm"
-//var TF_TYPE = "webgl"
+//var TF_TYPE = "wasm"
+var TF_TYPE = "webgl"
 //var TF_TYPE = "custom-webgl"
 
-var DELTA_TIME = 0.1,  // シミュレーション内でのフレーム時間
+var DELTA_TIME = 0.05,  // シミュレーション内でのフレーム時間
     SLOW = 1,          // 実時間との比、大きいとゆっくり再生
-    DELTA_WHITE = 6,   // 青何枚につき白を表示するか
+    DELTA_WHITE = 3,   // 青何枚につき白を表示するか
     MIN_STOCK = 100,   // これだけためてからスタートする
     MAX_STOCK = 1000,  // 何枚までためるか
-    BATCH = 1          // worker が1回で計算するフレーム数
+    BATCH = 4          // worker が1回で計算するフレーム数
 
 
 var RESOLUTION = 256;

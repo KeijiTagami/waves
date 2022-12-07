@@ -85,7 +85,7 @@ class Main {
         this.running = true
         this.render_interval = null
         this.requestSimulation()
-        this.audio_timer = setInterval(() => this.changeParameter(), 5000)
+        this.audio_timer = setInterval(() => this.changeParameter(), 1000)
         this.button.innerText = "stop"
     }
 
@@ -102,11 +102,18 @@ class Main {
         this.audio_analyzer.getFloatFrequencyData(this.freqData)
         const min_val = -70
         const max_val = -20
-        var val = this.freqData[100]
-        val = (val - min_val) / (max_val - min_val)
+        const start = 500
+        const end = 600
+        let sum = 0
+        for (let i = start; i < end; i += 1) {
+            sum += this.freqData[i]
+        }
+        let val = (sum / (end - start) - min_val) / (max_val - min_val)
         if (val < 0) { val = 0 }
-        if (val > 1) { val = 1 }
+        if (val > 1) { val = 1 }     
         val = MIN_WIND_SPEED + val * (MAX_WIND_SPEED - MIN_WIND_SPEED)
+        console.log(this.freqData)
+        console.log("val", val);
         console.log("windSpeed", val)
         this.worker.postMessage({type: "setWindSpeed", value: val})
     }
