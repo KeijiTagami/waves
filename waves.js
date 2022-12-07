@@ -28,10 +28,11 @@ class Main {
         canvas_wallheight.width = OUTPUT_WIDTH
         canvas_wallheight.height = OUTPUT_HEIGHT
         const whs_width=parseInt(WALLHEIGHT_WIDTH*SCALE_WALLHEIGHT);//スケーリングした高さ画像の幅
+        const whs_height=parseInt(WALLHEIGHT_HEIGHT*SCALE_WALLHEIGHT);//スケーリングした高さ画像の幅
         canvas_wallheight.style.width = whs_width + "px"
-        canvas_wallheight.style.height = parseInt(WALLHEIGHT_HEIGHT*SCALE_WALLHEIGHT) + "px"
+        canvas_wallheight.style.height = whs_height + "px"
         const wallheight_offsetx=(WF_WIDTH_3-whs_width)/2//高さの位置調整(幅は半々, 縦は上部が5, 下部が1の比)
-        const wallheight_offsety=-150
+        const wallheight_offsety=(WF_HEIGHT-whs_height)/2
         canvas_wallheight.style.top = 1080+wallheight_offsety + "px"//!後で位置を計算
         canvas_wallheight.style.left = (WF_WIDTH_3+wallheight_offsetx) + "px"
         this.canvas_wallheight_ctx = canvas_wallheight.getContext('2d');
