@@ -46,6 +46,23 @@ class Main {
         canvas_wallformat.style.height = WF_HEIGHT + "px"
         this.canvas_wallformat_ctx = canvas_wallformat.getContext('2d');
 
+        const canvas_audio_spec_high = document.getElementById('audio_spec_high');
+        canvas_audio_spec_high.width = AS_WIDTH;
+        canvas_audio_spec_high.height = AS_HEIGHT;
+        canvas_audio_spec_high.style.top = 800 + "px"
+        canvas_audio_spec_high.style.left = 0 + "px"
+        canvas_audio_spec_high.style.width = AS_WIDTH + "px"
+        canvas_audio_spec_high.style.height = AS_HEIGHT + "px"
+        this.canvas_audio_spec_high_ctx = canvas_audio_spec_high.getContext('2d');
+
+        const canvas_audio_spec_low = document.getElementById('audio_spec_low');
+        canvas_audio_spec_low.width = AS_WIDTH;
+        canvas_audio_spec_low.height = AS_HEIGHT;
+        canvas_audio_spec_low.style.top = 800 + "px"
+        canvas_audio_spec_low.style.left = 1340 + "px"
+        canvas_audio_spec_low.style.width = AS_WIDTH + "px"
+        canvas_audio_spec_low.style.height = AS_HEIGHT + "px"
+        this.canvas_audio_spec_low_ctx = canvas_audio_spec_low.getContext('2d');
 
         this.running = false
         this.images = []
@@ -99,8 +116,41 @@ class Main {
         this.button.innerText = "start"
     }
 
+    // ここでスペクトログラムを描画する予定
+    drawSpec() {
+
+        //背面
+        // this.canvas_audio_spec_high_ctx.fillStyle = "rgb(200, 200, 200)";
+        // this.canvas_audio_spec_high_ctx.fillRect(0, 0, AS_WIDTH, AS_HEIGHT);
+        //ストローク
+        console.log("freqData.length",this.freqData.length)
+        const BIN=64
+        const n=this.freqData.length
+        const d=n/BIN
+        let hist=[]
+        for(var i=0;i<BIN*d;i+=d){//各ビンの先頭
+            var ave=0;//平均
+            for(var j=i;j<i+d;j++){//d個
+                ave+=this.freqData[j]
+            }
+            hist.push(ave/d)
+        }
+        const wid=this.canvas_audio_spec_low_ctx.width/BIN;
+        //const hei=this.canvas_audio_spec_low_ctx.height;
+        this.canvas_audio_spec_low_ctx.fillStyle = "rgb(255, 0, 0)";
+        this.canvas_audio_spec_high_ctx.fillStyle = "rgb(255, 0, 0)";
+        for(var i=0;i<BIN/2;i++){
+            this.canvas_audio_spec_low_ctx.fillRect(wid*i,0, wid*(i+1), -hist[i]);
+        }
+        for(var i=BIN/2;i<BIN;i++){
+            this.canvas_audio_spec_high_ctx.fillRect(wid*(i-BIN/2),0, wid*(i-BIN/2+1), -hist[i]);
+        }
+        console.log("hist",hist)
+     }
+
     changeParameter() {
         this.audio_analyzer.getFloatFrequencyData(this.freqData)
+        this.drawSpec()
         const min_val = 100
         const max_val = -20
         const start = 500

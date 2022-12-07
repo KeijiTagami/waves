@@ -62,3 +62,20 @@ html {
     height:1080px;
     background:#909090;/*壁の初期化時の高さに対応するので注意*/
 }
+
+#audio_spec_high{
+    position:absolute;
+    z-index:5;
+    top:800px;
+    left:0px;
+    background-color: #f0f0f0;
+
+}
+#audio_spec_low{
+    position:absolute;
+    z-index:5;
+    top:800px;
+    left:1340px;
+    background-color: #f0f0f0;
+
+}
