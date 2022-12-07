@@ -8,9 +8,8 @@ var WALLHEIGHT_WIDTH=WAVE_WIDTH,//プロジェクターにおける波の高さ�
     WALLHEIGHT_HEIGHT=WAVE_HEIGHT,
     SCALE_WALLHEIGHT=7/12;//プロジェクターから壁へのスケーリング
 
-
-var OUTPUT_WIDTH = 624,
-    OUTPUT_HEIGHT = 780
+var OUTPUT_WIDTH = 300,
+    OUTPUT_HEIGHT = 300
 
 var WHITE_MARGIN = 20 //モデルによって上下左右クリップされる
 
@@ -23,8 +22,10 @@ var DELTA_TIME = 0.05,  // シミュレーション内でのフレーム時間
     DELTA_WHITE = 3,   // 青何枚につき白を表示するか
     MIN_STOCK = 100,   // これだけためてからスタートする
     MAX_STOCK = 1000,  // 何枚までためるか
-    BATCH = 4          // worker が1回で計算するフレーム数
+    BATCH = 3          // worker が1回で計算するフレーム数
 
+var INIT_FREQ_MIN=-160,//音の大きさ
+    INIT_FREQ_MAX=-100;
 
 var RESOLUTION = 256;
 

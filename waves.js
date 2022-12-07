@@ -3,8 +3,8 @@
 class Main {
 
     constructor() {
-        const wave_offsetx=(1920-WAVE_WIDTH)/2;//波を1920*1080スクリーンの中心に配置
-        const wave_offsety=(1080-WAVE_HEIGHT)/2;
+        const wave_offsetx=(1920-WAVE_WIDTH)/2+7;//波を1920*1080スクリーンの中心に配置
+        const wave_offsety=(1080-WAVE_HEIGHT)/2+52*2;//壁にフィットさせるときは2壁分(52px*2)下にずらす
         const canvas_blue = document.getElementById('blue_wave');
         canvas_blue.width = OUTPUT_WIDTH
         canvas_blue.height = OUTPUT_HEIGHT
@@ -101,7 +101,7 @@ class Main {
 
     changeParameter() {
         this.audio_analyzer.getFloatFrequencyData(this.freqData)
-        const min_val = -70
+        const min_val = 100
         const max_val = -20
         const start = 500
         const end = 600
@@ -162,8 +162,9 @@ class Main {
         this.canvas_wallformat_ctx.fillStyle='rgb(0,0,0)'//黒：LEDを使わない
         this.canvas_wallformat_ctx.fillRect(0,0,WF_WIDTH_3,WF_HEIGHT)//LED
         //位置(高さ)の部分には何もしない
-        // this.canvas_wallformat_ctx.fillStyle='rgb(127,127,127)'//(グレー:中間位置)
-        // this.canvas_wallformat_ctx.fillRect(WF_WIDTH_3,0,WF_WIDTH_3*2,WF_HEIGHT)//キネ位置
+        //this.canvas_wallformat_ctx.fillStyle='rgb(127,127,127)'//(グレー:中間位置)
+        this.canvas_wallformat_ctx.fillStyle='rgb(255,255,255)'//(白:一番飛び出た位置)
+        this.canvas_wallformat_ctx.fillRect(WF_WIDTH_3,0,WF_WIDTH_3*2,WF_HEIGHT)//キネ位置
         this.canvas_wallformat_ctx.fillStyle='rgb(255,255,255)'//(白：最大速度)
         this.canvas_wallformat_ctx.fillRect(WF_WIDTH_3*2,0,WF_WIDTH_3*3,WF_HEIGHT)//キネ速度
     }
