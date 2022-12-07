@@ -1,16 +1,16 @@
 //コンテンツの大きさに関する設定
-var WAVE_WIDTH = 1080,//波のコンテンツの大きさ(px)
-    WAVE_HEIGHT =1080;
+var WAVE_WIDTH = 624,//波のコンテンツの大きさ(px)(壁ぴったりで(624,780))
+    WAVE_HEIGHT =780;
 var WF_WIDTH=1080,//壁の[LED, 高さ, 速度]の画面
     WF_WIDTH_3=360,//壁のLED,高さ, 速度それぞれの幅
     WF_HEIGHT=450;
 var WALLHEIGHT_WIDTH=WAVE_WIDTH,//プロジェクターにおける波の高さの大きさ(px)
     WALLHEIGHT_HEIGHT=WAVE_HEIGHT,
-    SCALE_WALLHEIGHT=30/51;//プロジェクターから壁へのスケーリング
+    SCALE_WALLHEIGHT=7/12;//プロジェクターから壁へのスケーリング
 
 
-var OUTPUT_WIDTH = 400,
-    OUTPUT_HEIGHT = 400
+var OUTPUT_WIDTH = 624,
+    OUTPUT_HEIGHT = 780
 
 var WHITE_MARGIN = 22 //モデルによって上下左右クリップされる
 
