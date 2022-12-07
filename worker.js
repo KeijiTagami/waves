@@ -76,7 +76,7 @@ async function create(num) {
             for (let y = 0; y < h; y += 1) {
                 for (let x = 0; x < w; x += 1) {
                     const pd = w * (h - y - 1) + x
-                    const z = 255 * (0.15 * pixels[(W * (y + M) + (x + M)) * 4] + 0.5)
+                    const z = 255 * (0.15 * pixels[(W * (y + M) + (x + M)) * 4] + 0.6)
                     wallImage.data[4 * pd + 0] = z
                     wallImage.data[4 * pd + 1] = z
                     wallImage.data[4 * pd + 2] = z

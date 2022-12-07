@@ -163,8 +163,8 @@ class Main {
         this.canvas_wallformat_ctx.fillRect(0,0,WF_WIDTH_3,WF_HEIGHT)//LED
         //位置(高さ)の部分には何もしない
         //this.canvas_wallformat_ctx.fillStyle='rgb(127,127,127)'//(グレー:中間位置)
-        this.canvas_wallformat_ctx.fillStyle='rgb(255,255,255)'//(白:一番飛び出た位置)
-        this.canvas_wallformat_ctx.fillRect(WF_WIDTH_3,0,WF_WIDTH_3*2,WF_HEIGHT)//キネ位置
+        //this.canvas_wallformat_ctx.fillStyle='rgb(255,255,255)'//(白:一番飛び出た位置)
+        //this.canvas_wallformat_ctx.fillRect(WF_WIDTH_3,0,WF_WIDTH_3*2,WF_HEIGHT)//キネ位置
         this.canvas_wallformat_ctx.fillStyle='rgb(255,255,255)'//(白：最大速度)
         this.canvas_wallformat_ctx.fillRect(WF_WIDTH_3*2,0,WF_WIDTH_3*3,WF_HEIGHT)//キネ速度
     }
