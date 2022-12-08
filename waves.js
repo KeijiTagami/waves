@@ -50,7 +50,7 @@ class Main {
         canvas_audio_spec_high.width = AS_WIDTH;
         canvas_audio_spec_high.height = AS_HEIGHT;
         canvas_audio_spec_high.style.top = 1080-AS_HEIGHT + "px"
-        canvas_audio_spec_high.style.left = 0 + "px"
+        canvas_audio_spec_high.style.left = 1920-AS_WIDTH + "px"
         canvas_audio_spec_high.style.width = AS_WIDTH + "px"
         canvas_audio_spec_high.style.height = AS_HEIGHT + "px"
         this.canvas_audio_spec_high_ctx = canvas_audio_spec_high.getContext('2d');
@@ -59,7 +59,7 @@ class Main {
         canvas_audio_spec_low.width = AS_WIDTH;
         canvas_audio_spec_low.height = AS_HEIGHT;
         canvas_audio_spec_low.style.top = 1080-AS_HEIGHT + "px"
-        canvas_audio_spec_low.style.left = 1920-AS_WIDTH + "px"
+        canvas_audio_spec_low.style.left = 0 + "px"
         canvas_audio_spec_low.style.width = AS_WIDTH + "px"
         canvas_audio_spec_low.style.height = AS_HEIGHT + "px"
         this.canvas_audio_spec_low_ctx = canvas_audio_spec_low.getContext('2d');
@@ -115,28 +115,25 @@ class Main {
         this.audio_timer = null
         this.button.innerText = "start"
     }
-
-    // ここでスペクトログラムを描画する予定
-    drawSpec() {
-
-        //背面
-        // this.canvas_audio_spec_high_ctx.fillStyle = "rgb(200, 200, 200)";
-        // this.canvas_audio_spec_high_ctx.fillRect(0, 0, AS_WIDTH, AS_HEIGHT);
-        //ストローク
-        //console.log("freqData.length",this.freqData.length)
-        const BIN=64
-        const n=this.freqData.length
-        const d=n/BIN
-        let hist=[]
+    //音のヒストグラムを得る
+    getHistGram(){
+        const n=HIST_END-HIST_START
+        const d=parseInt(n/BIN)
+        this.hist=[]
         for(var i=0;i<BIN*d;i+=d){//各ビンの先頭
             var ave=0;//平均
-            for(var j=i;j<i+d;j++){//d個
+            for(var j=i+HIST_START;j<i+d;j++){//d個
                 ave+=this.freqData[j]
             }
-            hist.push(ave/d)
+            const val=this.normalize(ave/d,DECIBEL_MIN,DECIBEL_MAX)
+            //console.log("val",i,val)
+            this.hist.push(val)//平均値をDECIBELの範囲で調整
         }
+        //console.log("hist",this.hist)
+    }
+    // ここでスペクトログラムを描画する
+    drawHist() {
         const wid=AS_WIDTH/BIN*2;
-        const alpha=0.8
         //const hei=this.canvas_audio_spec_low_ctx.height;
         //console.log("wid",wid);
         // this.canvas_audio_spec_low_ctx.fillStyle = "rgba(0, 0, 0,0)";
@@ -147,36 +144,34 @@ class Main {
         this.canvas_audio_spec_high_ctx.clearRect(0,0,AS_WIDTH,AS_HEIGHT)
         this.canvas_audio_spec_low_ctx.fillStyle = "rgba(255, 255, 255,1)";
         this.canvas_audio_spec_high_ctx.fillStyle = "rgba(255, 255, 255,1)";
+        this.ave_hist_low=0;//ついでにヒストグラムごとの平均も計算
+        this.ave_hist_high=0;
         for(var i=0;i<BIN/2;i++){
-            this.canvas_audio_spec_low_ctx.fillRect(wid*i,AS_HEIGHT,wid*alpha, hist[i]);
-            console.log("wid*i",wid*i)
+            this.canvas_audio_spec_low_ctx.fillRect(wid*i,AS_HEIGHT,wid*HIST_MARGIN, AS_HEIGHT*-this.hist[i]);
+            this.ave_hist_low+=this.hist[i]
+            //console.log("wid*i",wid*i)
         }
+        this.ave_hist_low/=BIN/2;
         for(var i=BIN/2;i<BIN;i++){
-            this.canvas_audio_spec_high_ctx.fillRect(wid*(i-BIN/2),AS_HEIGHT, wid*alpha, hist[i]);
+            this.canvas_audio_spec_high_ctx.fillRect(wid*(i-BIN/2),AS_HEIGHT, wid*HIST_MARGIN, -AS_HEIGHT*this.hist[i]);
+            this.ave_hist_high+=this.hist[i]
         }
+        this.ave_hist_high/=BIN/2;
         //requestAnimationFrame(this.drawSpec)
         //console.log("hist",hist)
      }
-
+     
     changeParameter() {
         this.audio_analyzer.getFloatFrequencyData(this.freqData)
-        this.drawSpec()
-        this.power_min_val=INIT_FREQ_MIN
-        this.power_max_val = INIT_FREQ_MAX
-        const start = 500
-        const end = 600
-        let sum = 0
-        for (let i = start; i < end; i += 1) {
-            sum += this.freqData[i]
-        }
-        let val = (sum / (end - start) - this.power_min_val) / (this.power_max_val - this.power_min_val)
-        if (val < 0) { val = 0 }
-        if (val > 1) { val = 1 }     
-        val = MIN_WIND_SPEED + val * (MAX_WIND_SPEED - MIN_WIND_SPEED)
-        console.log(this.freqData)
-        console.log("val", val);
-        console.log("windSpeed", val)
-        this.worker.postMessage({type: "setWindSpeed", value: val})
+        this.getHistGram()//FreqDataを正規化、平均化したBIN次元のヒストグラムを作る
+        this.drawHist()//ヒストグラムをcanvasに描画(高音域,低音域の平均も計算)
+        const newWindSpeed=this.ave_hist_high*(MAX_WIND_SPEED-MIN_WIND_SPEED)+MIN_WIND_SPEED
+        console.log("windspeed",newWindSpeed)
+        const newChoppiness=this.ave_hist_low*(MAX_CHOPPINESS-MIN_CHOPPINESS)+MIN_CHOPPINESS
+        console.log("choppiness",newChoppiness)
+        //console.log("val", val);
+        this.worker.postMessage({type: "updateWindSpeed", value: newWindSpeed})
+        this.worker.postMessage({type: "updateChoppiness", value: newChoppiness})
     }
 
     requestSimulation() {
@@ -227,6 +222,16 @@ class Main {
         //this.canvas_wallformat_ctx.fillRect(WF_WIDTH_3,0,WF_WIDTH_3*2,WF_HEIGHT)//キネ位置
         this.canvas_wallformat_ctx.fillStyle='rgb(255,255,255)'//(白：最大速度)
         this.canvas_wallformat_ctx.fillRect(WF_WIDTH_3*2,0,WF_WIDTH_3*3,WF_HEIGHT)//キネ速度
+    }
+    normalize(x,m,M){
+        return this.clamp((x-m)/(M-m),0.0,1.0)
+    }
+    clamp(x,m,M){
+        if(M<x)
+            x=M
+        if(x<m)
+            x=m
+        return x
     }
 }
 

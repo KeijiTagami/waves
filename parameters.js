@@ -21,13 +21,17 @@ var TF_TYPE = "webgl"
 
 var DELTA_TIME = 0.06,  // シミュレーション内でのフレーム時間
     SLOW = 1,          // 実時間との比、大きいとゆっくり再生
-    DELTA_WHITE = 2,   // 青何枚につき白を表示するか
-    MIN_STOCK = 50,   // これだけためてからスタートする
-    MAX_STOCK = 100,  // 何枚までためるか
+    DELTA_WHITE = 3,   // 青何枚につき白を表示するか
+    MIN_STOCK = 30,   // これだけためてからスタートする
+    MAX_STOCK = 80,  // 何枚までためるか
     BATCH = 1          // worker が1回で計算するフレーム数
 
-var INIT_FREQ_MIN=-160,//音の大きさ
-    INIT_FREQ_MAX=-50;
+var DECIBEL_MIN=-150.0,//音の大きさ
+    DECIBEL_MAX=-60.0,
+    BIN=64,//音のヒストグラム
+    HIST_START=0,//インデックスの開始
+    HIST_END=500,//インデックスの終了
+    HIST_MARGIN=0.8//ヒストグラムの隣接間隔
 
 var AS_HEIGHT=200,
     AS_WIDTH=600;
