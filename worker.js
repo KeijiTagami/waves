@@ -43,7 +43,7 @@ async function on_canvas(canvas1, canvas2) {
     if (TF_TYPE.endsWith("-webgl")) {
         const kernels = tf.getKernelsForBackend("webgl")
         kernels.forEach(kernelConfig => {
-            tf.registerKernel({...kernelConfig, backendName: TF_TYPE})
+            tf.registerKernel({ ...kernelConfig, backendName: TF_TYPE })
         })
         const context = tf.GPGPUContext(gl)
         const customBackend = new tf.MathBackendWebGL(context)
@@ -55,19 +55,19 @@ async function on_canvas(canvas1, canvas2) {
         //tf.wasm.setThreadsCount(2)
         console.log(tf.wasm.getThreadsCount())
     }
-    model = await tf.loadLayersModel('./tfjsModel/'+MODEL_NAME+'/model.json')//ここで使うモデルを指定
+    model = await tf.loadLayersModel('./tfjsModel/' + MODEL_NAME + '/model.json')//ここで使うモデルを指定
     console.log(model)
     await Simulator.load_gl()
     simulator = new Simulator(gl, canvas2)
-    postMessage({type: "ready"})
+    postMessage({ type: "ready" })
 }
 
 async function create(num) {
-    console.log("memory",tf.memory())
+    console.log("memory", tf.memory())
     const blue = []
     const wall = []
     const data = []
-    for (let i = 0; i < num;  i += 1) {
+    for (let i = 0; i < num; i += 1) {
         for (let j = 0; j < DELTA_WHITE; j += 1) {
             simulator.update(DELTA_TIME)
             const blueImage = simulator.render(camera.getViewMatrix(), camera.getPosition())
@@ -89,7 +89,7 @@ async function create(num) {
             if (j == 0) {
                 if (TF_TYPE.endsWith("xxx-webgl")) {
                     const texture = simulator.outputFramebuffer.textures[0]
-                    data.push(tf.tensor({texture, witdh: W, height: H, channels: "RGBA"}, [H, W, 4]).clone())
+                    data.push(tf.tensor({ texture, witdh: W, height: H, channels: "RGBA" }, [H, W, 4]).clone())
                 } else {
                     data.push(pixels)
                 }
@@ -106,6 +106,9 @@ async function create(num) {
         const z = tf.gather(y, [0, 1, 2], 3)
         return model.predictOnBatch(z)
     })
+    for (let i = 0; i < num; i += 1) {
+        delete data[i]
+    }
     const whitePixels = await output_t.data()
     tf.print(output_t.shape)
     output_t.dispose()
@@ -120,7 +123,7 @@ async function create(num) {
                 imageData.data[4 * pd + 0] = 255
                 imageData.data[4 * pd + 1] = 255
                 imageData.data[4 * pd + 2] = 255
-                imageData.data[4 * pd + 3] = 255 * z[w * y + x]*WHITE_ALPHA
+                imageData.data[4 * pd + 3] = 255 * z[w * y + x] * WHITE_ALPHA
             }
         }
         for (let j = 0; j < DELTA_WHITE; j += 1) {
@@ -128,8 +131,8 @@ async function create(num) {
         }
     }
     const output = []
-    for (let i =0; i < num * DELTA_WHITE; i += 1) {
+    for (let i = 0; i < num * DELTA_WHITE; i += 1) {
         output.push([blue[i], white[i], wall[i]])
     }
-    postMessage({type: "output", value: output})
+    postMessage({ type: "output", value: output })
 }
