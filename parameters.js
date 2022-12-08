@@ -14,14 +14,14 @@ MODEL_NAME="n3_l4_s2_lr0.0001_m18_(312_390)"
 var OUTPUT_WIDTH = parseInt(MODEL_NAME.match(/\([^_]*/g)[0].replace(/\(/,"")),
     OUTPUT_HEIGHT = parseInt(MODEL_NAME.match(/[^_]*\)/g)[0].replace(/\)/,""))
 var WHITE_MARGIN = parseInt(MODEL_NAME.match(/m[^_]*/g)[0].replace(/m/,"")) //モデルによって上下左右クリップされる
-
+var WHITE_ALPHA=0.7;//白波の透明度
 //var TF_TYPE = "wasm"
 var TF_TYPE = "webgl"
 //var TF_TYPE = "custom-webgl"
 
-var DELTA_TIME = 0.04,  // シミュレーション内でのフレーム時間
+var DELTA_TIME = 0.06,  // シミュレーション内でのフレーム時間
     SLOW = 1,          // 実時間との比、大きいとゆっくり再生
-    DELTA_WHITE = 4,   // 青何枚につき白を表示するか
+    DELTA_WHITE = 2,   // 青何枚につき白を表示するか
     MIN_STOCK = 50,   // これだけためてからスタートする
     MAX_STOCK = 100,  // 何枚までためるか
     BATCH = 1          // worker が1回で計算するフレーム数
@@ -34,14 +34,14 @@ var AS_HEIGHT=200,
 
 var RESOLUTION = 256;
 
-var INITIAL_SIZE = 200,
+var INITIAL_SIZE = 300,
     MIN_SIZE = 100,
     MAX_SIZE = 1000,
-    INITIAL_WIND_SPEED = 18.0,
+    INITIAL_WIND_SPEED = 22.0,//18(12~22)
     INITIAL_WIND_DIRECTION = -117.0,
     MIN_WIND_SPEED = 5.0,
     MAX_WIND_SPEED = 25.0,
-    INITIAL_CHOPPINESS = 3.5,
+    INITIAL_CHOPPINESS = 2.5,//3.5(2.5~4.5)
     MIN_CHOPPINESS = 0,
     MAX_CHOPPINESS = 5.0;
 

@@ -119,7 +119,7 @@ async function create(num) {
                 imageData.data[4 * pd + 0] = 255
                 imageData.data[4 * pd + 1] = 255
                 imageData.data[4 * pd + 2] = 255
-                imageData.data[4 * pd + 3] = 255 * z[w * y + x]
+                imageData.data[4 * pd + 3] = 255 * z[w * y + x]*WHITE_ALPHA
             }
         }
         for (let j = 0; j < DELTA_WHITE; j += 1) {
