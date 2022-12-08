@@ -1,5 +1,6 @@
 #画像データ前処理, 描画用
 import numpy as np
+import matplotlib.pyplot as plt
 #機械学習
 import tensorflow as tf
 import tensorflowjs as tfjs
@@ -31,20 +32,34 @@ def allocate_gpu_memory(gpu_number=0):
         print("Not enough GPU hardware devices available")
 
 
-def surface_load(path,OUTPUT_SIZE=1024):
+def surface_load(path,OUTPUT_SIZE=1024,resize=None):
     surface = np.fromfile(path, dtype=np.float32)
     surface=surface.reshape(OUTPUT_SIZE,OUTPUT_SIZE,4)
     surface=surface[::-1]
+    if resize is None:
+        return surface
+    outw,outh=resize
+    surface=cv2.resize(surface,dsize=(outw,outh))
+    fig=plt.figure()
+    plt.imshow(surface)
+    fig.savefig("./temp.png")
+    print("surface_load:",surface.shape)
     return surface
 
 
-def image_load(path,size,cutting_rate=0.05):
+def image_load(path,size,cutting_rate=0.05,resize=None):
     img=tf.io.read_file(path)
     img=tf.image.decode_png(img, channels=4).numpy()
     margin=int(cutting_rate*size/2)
     img_clip=img[margin:size-margin,margin:size-margin,:]#画像の端を切る
     img_clip=img_clip/255
-    img_resize=cv2.resize(img_clip,dsize=[1024]*2)
+    if resize is None:
+        img_resize=cv2.resize(img_clip,dsize=[1024]*2)
+        return img_resize
+    outw,outh=resize
+    print("resize",resize)
+    img_resize=cv2.resize(img_clip,dsize=resize)
+    print("img_load:",img_resize.shape)
     return img_resize
 
 
@@ -82,11 +97,23 @@ def gauss2D(sigma=1.0):
 
 
 #2つのパスで畳み込みを繰り返すモデル(B:プーリングあり, A:プーリングなし)
-def gen_model(layers, scale, lr, gauss=1.0):
-    x = tf.keras.Input(shape=(None, None, 3))#入力
+def gen_model(layers, scale, lr, gauss=1.0,outputSize=None):
+    #marginを事前に計算
+    shrinksize=0
+    for i, (num, size) in enumerate(layers):
+        shrinksize += size
+    gsize, gkernel = gauss2D(gauss)
+    print("gkernel",gkernel.shape)
+    diff = (shrinksize * scale + gsize) - shrinksize
+    if outputSize is None:
+        x=tf.keras.Input(shape=(None,None,3))
+    else:
+        margin=shrinksize*scale+gsize
+        outw,outh=outputSize
+        x = tf.keras.Input(shape=(outh+margin*2,outw+margin*2,3))#入力(行(高さ),列(行)であることに注意！)
+        print("InputSize:",(outw+margin*2,outh+margin*2))
 
     #分岐B(プーリングを通りてぼかした処理)
-    shrinksize=0
     B = tf.keras.layers.AveragePooling2D(
         pool_size=(scale, scale)
     )(x) #B1：入力画像のプーリング
@@ -94,31 +121,32 @@ def gen_model(layers, scale, lr, gauss=1.0):
         B = tf.keras.layers.Conv2D(
             num, 2 * size + 1, activation='relu', name=f'cv2_B_{i+1}',
         )(B) #Bi:畳み込み
-        shrinksize += size
+        #shrinksize += size
     B = tf.keras.layers.UpSampling2D(
         size=(scale, scale)
     )(B) #Blast：畳み込み後の拡大
 
-    gsize, gkernel = gauss2D(gauss)
+    #gsize, gkernel = gauss2D(gauss)
     glayer = tf.keras.layers.DepthwiseConv2D(2 * gsize + 1, use_bias=False, name="gauss")
     B = glayer(B)
     glayer.set_weights([np.tile(gkernel[..., None, None], [1, 1, num, 1])])
     glayer.trainable= False
     
-    diff = (shrinksize * scale + gsize) - shrinksize
+    #diff = (shrinksize * scale + gsize) - shrinksize
     #分岐A(画像をそのまま処理)
     A = x
     kernel = np.zeros((1 + 2 * diff, 1 + 2 * diff))
     kernel[size, size] = 1
+    """
     crop = tf.keras.layers.DepthwiseConv2D(2 * diff + 1, use_bias=False, name=f'cv2_Acrop')
     A = crop(A)
     crop.set_weights([tf.tile(kernel[..., None, None], [1, 1, 3, 1])])
     crop.trainable= False
-    '''
-    clop = tf.keras.layers.Cropping2D(
+    """ 
+    crop = tf.keras.layers.Cropping2D(
         cropping=((diff, diff), (diff,diff))
     )
-    '''
+    A=crop(A)
     for i, (num, size) in enumerate(layers):
         A = tf.keras.layers.Conv2D(
             num, 2 * size + 1, activation='relu', name=f'cv2_A_{i+1}',
@@ -140,12 +168,29 @@ def gen_model(layers, scale, lr, gauss=1.0):
     return model, shrinksize * scale + gsize #分岐Bのサイズだけ減る
 
 
-def get_model(layer, s, lr=0.001, gauss=1.0, min_delta=1e-6, patience=10, epochs=10000):
-    model, margin = gen_model(layers=layer, scale=s, lr=lr, gauss=gauss)
-    model_name=f"n{len(layer)}_l{layer[0][1]}_s{s}_lr{lr}_m{margin}"#モデルの識別名(層の数_フィルタの最大のサイズ_スケール_学習率_マージン)
+def get_model(layer, s, lr=0.001, gauss=1.0, min_delta=1e-6, patience=10, epochs=10000,outputSize=None):
+
+    model, margin = gen_model(layers=layer, scale=s, lr=lr, gauss=gauss,outputSize=outputSize)   
+    if outputSize is None:
+        inputSize=None
+        model_name=f"n{len(layer)}_l{layer[0][1]}_s{s}_lr{lr}_m{margin}_(None)"#モデルの識別名(層の数_フィルタの最大のサイズ_スケール_学習率_マージン_outputの大きさ1)
+    else:
+        outw,outh=outputSize
+        inputSize=(outw+margin*2,outh+margin*2)
+        print("inputSize:",inputSize)
+        model_name=f"n{len(layer)}_l{layer[0][1]}_s{s}_lr{lr}_m{margin}_({outputSize[0]}_{outputSize[1]})"#モデルの識別名(層の数_フィルタの最大のサイズ_スケール_学習率_マージン_outputの大きさ1)
+    
     print('model_name',model_name)
     new_dir_path=f"savedWeights/{model_name}"#重みを保存するディレクトリを作成
     os.mkdir(new_dir_path)#既に存在していたらエラーになる
+    
+    surfaces=[]
+    images=[]
+    for s_path  in surfaces_path:
+        surfaces.append(surface_load(s_path,resize=inputSize))
+    for i_path,size in zip(image_path,image_sizes):
+        images.append(image_load(i_path,size,cutting_rate,resize=inputSize))
+    
     true_images=genTrueImages(images,margin)
     dataX = tf.data.Dataset.from_tensor_slices([
         surfaces[0][None, :, :, :3],
@@ -170,16 +215,13 @@ def get_model(layer, s, lr=0.001, gauss=1.0, min_delta=1e-6, patience=10, epochs
 
 allocate_gpu_memory(0)
 
-#2セットのデータをロード
+
 surfaces_path=["surfacedata/oceandata_t1.dat","surfacedata/oceandata_t2.dat","surfacedata/oceandata_t3.dat"]
 image_path=["imgdata/white_wave_rev.png","imgdata/white_wave2_rev.png","imgdata/white_wave3.png" ]
 image_sizes=[2326,1023,1023]
 cutting_rate=0.1
-surfaces=[]
-images=[]
-for s_path  in surfaces_path:
-    surfaces.append(surface_load(s_path))
-for i_path,size in zip(image_path,image_sizes):
-    images.append(image_load(i_path,size,cutting_rate))
 
-result, true_images = get_model([(20, 3), (20, 1)], 8, lr=0.0001, gauss=1, min_delta=1e-5, patience=1000)
+result, true_images = get_model([(10, 3), (10, 1)],4, lr=0.0001, gauss=4, min_delta=1e-5, patience=1000,outputSize=(208,260))
+#20,3 20,1
+#20,2 20,1
+#10,4 10,2 10,1
