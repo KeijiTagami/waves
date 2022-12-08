@@ -151,15 +151,15 @@ class Main {
     changeParameter() {
         this.audio_analyzer.getFloatFrequencyData(this.freqData)
         this.drawSpec()
-        const min_val = 100
-        const max_val = -20
+        this.power_min_val=INIT_FREQ_MIN
+        this.power_max_val = INIT_FREQ_MAX
         const start = 500
         const end = 600
         let sum = 0
         for (let i = start; i < end; i += 1) {
             sum += this.freqData[i]
         }
-        let val = (sum / (end - start) - min_val) / (max_val - min_val)
+        let val = (sum / (end - start) - this.power_min_val) / (this.power_max_val - this.power_min_val)
         if (val < 0) { val = 0 }
         if (val > 1) { val = 1 }     
         val = MIN_WIND_SPEED + val * (MAX_WIND_SPEED - MIN_WIND_SPEED)
