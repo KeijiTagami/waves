@@ -167,6 +167,9 @@ class Main {
         this.drawHist()//ヒストグラムをcanvasに描画(高音域,低音域の平均も計算)
         const newWindSpeed=this.ave_hist_high*(MAX_WIND_SPEED-MIN_WIND_SPEED)+MIN_WIND_SPEED
         console.log("windspeed",newWindSpeed)
+        const id=document.getElementById('windspeedValue')
+        id.innerHTML=Math.round(newWindSpeed * Math.pow(10, 2) ) / Math.pow(10, 2);
+
         const newChoppiness=this.ave_hist_low*(MAX_CHOPPINESS-MIN_CHOPPINESS)+MIN_CHOPPINESS
         console.log("choppiness",newChoppiness)
         //console.log("val", val);

@@ -81,12 +81,23 @@ html {
     position:absolute;
     z-index: 5;
     top:600px;
-    left:100px;
+    left:200px;
     color:white;
     font-size:30px;
     width:200px;
     height:100px;
 }
+#windspeedValue{
+    position:absolute;
+    z-index: 5;
+    top:600px;
+    left:350px;
+    color:white;
+    font-size:60px;
+    width:200px;
+    height:100px;
+}
+
 #windspeedBar{
     position:absolute;
     z-index: 5
