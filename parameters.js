@@ -11,9 +11,9 @@ var WALLHEIGHT_WIDTH=WAVE_WIDTH,//プロジェクターにおける波の高さ�
 
 //学習済みモデルの名前
 MODEL_NAME="n3_l4_s2_lr0.0001_m18_(312_390)"
-var OUTPUT_WIDTH = 312,
-    OUTPUT_HEIGHT = 390
-var WHITE_MARGIN = 18 //モデルによって上下左右クリップされる
+var OUTPUT_WIDTH = parseInt(MODEL_NAME.match(/\([^_]*/g)[0].replace(/\(/,"")),
+    OUTPUT_HEIGHT = parseInt(MODEL_NAME.match(/[^_]*\)/g)[0].replace(/\)/,""))
+var WHITE_MARGIN = parseInt(MODEL_NAME.match(/m[^_]*/g)[0].replace(/m/,"")) //モデルによって上下左右クリップされる
 
 //var TF_TYPE = "wasm"
 var TF_TYPE = "webgl"
