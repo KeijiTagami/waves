@@ -49,7 +49,7 @@ class Main {
         const canvas_audio_spec_high = document.getElementById('audio_spec_high');
         canvas_audio_spec_high.width = AS_WIDTH;
         canvas_audio_spec_high.height = AS_HEIGHT;
-        canvas_audio_spec_high.style.top = 800 + "px"
+        canvas_audio_spec_high.style.top = 1080-AS_HEIGHT + "px"
         canvas_audio_spec_high.style.left = 0 + "px"
         canvas_audio_spec_high.style.width = AS_WIDTH + "px"
         canvas_audio_spec_high.style.height = AS_HEIGHT + "px"
@@ -58,8 +58,8 @@ class Main {
         const canvas_audio_spec_low = document.getElementById('audio_spec_low');
         canvas_audio_spec_low.width = AS_WIDTH;
         canvas_audio_spec_low.height = AS_HEIGHT;
-        canvas_audio_spec_low.style.top = 800 + "px"
-        canvas_audio_spec_low.style.left = 1340 + "px"
+        canvas_audio_spec_low.style.top = 1080-AS_HEIGHT + "px"
+        canvas_audio_spec_low.style.left = 1920-AS_WIDTH + "px"
         canvas_audio_spec_low.style.width = AS_WIDTH + "px"
         canvas_audio_spec_low.style.height = AS_HEIGHT + "px"
         this.canvas_audio_spec_low_ctx = canvas_audio_spec_low.getContext('2d');
@@ -103,7 +103,7 @@ class Main {
         this.running = true
         this.render_interval = null
         this.requestSimulation()
-        this.audio_timer = setInterval(() => this.changeParameter(), 1000)
+        this.audio_timer = setInterval(() => this.changeParameter(), 100)
         this.button.innerText = "stop"
     }
 
@@ -123,7 +123,7 @@ class Main {
         // this.canvas_audio_spec_high_ctx.fillStyle = "rgb(200, 200, 200)";
         // this.canvas_audio_spec_high_ctx.fillRect(0, 0, AS_WIDTH, AS_HEIGHT);
         //ストローク
-        console.log("freqData.length",this.freqData.length)
+        //console.log("freqData.length",this.freqData.length)
         const BIN=64
         const n=this.freqData.length
         const d=n/BIN
@@ -135,17 +135,27 @@ class Main {
             }
             hist.push(ave/d)
         }
-        const wid=this.canvas_audio_spec_low_ctx.width/BIN;
+        const wid=AS_WIDTH/BIN*2;
+        const alpha=0.8
         //const hei=this.canvas_audio_spec_low_ctx.height;
-        this.canvas_audio_spec_low_ctx.fillStyle = "rgb(255, 0, 0)";
-        this.canvas_audio_spec_high_ctx.fillStyle = "rgb(255, 0, 0)";
+        //console.log("wid",wid);
+        // this.canvas_audio_spec_low_ctx.fillStyle = "rgba(0, 0, 0,0)";
+        // this.canvas_audio_spec_high_ctx.fillStyle = "rgba(0, 0, 0,0)";
+        // this.canvas_audio_spec_low_ctx.fillRect(0, 0, AS_WIDTH, AS_HEIGHT);
+        // this.canvas_audio_spec_high_ctx.fillRect(0, 0, AS_WIDTH, AS_HEIGHT);
+        this.canvas_audio_spec_low_ctx.clearRect(0,0,AS_WIDTH,AS_HEIGHT)
+        this.canvas_audio_spec_high_ctx.clearRect(0,0,AS_WIDTH,AS_HEIGHT)
+        this.canvas_audio_spec_low_ctx.fillStyle = "rgba(255, 255, 255,1)";
+        this.canvas_audio_spec_high_ctx.fillStyle = "rgba(255, 255, 255,1)";
         for(var i=0;i<BIN/2;i++){
-            this.canvas_audio_spec_low_ctx.fillRect(wid*i,0, wid*(i+1), -hist[i]);
+            this.canvas_audio_spec_low_ctx.fillRect(wid*i,AS_HEIGHT,wid*alpha, hist[i]);
+            console.log("wid*i",wid*i)
         }
         for(var i=BIN/2;i<BIN;i++){
-            this.canvas_audio_spec_high_ctx.fillRect(wid*(i-BIN/2),0, wid*(i-BIN/2+1), -hist[i]);
+            this.canvas_audio_spec_high_ctx.fillRect(wid*(i-BIN/2),AS_HEIGHT, wid*alpha, hist[i]);
         }
-        console.log("hist",hist)
+        //requestAnimationFrame(this.drawSpec)
+        //console.log("hist",hist)
      }
 
     changeParameter() {
