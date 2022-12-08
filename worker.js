@@ -63,6 +63,7 @@ async function on_canvas(canvas1, canvas2) {
 }
 
 async function create(num) {
+    console.log("memory",tf.memory())
     const blue = []
     const wall = []
     const data = []

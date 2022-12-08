@@ -66,14 +66,39 @@ html {
 #audio_spec_high{
     position:absolute;
     z-index:5;
-    top:800px;
-    left:0px;
+
 
 }
 #audio_spec_low{
     position:absolute;
     z-index:5;
     top:800px;
-    left:1340px;
+
+
+}
+
+#windspeed{
+    position:absolute;
+    z-index: 5;
+    top:600px;
+    left:100px;
+    color:white;
+    font-size:30px;
+    width:200px;
+    height:100px;
+}
+#windspeedBar{
+    position:absolute;
+    z-index: 5
+    
+}
+#choppiness{
+    position:absolute;
+    z-index: 5
+
+}
+#choppinessBar{
+    position:absolute;
+    z-index: 5
 
 }

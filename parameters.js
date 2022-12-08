@@ -21,7 +21,7 @@ var TF_TYPE = "webgl"
 
 var DELTA_TIME = 0.06,  // シミュレーション内でのフレーム時間
     SLOW = 1,          // 実時間との比、大きいとゆっくり再生
-    DELTA_WHITE = 3,   // 青何枚につき白を表示するか
+    DELTA_WHITE = 1,   // 青何枚につき白を表示するか
     MIN_STOCK = 30,   // これだけためてからスタートする
     MAX_STOCK = 80,  // 何枚までためるか
     BATCH = 1          // worker が1回で計算するフレーム数
