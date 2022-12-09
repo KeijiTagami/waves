@@ -175,6 +175,9 @@ html {
     height:10px;
 }
 
+#run{
+    visibility: hidden;
+}
 
 /*Chrome*/
 @media screen and (-webkit-min-device-pixel-ratio:0) {
