@@ -92,6 +92,9 @@ class Main {
         this.slider_choppiness.step=0.01
         this.slider_choppiness.value=INITIAL_CHOPPINESS;
 
+        this.oldWindspeed=INITIAL_WIND_SPEED
+        this.oldChoppiness=INITIAL_CHOPPINESS
+
         this.running = false
         this.images = []
 
@@ -187,19 +190,29 @@ class Main {
         this.ave_hist_high/=BIN/2;
         //requestAnimationFrame(this.drawSpec)
         //console.log("hist",hist)
-     }
+    }
+    
+    adjustNewParameter(x,xold,a){
+        if (xold<x)
+            return x
+        return xold+a*(x-xold)
+    }
      
     changeParameter() {
         this.audio_analyzer.getFloatFrequencyData(this.freqData)
         this.getHistGram()//FreqDataを正規化、平均化したBIN次元のヒストグラムを作る
         this.drawHist()//ヒストグラムをcanvasに描画(高音域,低音域の平均も計算)
-        const newWindSpeed=this.ave_hist_low*(MAX_WIND_SPEED-MIN_WIND_SPEED)+MIN_WIND_SPEED
+        let newWindSpeed=this.ave_hist_low*(MAX_WIND_SPEED-MIN_WIND_SPEED)+MIN_WIND_SPEED
+        newWindSpeed=this.adjustNewParameter(newWindSpeed,this.oldWindspeed,0.01)
+        this.oldWindspeed=newWindSpeed
         console.log("windspeed",newWindSpeed)
         const id_wind=document.getElementById('windspeedValue')
         id_wind.innerHTML=Math.round(newWindSpeed * Math.pow(10, 2) ) / Math.pow(10, 2);
         this.slider_wind.value=newWindSpeed;
 
-        const newChoppiness=this.ave_hist_high*(MAX_CHOPPINESS-MIN_CHOPPINESS)+MIN_CHOPPINESS
+        let newChoppiness=this.ave_hist_high*(MAX_CHOPPINESS-MIN_CHOPPINESS)+MIN_CHOPPINESS
+        newChoppiness=this.adjustNewParameter(newChoppiness,this.oldChoppiness,0.01)
+        this.oldChoppiness=newChoppiness
         console.log("choppiness",newChoppiness)
         this.slider_choppiness.value=newChoppiness;
         const id_chop=document.getElementById('choppinessValue')
