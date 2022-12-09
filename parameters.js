@@ -19,15 +19,15 @@ var WHITE_ALPHA=0.7;//白波の透明度
 var TF_TYPE = "webgl"
 //var TF_TYPE = "custom-webgl"
 
-var DELTA_TIME = 0.06,  // シミュレーション内でのフレーム時間
+var DELTA_TIME = 0.08,  // シミュレーション内でのフレーム時間
     SLOW = 1,          // 実時間との比、大きいとゆっくり再生
     DELTA_WHITE = 2,   // 青何枚につき白を表示するか
-    MIN_STOCK = 30,   // これだけためてからスタートする
-    MAX_STOCK = 80,  // 何枚までためるか
+    MIN_STOCK = 20,   // これだけためてからスタートする
+    MAX_STOCK = 40,  // 何枚までためるか
     BATCH = 1          // worker が1回で計算するフレーム数
 
 var DECIBEL_MIN=-150.0,//音の大きさ
-    DECIBEL_MAX=-60.0,
+    DECIBEL_MAX=-30.0,
     BIN=64,//音のヒストグラム
     HIST_START=0,//インデックスの開始
     HIST_END=500,//インデックスの終了

@@ -80,8 +80,8 @@ html {
 #windspeed{
     position:absolute;
     z-index: 5;
-    top:620px;
-    left:200px;
+    top:650px;
+    left:160px;
     color:white;
     font-size:30px;
     width:200px;
@@ -173,6 +173,28 @@ html {
     left:1500px;
     width:200px;
     height:10px;
+}
+#wind_low{
+    position:absolute;
+    z-index: 5;
+    top:700px;
+    left:150px;
+    scale: 2.5;
+    color:white;
+    font-size:30px;
+    width: 70px;
+    height:50px;
+}
+#wind_high{
+    position:absolute;
+    z-index: 5;
+    top:700px;
+    left:490px;
+    scale: 2.5;
+    color:white;
+    font-size:30px;
+    width: 70px;
+    height:50px;
 }
 
 #run{

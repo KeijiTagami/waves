@@ -134,7 +134,7 @@ class Main {
         this.running = true
         this.render_interval = null
         this.requestSimulation()
-        this.audio_timer = setInterval(() => this.changeParameter(), 100)
+        this.audio_timer = setInterval(() => this.changeParameter(), 50)
         this.button.innerText = "stop"
     }
 
@@ -177,15 +177,21 @@ class Main {
         this.canvas_audio_spec_high_ctx.fillStyle = "rgba(255, 255, 255,1)";
         this.ave_hist_low=0;//ついでにヒストグラムごとの平均も計算
         this.ave_hist_high=0;
+        this.max_hist_low=0
+        this.max_hist_high=0
         for(var i=0;i<BIN/2;i++){
             this.canvas_audio_spec_low_ctx.fillRect(wid*i,AS_HEIGHT,wid*HIST_MARGIN, AS_HEIGHT*-this.hist[i]);
             this.ave_hist_low+=this.hist[i]
+            if(this.max_hist_low<this.hist[i])
+                this.max_hist_low=this.hist[i]
             //console.log("wid*i",wid*i)
         }
         this.ave_hist_low/=BIN/2;
         for(var i=BIN/2;i<BIN;i++){
             this.canvas_audio_spec_high_ctx.fillRect(wid*(i-BIN/2),AS_HEIGHT, wid*HIST_MARGIN, -AS_HEIGHT*this.hist[i]);
             this.ave_hist_high+=this.hist[i]
+            if(this.max_hist_high<this.hist[i])
+                this.max_hist_high=this.hist[i]
         }
         this.ave_hist_high/=BIN/2;
         //requestAnimationFrame(this.drawSpec)
@@ -202,15 +208,20 @@ class Main {
         this.audio_analyzer.getFloatFrequencyData(this.freqData)
         this.getHistGram()//FreqDataを正規化、平均化したBIN次元のヒストグラムを作る
         this.drawHist()//ヒストグラムをcanvasに描画(高音域,低音域の平均も計算)
-        let newWindSpeed=this.ave_hist_low*(MAX_WIND_SPEED-MIN_WIND_SPEED)+MIN_WIND_SPEED
+        //平均
+        //let newWindSpeed=this.ave_hist_low*(MAX_WIND_SPEED-MIN_WIND_SPEED)+MIN_WIND_SPEED
+        //最大
+        let newWindSpeed=this.max_hist_low*(MAX_WIND_SPEED-MIN_WIND_SPEED)+MIN_WIND_SPEED
         newWindSpeed=this.adjustNewParameter(newWindSpeed,this.oldWindspeed,0.01)
         this.oldWindspeed=newWindSpeed
         console.log("windspeed",newWindSpeed)
         const id_wind=document.getElementById('windspeedValue')
         id_wind.innerHTML=Math.round(newWindSpeed * Math.pow(10, 2) ) / Math.pow(10, 2);
         this.slider_wind.value=newWindSpeed;
-
-        let newChoppiness=this.ave_hist_high*(MAX_CHOPPINESS-MIN_CHOPPINESS)+MIN_CHOPPINESS
+        //平均
+        //let newChoppiness=this.ave_hist_high*(MAX_CHOPPINESS-MIN_CHOPPINESS)+MIN_CHOPPINESS
+        //最大
+        let newChoppiness=this.max_hist_high*(MAX_CHOPPINESS-MIN_CHOPPINESS)+MIN_CHOPPINESS
         newChoppiness=this.adjustNewParameter(newChoppiness,this.oldChoppiness,0.01)
         this.oldChoppiness=newChoppiness
         console.log("choppiness",newChoppiness)
