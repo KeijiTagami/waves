@@ -80,7 +80,7 @@ html {
 #windspeed{
     position:absolute;
     z-index: 5;
-    top:600px;
+    top:620px;
     left:200px;
     color:white;
     font-size:30px;
@@ -90,7 +90,7 @@ html {
 #windspeedValue{
     position:absolute;
     z-index: 5;
-    top:600px;
+    top:620px;
     left:350px;
     color:white;
     font-size:60px;
@@ -98,18 +98,79 @@ html {
     height:100px;
 }
 
-#windspeedBar{
-    position:absolute;
-    z-index: 5
-    
-}
+
 #choppiness{
     position:absolute;
-    z-index: 5
+    z-index: 5;
+    top:650px;
+    left:1450px;
+    color:white;
+    font-size:30px;
+    width:200px;
+    height:100px;
+
+}
+#choppinessValue{
+    position:absolute;
+    z-index: 5;
+    top:620px;
+    left:1650px;
+    color:white;
+    font-size:60px;
+    width:200px;
+    height:100px;
 
 }
 #choppinessBar{
     position:absolute;
     z-index: 5
 
+}
+#gauss{
+    position:absolute;
+    z-index: 5;
+    top:700px;
+    left:1430px;
+    color:white;
+    font-size:30px;
+    width: 70px;
+    height:50px;
+}
+#laplace{
+    position:absolute;
+    z-index: 5;
+    top:700px;
+    left:1700px;
+    color:white;
+    font-size:30px;
+    width: 70px;
+    height:50px;
+}
+#LOW{
+    position:absolute;
+    z-index: 5;
+    color:white;
+}
+
+#HIGH{
+    position:absolute;
+    z-index: 5;
+    color:white;
+}
+
+#windspeedSlider{
+    position:absolute;
+    z-index: 5;
+    top:680px;
+    left:250px;
+    width:200px;
+    height:100px;
+}
+#choppinessSlider{
+    position:absolute;
+    z-index: 5;
+    top:670px;
+    left:1500px;
+    width:200px;
+    height:100px;
 }

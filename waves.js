@@ -49,7 +49,7 @@ class Main {
         const canvas_audio_spec_high = document.getElementById('audio_spec_high');
         canvas_audio_spec_high.width = AS_WIDTH;
         canvas_audio_spec_high.height = AS_HEIGHT;
-        canvas_audio_spec_high.style.top = 1080-AS_HEIGHT + "px"
+        canvas_audio_spec_high.style.top = 1080-AS_HEIGHT-100 + "px"
         canvas_audio_spec_high.style.left = 1920-AS_WIDTH + "px"
         canvas_audio_spec_high.style.width = AS_WIDTH + "px"
         canvas_audio_spec_high.style.height = AS_HEIGHT + "px"
@@ -58,11 +58,39 @@ class Main {
         const canvas_audio_spec_low = document.getElementById('audio_spec_low');
         canvas_audio_spec_low.width = AS_WIDTH;
         canvas_audio_spec_low.height = AS_HEIGHT;
-        canvas_audio_spec_low.style.top = 1080-AS_HEIGHT + "px"
+        canvas_audio_spec_low.style.top = 1080-AS_HEIGHT-100 + "px"
         canvas_audio_spec_low.style.left = 0 + "px"
         canvas_audio_spec_low.style.width = AS_WIDTH + "px"
         canvas_audio_spec_low.style.height = AS_HEIGHT + "px"
         this.canvas_audio_spec_low_ctx = canvas_audio_spec_low.getContext('2d');
+
+        const text1=document.getElementById('LOW');
+        text1.style.fontSize=40+"px"
+        text1.style.top=parseInt(canvas_audio_spec_low.style.top)+AS_HEIGHT+"px";
+        text1.style.left=parseInt(canvas_audio_spec_low.style.left)+AS_WIDTH/2-parseInt(text1.style.fontSize)/2+"px";
+
+        const text2=document.getElementById('HIGH');
+        text2.style.fontSize=40+"px"
+        text2.style.top=parseInt(canvas_audio_spec_high.style.top)+AS_HEIGHT+"px";
+        text2.style.left=parseInt(canvas_audio_spec_high.style.left)+AS_WIDTH/2-parseInt(text2.style.fontSize)/2+"px";
+        // 左上に配置
+        // const text2=document.getElementById('HIGH');
+        // text2.style.fontSize=40+"px"
+        // text2.style.top=parseInt(canvas_audio_spec_high.style.top)-parseInt(text2.style.fontSize)+"px";
+        // text2.style.left=canvas_audio_spec_high.style.left;
+
+        //風スライダのセット
+        this.slider_wind=document.getElementById('windspeedSlider')
+        this.slider_wind.min=MIN_WIND_SPEED;
+        this.slider_wind.max=MAX_WIND_SPEED;
+        this.slider_wind.step=0.01
+        this.slider_wind.value=INITIAL_WIND_SPEED;
+        //choppinessスライダのセット
+        this.slider_choppiness=document.getElementById('choppinessSlider')
+        this.slider_choppiness.min=MIN_CHOPPINESS;
+        this.slider_choppiness.max=MAX_CHOPPINESS;
+        this.slider_choppiness.step=0.01
+        this.slider_choppiness.value=INITIAL_CHOPPINESS;
 
         this.running = false
         this.images = []
@@ -165,13 +193,17 @@ class Main {
         this.audio_analyzer.getFloatFrequencyData(this.freqData)
         this.getHistGram()//FreqDataを正規化、平均化したBIN次元のヒストグラムを作る
         this.drawHist()//ヒストグラムをcanvasに描画(高音域,低音域の平均も計算)
-        const newWindSpeed=this.ave_hist_high*(MAX_WIND_SPEED-MIN_WIND_SPEED)+MIN_WIND_SPEED
+        const newWindSpeed=this.ave_hist_low*(MAX_WIND_SPEED-MIN_WIND_SPEED)+MIN_WIND_SPEED
         console.log("windspeed",newWindSpeed)
-        const id=document.getElementById('windspeedValue')
-        id.innerHTML=Math.round(newWindSpeed * Math.pow(10, 2) ) / Math.pow(10, 2);
+        const id_wind=document.getElementById('windspeedValue')
+        id_wind.innerHTML=Math.round(newWindSpeed * Math.pow(10, 2) ) / Math.pow(10, 2);
+        this.slider_wind.value=newWindSpeed;
 
-        const newChoppiness=this.ave_hist_low*(MAX_CHOPPINESS-MIN_CHOPPINESS)+MIN_CHOPPINESS
+        const newChoppiness=this.ave_hist_high*(MAX_CHOPPINESS-MIN_CHOPPINESS)+MIN_CHOPPINESS
         console.log("choppiness",newChoppiness)
+        this.slider_choppiness.value=newChoppiness;
+        const id_chop=document.getElementById('choppinessValue')
+        id_chop.innerHTML=Math.round(newChoppiness * Math.pow(10, 2) ) / Math.pow(10, 2);
         //console.log("val", val);
         this.worker.postMessage({type: "updateWindSpeed", value: newWindSpeed})
         this.worker.postMessage({type: "updateChoppiness", value: newChoppiness})
