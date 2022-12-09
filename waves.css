@@ -161,16 +161,44 @@ html {
 #windspeedSlider{
     position:absolute;
     z-index: 5;
-    top:680px;
+    top:720px;
     left:250px;
     width:200px;
-    height:100px;
+    height:10px;
 }
 #choppinessSlider{
     position:absolute;
     z-index: 5;
-    top:670px;
+    top:720px;
     left:1500px;
     width:200px;
-    height:100px;
+    height:10px;
 }
+
+
+/*Chrome*/
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+    input[type='range'] {
+      overflow: hidden;
+      width: 80px;
+      -webkit-appearance: none;
+      background-color:#434343;
+    }
+    
+    input[type='range']::-webkit-slider-runnable-track {
+      height: 10px;
+      -webkit-appearance: none;
+      color: #434343;
+      margin-top: -1px;
+    }
+    
+    input[type='range']::-webkit-slider-thumb {
+      width: 10px;
+      -webkit-appearance: none;
+      height: 10px;
+      cursor: ew-resize;
+      background: #ffffff;
+      box-shadow: -80px 0 0 80px #a8a8a8;
+    }
+
+} 
