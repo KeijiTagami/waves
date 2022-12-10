@@ -3,14 +3,14 @@
 class Main {
 
     constructor() {
-        const wave_offsetx=(1920-WAVE_WIDTH)/2+7;//波を1920*1080スクリーンの中心に配置
+        const wave_offsetx=((1920-WAVE_WIDTH*STYLEX_ADJUST)/2+7);//波を1920*1080スクリーンの中心に配置
         const wave_offsety=(1080-WAVE_HEIGHT)/2+52*2;//壁にフィットさせるときは2壁分(52px*2)下にずらす
         const canvas_blue = document.getElementById('blue_wave');
         canvas_blue.width = OUTPUT_WIDTH
         canvas_blue.height = OUTPUT_HEIGHT
         canvas_blue.style.top = wave_offsety + "px"
         canvas_blue.style.left = wave_offsetx + "px"
-        canvas_blue.style.width = WAVE_WIDTH + "px"
+        canvas_blue.style.width = WAVE_WIDTH*STYLEX_ADJUST + "px"
         canvas_blue.style.height = WAVE_HEIGHT + "px"
         this.canvas_blue_ctx = canvas_blue.getContext('2d');
 
@@ -19,7 +19,7 @@ class Main {
         canvas_white.height = OUTPUT_HEIGHT
         canvas_white.style.top = wave_offsety + "px"
         canvas_white.style.left = wave_offsetx + "px"
-        canvas_white.style.width = WAVE_WIDTH + "px"
+        canvas_white.style.width = WAVE_WIDTH*STYLEX_ADJUST + "px"
         canvas_white.style.height = WAVE_HEIGHT + "px"
         this.canvas_white_ctx = canvas_white.getContext('2d');
 
@@ -212,7 +212,7 @@ class Main {
         //let newWindSpeed=this.ave_hist_low*(MAX_WIND_SPEED-MIN_WIND_SPEED)+MIN_WIND_SPEED
         //最大
         let newWindSpeed=this.max_hist_low*(MAX_WIND_SPEED-MIN_WIND_SPEED)+MIN_WIND_SPEED
-        newWindSpeed=this.adjustNewParameter(newWindSpeed,this.oldWindspeed,0.01)
+        newWindSpeed=this.adjustNewParameter(newWindSpeed,this.oldWindspeed,DECREASE_ALPHA)
         this.oldWindspeed=newWindSpeed
         console.log("windspeed",newWindSpeed)
         const id_wind=document.getElementById('windspeedValue')
@@ -222,7 +222,7 @@ class Main {
         //let newChoppiness=this.ave_hist_high*(MAX_CHOPPINESS-MIN_CHOPPINESS)+MIN_CHOPPINESS
         //最大
         let newChoppiness=this.max_hist_high*(MAX_CHOPPINESS-MIN_CHOPPINESS)+MIN_CHOPPINESS
-        newChoppiness=this.adjustNewParameter(newChoppiness,this.oldChoppiness,0.01)
+        newChoppiness=this.adjustNewParameter(newChoppiness,this.oldChoppiness,DECREASE_ALPHA)
         this.oldChoppiness=newChoppiness
         console.log("choppiness",newChoppiness)
         this.slider_choppiness.value=newChoppiness;

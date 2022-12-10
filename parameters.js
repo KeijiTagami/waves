@@ -2,6 +2,8 @@
 //コンテンツの大きさに関する設定
 var WAVE_WIDTH = 624,//波のコンテンツの大きさ(px)(壁ぴったりで(624,780))
     WAVE_HEIGHT =780;
+//var STYLEX_ADJUST=1; //何もしない
+var STYLEX_ADJUST=3840/4096;//引き延ばされる分縮小する
 var WF_WIDTH=1080,//壁の[LED, 高さ, 速度]の画面
     WF_WIDTH_3=360,//壁のLED,高さ, 速度それぞれの幅
     WF_HEIGHT=450;
@@ -31,7 +33,8 @@ var DECIBEL_MIN=-150.0,//音の大きさ
     BIN=64,//音のヒストグラム
     HIST_START=0,//インデックスの開始
     HIST_END=500,//インデックスの終了
-    HIST_MARGIN=0.8//ヒストグラムの隣接間隔
+    HIST_MARGIN=0.8,//ヒストグラムの隣接間隔
+    DECREASE_ALPHA=0.009//パラメータの減衰スピード
 
 var AS_HEIGHT=200,
     AS_WIDTH=600;
