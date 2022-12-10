@@ -50,20 +50,20 @@ async function on_canvas(canvas1, canvas2) {
         tf.registerBackend(TF_TYPE, () => customBackend)
     }
     await tf.setBackend(TF_TYPE)
-    console.log(tf.getBackend())
+    //console.log(tf.getBackend())
     if (TF_TYPE == "wasm") {
         //tf.wasm.setThreadsCount(2)
-        console.log(tf.wasm.getThreadsCount())
+        //console.log(tf.wasm.getThreadsCount())
     }
     model = await tf.loadLayersModel('./tfjsModel/' + MODEL_NAME + '/model.json')//ここで使うモデルを指定
-    console.log(model)
+    //console.log(model)
     await Simulator.load_gl()
     simulator = new Simulator(gl, canvas2)
     postMessage({ type: "ready" })
 }
 
 async function create(num) {
-    console.log("memory", tf.memory())
+    //console.log("memory", tf.memory())
     const blue = []
     const wall = []
     const data = []
@@ -96,7 +96,7 @@ async function create(num) {
             }
         }
     }
-    console.log(data)
+    //console.log(data)
 
     const start = Date.now()
     const output_t = tf.tidy(() => {
@@ -110,7 +110,7 @@ async function create(num) {
         delete data[i]
     }
     const whitePixels = await output_t.data()
-    tf.print(output_t.shape)
+    //tf.print(output_t.shape)
     output_t.dispose()
     console.log("predict", num, Date.now() - start, "ms")
     const white = []

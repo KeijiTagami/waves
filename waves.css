@@ -40,7 +40,7 @@ html {
 }
 #wallformat {
     position: absolute;
-    z-index: 2;
+    z-index: 0;
 }
 
 
@@ -61,6 +61,25 @@ html {
     width:1920px;
     height:1080px;
     background:#909090;/*壁の初期化時の高さに対応するので注意*/
+}
+#LED{
+    position:absolute;
+    z-index:1;
+    top:1080px;
+    left:0px;
+    width:360px;
+    height:450px;
+    background:#000000;/*壁の初期化時のLEDsに対応するので注意*/
+}
+
+#WALL_SPEED{
+    position:absolute;
+    z-index:1;
+    top:1080px;
+    left:720px;
+    width:360px;
+    height:450px;
+    background:#ffffff;/*壁の初期化時の高さに対応するので注意*/
 }
 
 #audio_spec_high{

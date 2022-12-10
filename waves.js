@@ -37,14 +37,14 @@ class Main {
         canvas_wallheight.style.left = (WF_WIDTH_3+wallheight_offsetx) + "px"
         this.canvas_wallheight_ctx = canvas_wallheight.getContext('2d');
 
-        const canvas_wallformat = document.getElementById('wallformat');
-        canvas_wallformat.width = WF_WIDTH;
-        canvas_wallformat.height = WF_HEIGHT;
-        canvas_wallformat.style.top = 1080 + "px"
-        canvas_wallformat.style.left = 0 + "px"
-        canvas_wallformat.style.width = WF_WIDTH + "px"
-        canvas_wallformat.style.height = WF_HEIGHT + "px"
-        this.canvas_wallformat_ctx = canvas_wallformat.getContext('2d');
+        // const canvas_wallformat = document.getElementById('wallformat');
+        // canvas_wallformat.width = WF_WIDTH;
+        // canvas_wallformat.height = WF_HEIGHT;
+        // canvas_wallformat.style.top = 1080 + "px"
+        // canvas_wallformat.style.left = 0 + "px"
+        // canvas_wallformat.style.width = WF_WIDTH + "px"
+        // canvas_wallformat.style.height = WF_HEIGHT + "px"
+        // this.canvas_wallformat_ctx = canvas_wallformat.getContext('2d');
 
         const canvas_audio_spec_high = document.getElementById('audio_spec_high');
         canvas_audio_spec_high.width = AS_WIDTH;
@@ -127,7 +127,7 @@ class Main {
             })
             this.run()
         })
-        this.setWallInit();
+        //this.setWallInit();
     }
 
     run() {
@@ -214,7 +214,7 @@ class Main {
         let newWindSpeed=this.max_hist_low*(MAX_WIND_SPEED-MIN_WIND_SPEED)+MIN_WIND_SPEED
         newWindSpeed=this.adjustNewParameter(newWindSpeed,this.oldWindspeed,DECREASE_ALPHA)
         this.oldWindspeed=newWindSpeed
-        console.log("windspeed",newWindSpeed)
+        //console.log("windspeed",newWindSpeed)
         const id_wind=document.getElementById('windspeedValue')
         id_wind.innerHTML=Math.round(newWindSpeed * Math.pow(10, 2) ) / Math.pow(10, 2);
         this.slider_wind.value=newWindSpeed;
@@ -224,7 +224,7 @@ class Main {
         let newChoppiness=this.max_hist_high*(MAX_CHOPPINESS-MIN_CHOPPINESS)+MIN_CHOPPINESS
         newChoppiness=this.adjustNewParameter(newChoppiness,this.oldChoppiness,DECREASE_ALPHA)
         this.oldChoppiness=newChoppiness
-        console.log("choppiness",newChoppiness)
+        //console.log("choppiness",newChoppiness)
         this.slider_choppiness.value=newChoppiness;
         const id_chop=document.getElementById('choppinessValue')
         id_chop.innerHTML=Math.round(newChoppiness * Math.pow(10, 2) ) / Math.pow(10, 2);
@@ -247,7 +247,7 @@ class Main {
     getSimulation(data) {
         console.log("get")
         this.images = this.images.concat(data)
-        console.log(this.images.length)
+        //console.log(this.images.length)
         setTimeout(this.requestSimulation.bind(this), 10)
         if (this.render_interval == null) {
             if (this.images.length >= MIN_STOCK) {
